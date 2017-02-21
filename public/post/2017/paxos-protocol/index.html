@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>Paxos协议整理 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/solarized-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书籍</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">编辑器</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+							<li><a href="http://nituchao.com/categories/%E7%94%9F%E4%BA%A7%E8%80%85vs%E6%B6%88%E8%B4%B9%E8%80%85">生产者vs消费者</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">Paxos协议整理</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2017-02-15">2017年02月15日</time></span>
+				</div>
+				<section>
+					
+
+<p>Paxos是一种提高分布式系统容错性的一致性算法。</p>
+
+<p>其算法描述如下：</p>
+
+<h2 id="阶段一">阶段一</h2>
+
+<p>1，Proposer选择一个提案编号Mn，然后向Acceptor的某个超过半数的子集成员发送编号为Mn的Prepare请求。</p>
+
+<p>2，如果一个Acceptor收到一个编号为Mn的Prepare请求，且编号Mn大于该Acctpor已经响应的所有Prepare请求的编号，那么它就会将它已经批准过的最大编号的提案作为响应反馈给Proposer，同时该Acceptor会承诺不会再批准任何编号小于Mn的提案。</p>
+
+<p>举个例子来说，假定一个Acceptor已经响应过的所有Prepare请求对应的提案编号分别为1、2、&hellip;、5和7，那么该Acceptor在接收一个编号为8的Prepare请求后，就会将编号为7的提案作为响应反馈给Proposer。</p>
+
+<h2 id="阶段二">阶段二</h2>
+
+<p>1，如果Proposer收到来自半数以上的Acceptor对于其发出的编号为Mn的Prepare请求的响应，那么它就会发送一个针对[Mn, Vn]提案的Accept请求给Acceptor。注意，Vn的值就是收到的响应中编号最大的提案的值，如果响应中不包含任何提案，那么它就是任意值。</p>
+
+<p>2，如果Acceptor收到这个针对[Mn, Vn]提案的Accept请求，只要改Acceptor尚未对编号大于Mn的Prepare请求作出响应，它就可以通过这个提案。</p>
+
+<p>当然，在实际运行过程中，每一个Proposer都有可能会产生多个提案，但只要每个Proposer都遵循如何所述的算法运行，就一定能够保证算法执行的正确性。值得一提的是，每个Proposer都可以在任意时刻丢弃一个提案，哪怕针对该提案的请求和响应在提案被丢弃后会到达，但根据Paxos算法的一系列规约，依然可以保证其在提案选定上的正确性。事实上，如果某个Proposer已经在视图生成编号更大的提案，那么丢弃一些就的提案未尝不是一个好的选择。因此，如果一个Acceptor因为已经收到过更大编号的Prepare请求而忽略某个编号更小的Prepare或者Accept请求，那么它也应当通知其对应的Proposer，以便该Proposer也能够将该提案进行丢弃&ndash;这和上面&rdquo;算法优化&rdquo;部分中提到的提案丢弃是一致的。</p>
+
+<h2 id="提案的获取">提案的获取</h2>
+
+<p>现在，我们再来看看如何让Learner获取提案，大体可以有以下几种方案。</p>
+
+<p><strong>方案一</strong></p>
+
+<p>Learner获取一个已经被选定的提案的前提是，该提案已经被半数以上的Acceptor批准。因此，最简单的做法就是一旦Acceptor批准了一个提案，就将该提案发送给所有的Leaner。</p>
+
+<p>很显然，这种做法虽然可以让Leaner尽快地获取被选定的提案，但是却需要让每个Acceptor与所有的Leaner逐个进行一次通信，通信的次数至少为二者个数的乘积。</p>
+
+<p><strong>方案二</strong></p>
+
+<p>另一种可行的方案是，我们可以让所有的Acceptor将他们对提案的批准情况，统一发送给一个特定的Leaner(下文中我们将这样的Leaner称为&rdquo;主Leaner&rdquo;)，在不考虑拜占庭将军问题的前提下，我们假定Leaner之间可以通过消息通信来相互感知提案的选定情况。基于这样的前提，当主Leaner被通知一个提案已经被选定时，它会负责通知其他的Leaner。</p>
+
+<p>这种方案中，Acceptor首先会将得到批准的提案发送给主Learner，再由其同步给其他Leaner，因此较方案一而言，方案二虽然需要多一个步骤才能将提案通知到所有的Leaner，但其通信次数却大大减少了，通常只是Acceptor和Learner的个数总和。但同时，该方案引入了一个新的不稳定因素：主Learner随时可能出现故障。</p>
+
+<p><strong>方案三</strong></p>
+
+<p>在讲解方案二的时候，我们提到，方案二最大的问题在于主Learner存在单点问题，即主Learner随时可能出现故障。因此，对方案二进行改进，可以将主Learner的范围扩大，即Acceptor可以将批准的提案发送给一个特定的Learner集合，该集合中的每个Learner都可以在一个提案被选定后通知所有其他的Learner。这个Learner集合中的Learner个数越多，可靠性就越好，但同时网络通信的复杂度也就越高。</p>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">Paxos协议整理</a></strong></li>
+			</ul>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#阶段一">阶段一</a></li>
+<li><a href="#阶段二">阶段二</a></li>
+<li><a href="#提案的获取">提案的获取</a></li>
+</ul></li>
+</ul>
+</nav>
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

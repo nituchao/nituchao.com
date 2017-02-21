@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Xa on 泥土巢</title>
+    <link>http://nituchao.com/tags/xa/index.xml</link>
+    <description>Recent content in Xa on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/tags/xa/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Paxos协议整理</title>
+      <link>http://nituchao.com/post/2017/paxos-protocol/</link>
+      <pubDate>Wed, 15 Feb 2017 10:13:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/paxos-protocol/</guid>
+      <description>
+
+&lt;p&gt;Paxos是一种提高分布式系统容错性的一致性算法。&lt;/p&gt;
+
+&lt;p&gt;其算法描述如下：&lt;/p&gt;
+
+&lt;h2 id=&#34;阶段一&#34;&gt;阶段一&lt;/h2&gt;
+
+&lt;p&gt;1，Proposer选择一个提案编号Mn，然后向Acceptor的某个超过半数的子集成员发送编号为Mn的Prepare请求。&lt;/p&gt;
+
+&lt;p&gt;2，如果一个Acceptor收到一个编号为Mn的Prepare请求，且编号Mn大于该Acctpor已经响应的所有Prepare请求的编号，那么它就会将它已经批准过的最大编号的提案作为响应反馈给Proposer，同时该Acceptor会承诺不会再批准任何编号小于Mn的提案。&lt;/p&gt;
+
+&lt;p&gt;举个例子来说，假定一个Acceptor已经响应过的所有Prepare请求对应的提案编号分别为1、2、&amp;hellip;、5和7，那么该Acceptor在接收一个编号为8的Prepare请求后，就会将编号为7的提案作为响应反馈给Proposer。&lt;/p&gt;
+
+&lt;h2 id=&#34;阶段二&#34;&gt;阶段二&lt;/h2&gt;
+
+&lt;p&gt;1，如果Proposer收到来自半数以上的Acceptor对于其发出的编号为Mn的Prepare请求的响应，那么它就会发送一个针对[Mn, Vn]提案的Accept请求给Acceptor。注意，Vn的值就是收到的响应中编号最大的提案的值，如果响应中不包含任何提案，那么它就是任意值。&lt;/p&gt;
+
+&lt;p&gt;2，如果Acceptor收到这个针对[Mn, Vn]提案的Accept请求，只要改Acceptor尚未对编号大于Mn的Prepare请求作出响应，它就可以通过这个提案。&lt;/p&gt;
+
+&lt;p&gt;当然，在实际运行过程中，每一个Proposer都有可能会产生多个提案，但只要每个Proposer都遵循如何所述的算法运行，就一定能够保证算法执行的正确性。值得一提的是，每个Proposer都可以在任意时刻丢弃一个提案，哪怕针对该提案的请求和响应在提案被丢弃后会到达，但根据Paxos算法的一系列规约，依然可以保证其在提案选定上的正确性。事实上，如果某个Proposer已经在视图生成编号更大的提案，那么丢弃一些就的提案未尝不是一个好的选择。因此，如果一个Acceptor因为已经收到过更大编号的Prepare请求而忽略某个编号更小的Prepare或者Accept请求，那么它也应当通知其对应的Proposer，以便该Proposer也能够将该提案进行丢弃&amp;ndash;这和上面&amp;rdquo;算法优化&amp;rdquo;部分中提到的提案丢弃是一致的。&lt;/p&gt;
+
+&lt;h2 id=&#34;提案的获取&#34;&gt;提案的获取&lt;/h2&gt;
+
+&lt;p&gt;现在，我们再来看看如何让Learner获取提案，大体可以有以下几种方案。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;方案一&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Learner获取一个已经被选定的提案的前提是，该提案已经被半数以上的Acceptor批准。因此，最简单的做法就是一旦Acceptor批准了一个提案，就将该提案发送给所有的Leaner。&lt;/p&gt;
+
+&lt;p&gt;很显然，这种做法虽然可以让Leaner尽快地获取被选定的提案，但是却需要让每个Acceptor与所有的Leaner逐个进行一次通信，通信的次数至少为二者个数的乘积。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;方案二&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;另一种可行的方案是，我们可以让所有的Acceptor将他们对提案的批准情况，统一发送给一个特定的Leaner(下文中我们将这样的Leaner称为&amp;rdquo;主Leaner&amp;rdquo;)，在不考虑拜占庭将军问题的前提下，我们假定Leaner之间可以通过消息通信来相互感知提案的选定情况。基于这样的前提，当主Leaner被通知一个提案已经被选定时，它会负责通知其他的Leaner。&lt;/p&gt;
+
+&lt;p&gt;这种方案中，Acceptor首先会将得到批准的提案发送给主Learner，再由其同步给其他Leaner，因此较方案一而言，方案二虽然需要多一个步骤才能将提案通知到所有的Leaner，但其通信次数却大大减少了，通常只是Acceptor和Learner的个数总和。但同时，该方案引入了一个新的不稳定因素：主Learner随时可能出现故障。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;方案三&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在讲解方案二的时候，我们提到，方案二最大的问题在于主Learner存在单点问题，即主Learner随时可能出现故障。因此，对方案二进行改进，可以将主Learner的范围扩大，即Acceptor可以将批准的提案发送给一个特定的Learner集合，该集合中的每个Learner都可以在一个提案被选定后通知所有其他的Learner。这个Learner集合中的Learner个数越多，可靠性就越好，但同时网络通信的复杂度也就越高。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>3PC协议整理</title>
+      <link>http://nituchao.com/post/2017/three-phase-commit-protocol/</link>
+      <pubDate>Wed, 15 Feb 2017 10:12:58 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/three-phase-commit-protocol/</guid>
+      <description>
+
+&lt;p&gt;3PC，是Three-Phase Commit的缩写，即三阶段提交，是2PC的改进版，其将二阶段提交协议的&amp;rdquo;提交事务请求&amp;rdquo;过程一分为二，形成了由CanCommit、PreCommit和doCommit三个阶段组成的事务处理协议。&lt;/p&gt;
+
+&lt;h2 id=&#34;阶段一-cancommit&#34;&gt;阶段一：CanCommit&lt;/h2&gt;
+
+&lt;p&gt;1，事务询问&lt;/p&gt;
+
+&lt;p&gt;协调者向所有的参与者发送一个包含事务内容的canCommit请求，询问是否可以执行事务提交操作，并开始等待个参与者的响应。&lt;/p&gt;
+
+&lt;p&gt;2，各参与者向协调者反馈事务询问的响应&lt;/p&gt;
+
+&lt;p&gt;参与者在接收到来自协调者的canCommit请求后，正常情况下，如果其自身认为可以顺利执行事务，那么会反馈Yes响应，并进入预备状态，否则反馈No响应。&lt;/p&gt;
+
+&lt;h2 id=&#34;阶段二-precommit&#34;&gt;阶段二：PreCommit&lt;/h2&gt;
+
+&lt;p&gt;在阶段二中，协调者会根据各参与者的反馈情况来决定是否可以进行事务的PreCommit操作，正常情况下，包含两种可能。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;执行事务预提交&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;假设协调者从所有的参与者获得的反馈都是Yes响应，那么就会执行事务预提交。&lt;/p&gt;
+
+&lt;p&gt;1，发送预提交请求&lt;/p&gt;
+
+&lt;p&gt;协调者向所有参与者节点发出preCommit的请求，并进入Prepared阶段。&lt;/p&gt;
+
+&lt;p&gt;2，事务预提交&lt;/p&gt;
+
+&lt;p&gt;参与者接收到preCommit请求后，会执行事务操作，并将Undo和Redo信息记录到事务日志中。&lt;/p&gt;
+
+&lt;p&gt;3，各参与者向协调者反馈事务执行的响应&lt;/p&gt;
+
+&lt;p&gt;如果参与者成功执行事务操作，那么就会反馈给协调者Ack响应，同时等待最终的指令：提交(commit)或终止(abort)。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;中断事务&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;假如任何一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。&lt;/p&gt;
+
+&lt;p&gt;1，发送中断请求&lt;/p&gt;
+
+&lt;p&gt;协调者向所有参与者节点发出abort请求。&lt;/p&gt;
+
+&lt;p&gt;2，中断事务&lt;/p&gt;
+
+&lt;p&gt;无论是收到来自协调者的abort请求，或者是在等待协调者过程中出现超时，参与者都会中断事务。&lt;/p&gt;
+
+&lt;h2 id=&#34;阶段三-docommit&#34;&gt;阶段三：doCommit&lt;/h2&gt;
+
+&lt;p&gt;该阶段将进行真正的事务提交，会存在以下两种可能的情况。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;执行提交&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;1，发送提交请求&lt;/p&gt;
+
+&lt;p&gt;进入这一阶段，假设协调者处于正常工作状态，并且它接收到了来自所有参与者的Ack响应，那么它将从&amp;rdquo;预提交&amp;rdquo;状态转换到&amp;rdquo;提交&amp;rdquo;状态，并向所有的参与者发送doCommit请求。&lt;/p&gt;
+
+&lt;p&gt;2，事务提交&lt;/p&gt;
+
+&lt;p&gt;参与者接收到doCommit请求后，会正式执行事务提交操作，并在完成提交之后释放在整个事务执行期间占用的事务资源。&lt;/p&gt;
+
+&lt;p&gt;3，反馈事务提交结果&lt;/p&gt;
+
+&lt;p&gt;参与者在完成事务提交之后，相协调者发送Ack消息。&lt;/p&gt;
+
+&lt;p&gt;4，完成事务&lt;/p&gt;
+
+&lt;p&gt;协调者接收到所有参与者反馈的Ack消息后，完成事务。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;中断事务&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;进入这一阶段，假设协调者处于正常工作状态，并且有任意一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。&lt;/p&gt;
+
+&lt;p&gt;1，发送中断请求。&lt;/p&gt;
+
+&lt;p&gt;协调者向所有的参与者节点发送abort请求。&lt;/p&gt;
+
+&lt;p&gt;2，事务回滚。&lt;/p&gt;
+
+&lt;p&gt;参与者接收到abort请求后，会利用其在阶段二中记录的Undo信息来执行事务回滚操作，并在完成回滚之后释放在整个事务执行期间占用的资源。&lt;/p&gt;
+
+&lt;p&gt;3，反馈事务回滚结果。&lt;/p&gt;
+
+&lt;p&gt;参与者在完成事务回滚之后，向协调者发送Ack消息。&lt;/p&gt;
+
+&lt;p&gt;4，中断事务。&lt;/p&gt;
+
+&lt;p&gt;协调者接收到所有参与者反馈的Ack消息后，中断事务。&lt;/p&gt;
+
+&lt;p&gt;需要注意的是，一旦进入阶段三，可能会存在以下两种故障：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;协调者出现问题&lt;/li&gt;
+&lt;li&gt;协调者和参与者之间的网络出现故障。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;无论出现哪种情况，最终都会导致参与者无法及时接收老子协调者的doCommit或者abort请求，针对这样的异常情况，&lt;code&gt;参与者都会在等待超时之后，继续进行事务提交。&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;优缺点&#34;&gt;优缺点&lt;/h2&gt;
+
+&lt;p&gt;三阶段提交协议的优点：相较于二阶段提交协议，三阶段提交协议最大的优点就是降低了参与者的阻塞范围，并且能够出现单点故障后继续达成一致。&lt;/p&gt;
+
+&lt;p&gt;三阶段提交协议的缺点：三阶段提交协议在去除阻塞的同时也引入了新的问题，那就是在参与者接收到preCommit消息后，如果网络出现分区，此时协调者所在的节点和参与者无法进行正常的网络通信，在这种情况下，该参与者依然会进行事务的提交，这必然出现数据不一致性。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>2PC协议整理</title>
+      <link>http://nituchao.com/post/2017/two-phase-commit-protocol/</link>
+      <pubDate>Wed, 15 Feb 2017 10:12:41 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/two-phase-commit-protocol/</guid>
+      <description>
+
+&lt;p&gt;2PC，是Two-Phase Commit的缩写，即二阶段提交，是计算机网络尤其是在数据库领域内，为了使基于分布式系统架构下的所有节点在进行事务处理的过程中能够保持原子性和一致性而设计的一种算法。通常，二阶段提交协议也被认为是一种一致性协议，用来保证分布式系统数据的一致性。目前，绝大部分的关系型数据库都是采用二阶段提交协议来完成分布式事务处理的，利用该协议能够非常方便地完成所有分布式事务参与者的协调，统一决定事务的提交或回滚，从而能够有效地保证分布式数据一致性，因此二阶段提交协议被广泛地应用在许多分布式系统中。&lt;/p&gt;
+
+&lt;h2 id=&#34;协议说明&#34;&gt;协议说明&lt;/h2&gt;
+
+&lt;p&gt;顾名思义，二阶段提交协议是将事务的提交过程分成了两个阶段来进行处理，其执行流程如下：&lt;/p&gt;
+
+&lt;h3 id=&#34;阶段一-提交事务请求&#34;&gt;阶段一：提交事务请求&lt;/h3&gt;
+
+&lt;p&gt;1，事务询问&lt;/p&gt;
+
+&lt;p&gt;协调者向所有的参与者发送事务内容，询问是否可以执行事务提交操作，并开始等待各参与者的响应。&lt;/p&gt;
+
+&lt;p&gt;2，执行事务&lt;/p&gt;
+
+&lt;p&gt;各参与者节点执行事务操作，并将Undo和Redo信息记入事务日志中。&lt;/p&gt;
+
+&lt;p&gt;3，各参与者向协调者反馈事务询问的响应。&lt;/p&gt;
+
+&lt;p&gt;如果参与者成功执行了事务操作，那么就反馈给协调者Yes响应，表示事务可以执行；如果参与者没有成功执行事务，那么就反馈给协调者No响应，表示事务不可以执行。&lt;/p&gt;
+
+&lt;p&gt;由于上面讲述的内容在形式上近似是协调者组织各参与者对一次事务操作的投标表态过程，因此二阶段提交协议的阶段一也被称为&amp;rdquo;投票阶段&amp;rdquo;，即各参与者投票表明是否要继续执行接下去的事务操作。&lt;/p&gt;
+
+&lt;h3 id=&#34;阶段二-执行事务提交&#34;&gt;阶段二：执行事务提交&lt;/h3&gt;
+
+&lt;p&gt;在阶段二，协调者会根据各参与者的反馈情况来决定最终是否可以进行事务提交操作，正常情况下，包含以下两种可能。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;执行事务提交&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;加入协调者从所有的参与者获得的反馈都是Yes响应，那么就会执行事务提交。&lt;/p&gt;
+
+&lt;p&gt;1，发送提交请求。&lt;/p&gt;
+
+&lt;p&gt;协调者向所有参与者节点发出Commit请求。&lt;/p&gt;
+
+&lt;p&gt;2，事务提交。&lt;/p&gt;
+
+&lt;p&gt;参与者接收到Commit请求后，会正式执行事务提交操作，并在完成提交之后释放在整个事务执行期间占用的事务资源。&lt;/p&gt;
+
+&lt;p&gt;3，反馈事务提交结果。&lt;/p&gt;
+
+&lt;p&gt;参与者在完成事务提交之后，向协调者发送Ack消息。&lt;/p&gt;
+
+&lt;p&gt;4，完成事务。&lt;/p&gt;
+
+&lt;p&gt;协调者收到所有参与者反馈的Ack消息后，完成事务。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;中断事务&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;假如任何一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。&lt;/p&gt;
+
+&lt;p&gt;1，发送回滚请求&lt;/p&gt;
+
+&lt;p&gt;协调者向所有参与者节点发出Rollback请求。&lt;/p&gt;
+
+&lt;p&gt;2，事务回滚&lt;/p&gt;
+
+&lt;p&gt;参与者接收到Rollback请求后，会利用其在阶段一中记录的Undo信息来执行事务回滚操作，并在完成回滚后释放在整个事务执行期间占用的资源。&lt;/p&gt;
+
+&lt;p&gt;3，反馈事务回滚结果。&lt;/p&gt;
+
+&lt;p&gt;参与者在完成事务回滚之后，向协调者发送Ack消息。&lt;/p&gt;
+
+&lt;p&gt;4，中断事务&lt;/p&gt;
+
+&lt;p&gt;协调者接收到所有参与者反馈的Ack消息后，完成事务中断。&lt;/p&gt;
+
+&lt;p&gt;以上就是二阶段提交过程，前后两个阶段分别进行的处理逻辑。简单地讲，二阶段提交讲一个事务的处理过程分为了投票和执行两个阶段，其核心是对每个事务都采用先尝试后提交的处理方式，因此也可以将二阶段提交看做一个强一致性的算法。&lt;/p&gt;
+
+&lt;h3 id=&#34;优缺点&#34;&gt;优缺点&lt;/h3&gt;
+
+&lt;p&gt;二阶段提交协议的优点：原理简单，实现方便。&lt;/p&gt;
+
+&lt;p&gt;二阶段提交协议的缺点：同步阻塞，单点问题，脑裂，太过保守。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;同步阻塞&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;二阶段提交协议的最明显也是最大的一个问题就是同步阻塞，这会极大地限制分布式系统的性能。在二阶段提交的执行过程中，所有参与该事务操作的逻辑都处于阻塞状态，也就是说，各个参与者在等待其他参与者相应的额过程中，将无法进行其他任何操作。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;单点问题&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在上面的讲解过程中，相信读者可以看出，协调者的角色在整个二阶段提交协议中起到了非常重要的作用。一旦协调者出现问题，那么整个二阶段提交流程将无法运转，更为严重的是，如果协调者是在阶段二中出现问题的话，那么其他参与者将会一直处于锁定事务资源的状态中，而无法继续完成事务操作。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;数据不一致&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在二阶段提交协议的阶段二，即执行事务提交的时候，当协调者向所有的参与者发送Commit请求之后，发生了局部网络异常或者是协调者在尚未发送完Commit请求之前自身发生了崩溃，导致最终只有部分参与者收到了Commit请求。于是，这部分收到了Commit请求的参与者就会进行事务的提交，而其他没有收到Commit请求的参与者则无法进行事务提交，于是整个分布式系统便出现了数据不一致的现象。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;太过保守&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;如果协调者指示参与者进行事务提交询问的过程中，参与者出现故障而导致协调者始终无法获取到所有参与者的相应信息的话，这时协调者只能依靠其自身的超时机制来判断是否需要中断事务，这样的策略显得比较保守。换句话说，二阶段提交协议咩有设计较为完善的容错机制，任意一个节点的失败都会导致整个事务的失败。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

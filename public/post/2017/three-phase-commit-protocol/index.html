@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>3PC协议整理 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/solarized-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书籍</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">编辑器</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+							<li><a href="http://nituchao.com/categories/%E7%94%9F%E4%BA%A7%E8%80%85vs%E6%B6%88%E8%B4%B9%E8%80%85">生产者vs消费者</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">3PC协议整理</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2017-02-15">2017年02月15日</time></span>
+				</div>
+				<section>
+					
+
+<p>3PC，是Three-Phase Commit的缩写，即三阶段提交，是2PC的改进版，其将二阶段提交协议的&rdquo;提交事务请求&rdquo;过程一分为二，形成了由CanCommit、PreCommit和doCommit三个阶段组成的事务处理协议。</p>
+
+<h2 id="阶段一-cancommit">阶段一：CanCommit</h2>
+
+<p>1，事务询问</p>
+
+<p>协调者向所有的参与者发送一个包含事务内容的canCommit请求，询问是否可以执行事务提交操作，并开始等待个参与者的响应。</p>
+
+<p>2，各参与者向协调者反馈事务询问的响应</p>
+
+<p>参与者在接收到来自协调者的canCommit请求后，正常情况下，如果其自身认为可以顺利执行事务，那么会反馈Yes响应，并进入预备状态，否则反馈No响应。</p>
+
+<h2 id="阶段二-precommit">阶段二：PreCommit</h2>
+
+<p>在阶段二中，协调者会根据各参与者的反馈情况来决定是否可以进行事务的PreCommit操作，正常情况下，包含两种可能。</p>
+
+<p><strong>执行事务预提交</strong></p>
+
+<p>假设协调者从所有的参与者获得的反馈都是Yes响应，那么就会执行事务预提交。</p>
+
+<p>1，发送预提交请求</p>
+
+<p>协调者向所有参与者节点发出preCommit的请求，并进入Prepared阶段。</p>
+
+<p>2，事务预提交</p>
+
+<p>参与者接收到preCommit请求后，会执行事务操作，并将Undo和Redo信息记录到事务日志中。</p>
+
+<p>3，各参与者向协调者反馈事务执行的响应</p>
+
+<p>如果参与者成功执行事务操作，那么就会反馈给协调者Ack响应，同时等待最终的指令：提交(commit)或终止(abort)。</p>
+
+<p><strong>中断事务</strong></p>
+
+<p>假如任何一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。</p>
+
+<p>1，发送中断请求</p>
+
+<p>协调者向所有参与者节点发出abort请求。</p>
+
+<p>2，中断事务</p>
+
+<p>无论是收到来自协调者的abort请求，或者是在等待协调者过程中出现超时，参与者都会中断事务。</p>
+
+<h2 id="阶段三-docommit">阶段三：doCommit</h2>
+
+<p>该阶段将进行真正的事务提交，会存在以下两种可能的情况。</p>
+
+<p><strong>执行提交</strong></p>
+
+<p>1，发送提交请求</p>
+
+<p>进入这一阶段，假设协调者处于正常工作状态，并且它接收到了来自所有参与者的Ack响应，那么它将从&rdquo;预提交&rdquo;状态转换到&rdquo;提交&rdquo;状态，并向所有的参与者发送doCommit请求。</p>
+
+<p>2，事务提交</p>
+
+<p>参与者接收到doCommit请求后，会正式执行事务提交操作，并在完成提交之后释放在整个事务执行期间占用的事务资源。</p>
+
+<p>3，反馈事务提交结果</p>
+
+<p>参与者在完成事务提交之后，相协调者发送Ack消息。</p>
+
+<p>4，完成事务</p>
+
+<p>协调者接收到所有参与者反馈的Ack消息后，完成事务。</p>
+
+<p><strong>中断事务</strong></p>
+
+<p>进入这一阶段，假设协调者处于正常工作状态，并且有任意一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。</p>
+
+<p>1，发送中断请求。</p>
+
+<p>协调者向所有的参与者节点发送abort请求。</p>
+
+<p>2，事务回滚。</p>
+
+<p>参与者接收到abort请求后，会利用其在阶段二中记录的Undo信息来执行事务回滚操作，并在完成回滚之后释放在整个事务执行期间占用的资源。</p>
+
+<p>3，反馈事务回滚结果。</p>
+
+<p>参与者在完成事务回滚之后，向协调者发送Ack消息。</p>
+
+<p>4，中断事务。</p>
+
+<p>协调者接收到所有参与者反馈的Ack消息后，中断事务。</p>
+
+<p>需要注意的是，一旦进入阶段三，可能会存在以下两种故障：</p>
+
+<ul>
+<li>协调者出现问题</li>
+<li>协调者和参与者之间的网络出现故障。</li>
+</ul>
+
+<p>无论出现哪种情况，最终都会导致参与者无法及时接收老子协调者的doCommit或者abort请求，针对这样的异常情况，<code>参与者都会在等待超时之后，继续进行事务提交。</code></p>
+
+<h2 id="优缺点">优缺点</h2>
+
+<p>三阶段提交协议的优点：相较于二阶段提交协议，三阶段提交协议最大的优点就是降低了参与者的阻塞范围，并且能够出现单点故障后继续达成一致。</p>
+
+<p>三阶段提交协议的缺点：三阶段提交协议在去除阻塞的同时也引入了新的问题，那就是在参与者接收到preCommit消息后，如果网络出现分区，此时协调者所在的节点和参与者无法进行正常的网络通信，在这种情况下，该参与者依然会进行事务的提交，这必然出现数据不一致性。</p>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">3PC协议整理</a></strong></li>
+			</ul>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#阶段一-cancommit">阶段一：CanCommit</a></li>
+<li><a href="#阶段二-precommit">阶段二：PreCommit</a></li>
+<li><a href="#阶段三-docommit">阶段三：doCommit</a></li>
+<li><a href="#优缺点">优缺点</a></li>
+</ul></li>
+</ul>
+</nav>
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+
