@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://nituchao.com/book/</loc>
+    <lastmod>2017-02-12T17:51:45+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/jvm-tiao-shi-xiang-guan-de-pei-zhi-can-shu/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/jvm-xing-wei-xiang-guan-de-pei-zhi-can-shu/</loc>
+    <lastmod>2016-12-29T13:53:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/g1-shou-ji-qi-pei-zhi-can-shu/</loc>
+    <lastmod>2016-12-29T12:22:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/jvm-chan-yong-de-fei-biao-zhun-pei-zhi-can-shu/</loc>
+    <lastmod>2016-12-29T10:18:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/jvm-xing-neng-xiang-guan-de-pei-zhi-can-shu/</loc>
+    <lastmod>2016-12-29T09:30:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</loc>
+    <lastmod>2016-12-28T13:14:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-xin-hao-liang-ji-zhi-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</loc>
+    <lastmod>2016-12-27T16:12:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-chong-ru-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</loc>
+    <lastmod>2016-12-27T16:12:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-zu-se-dui-lie-shi-xian-sheng-chan-xiao-fei-zhe/</loc>
+    <lastmod>2016-12-27T16:10:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-tiao-jian-bian-liang-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</loc>
+    <lastmod>2016-12-27T16:00:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-du-xie-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</loc>
+    <lastmod>2016-12-27T15:12:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-dui-xiang-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</loc>
+    <lastmod>2016-12-27T12:54:28+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2016/java-exchange-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</loc>
+    <lastmod>2016-11-26T22:17:12+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/about/</loc>
+    <lastmod>2016-02-11T12:34:23+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/java/</loc>
+    <lastmod>2016-12-29T13:53:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/jvm/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/jvm/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
+    <lastmod>2016-12-27T16:00:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/</loc>
+    <lastmod>2017-02-12T17:51:45+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/%E7%94%9F%E4%BA%A7%E8%80%85vs%E6%B6%88%E8%B4%B9%E8%80%85/</loc>
+    <lastmod>2016-12-27T16:12:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+</urlset>
