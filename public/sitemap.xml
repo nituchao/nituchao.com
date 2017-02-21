@@ -135,25 +135,25 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/jvm/</loc>
-    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/tags/jvm/</loc>
     <lastmod>2016-12-29T20:15:12+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/mysql/</loc>
-    <lastmod>2017-02-14T14:09:01+08:00</lastmod>
+    <loc>http://nituchao.com/categories/jvm/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://nituchao.com/tags/mysql/</loc>
+    <lastmod>2017-02-14T14:09:01+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/mysql/</loc>
     <lastmod>2017-02-14T14:09:01+08:00</lastmod>
     <priority>0</priority>
   </url>
@@ -182,13 +182,13 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/xa/</loc>
+    <loc>http://nituchao.com/tags/xa/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/tags/xa/</loc>
+    <loc>http://nituchao.com/categories/xa/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
