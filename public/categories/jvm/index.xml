@@ -30,11 +30,11 @@
     </item>
     
     <item>
-      <title>G1收集器配置参数</title>
-      <link>http://nituchao.com/post/2016/g1-shou-ji-qi-pei-zhi-can-shu/</link>
+      <title>JVM G1收集器配置参数</title>
+      <link>http://nituchao.com/post/2016/jvm-g1-shou-ji-qi-pei-zhi-can-shu/</link>
       <pubDate>Thu, 29 Dec 2016 12:22:12 +0800</pubDate>
       
-      <guid>http://nituchao.com/post/2016/g1-shou-ji-qi-pei-zhi-can-shu/</guid>
+      <guid>http://nituchao.com/post/2016/jvm-g1-shou-ji-qi-pei-zhi-can-shu/</guid>
       <description>&lt;p&gt;G1收集器配置参数&lt;/p&gt;
 </description>
     </item>
@@ -73,9 +73,8 @@
 
 &lt;p&gt;下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：&lt;/p&gt;
 
-&lt;p&gt;{% highlight bash %}
-java -Xmx15G -Xms10G -Xmn3G -Xss512k -XX:MaxPermSize=512M -XX:PermSize=512M -XX:+PrintFlagsFinal -XX:MaxTenuringThreshold=1 -XX:SurvivorRatio=23 -XX:TargetSurvivorRatio=80 -Xnoclassgc -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -XX:ParallelGCThreads=24 -XX:ConcGCThreads=24 -XX:+CMSParallelRemarkEnabled -XX:+CMSScavengeBeforeRemark -XX:+ExplicitGCInvokesConcurrent -XX:+UseTLAB -XX:TLABSize=64K, -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationStoppedTime -Xloggc:./gc.log
-{% endhighlight %}&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;java -Xmx15G -Xms10G -Xmn3G -Xss512k -XX:MaxPermSize=512M -XX:PermSize=512M -XX:+PrintFlagsFinal -XX:MaxTenuringThreshold=1 -XX:SurvivorRatio=23 -XX:TargetSurvivorRatio=80 -Xnoclassgc -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -XX:ParallelGCThreads=24 -XX:ConcGCThreads=24 -XX:+CMSParallelRemarkEnabled -XX:+CMSScavengeBeforeRemark -XX:+ExplicitGCInvokesConcurrent -XX:+UseTLAB -XX:TLABSize=64K, -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationStoppedTime -Xloggc:./gc.log
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Java HotSpot VM的官方文档中将启动参数分为如下两类：&lt;/p&gt;
 
@@ -112,7 +111,7 @@ java -Xmx15G -Xms10G -Xmn3G -Xss512k -XX:MaxPermSize=512M -XX:PermSize=512M -XX:
 
 &lt;p&gt;国外有个哥们从HotSpot VM的源码里发现了934个此类型的配置参数，因此能对JVM做出很多组合配置，对JVM的调优也没有统一的标准，需要我们在实践中不断总结经验，并结合实际业务来进行操作，最终找到最适合当前业务的那些配置。&lt;/p&gt;
 
-&lt;h5 id=&#34;一些有用的-xx配置&#34;&gt;一些有用的-XX配置&lt;/h5&gt;
+&lt;h2 id=&#34;一些有用的-xx配置&#34;&gt;一些有用的-XX配置&lt;/h2&gt;
 
 &lt;p&gt;对于-XX类型的配置选项，虚拟机规范有一些惯例，针对不同的平台虚拟机也会提供不同的默认值。&lt;/p&gt;
 
@@ -122,7 +121,7 @@ java -Xmx15G -Xms10G -Xmn3G -Xss512k -XX:MaxPermSize=512M -XX:PermSize=512M -XX:
 &lt;li&gt;对于字符串(String)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;string&amp;gt;&lt;/code&gt;来配置。这种配置通过用来指定文件，路径或者命令列表。&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h5 id=&#34;参考文献&#34;&gt;参考文献&lt;/h5&gt;
+&lt;h2 id=&#34;参考文献&#34;&gt;参考文献&lt;/h2&gt;
 
 &lt;p&gt;1, &lt;a href=&#34;http://jvm-options.tech.xebia.fr/&#34;&gt;JVM Options - The complete reference&lt;/a&gt;&lt;/p&gt;
 

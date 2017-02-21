@@ -42,6 +42,15 @@
 					<li ><a href="http://nituchao.com//book/">书籍</a></li>
 				
 					
+					<li ><a href="http://nituchao.com//kk/">编辑器</a></li>
+				
+					
+					<li ><a href="http://nituchao.com//device/">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com//te/">经济学人</a></li>
+				
+					
 					<li ><a href="http://nituchao.com//about/">关于</a></li>
 				
 			
@@ -51,6 +60,10 @@
 						<ul class="dropdown-menu" role="menu">
 						
 							<li><a href="http://nituchao.com//categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com//categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com//categories/xa">Xa</a></li>
 						
 							<li><a href="http://nituchao.com//categories/%E7%94%9F%E4%BA%A7%E8%80%85vs%E6%B6%88%E8%B4%B9%E8%80%85">生产者vs消费者</a></li>
 						
@@ -90,225 +103,215 @@
 
 <p>根据上面的设计思想，我们需要实现共享缓冲区，生产者线程，消费者线程，主程序等四个部分。</p>
 
-<p><strong>共享缓冲区</strong>
-{% highlight java %}
-package com.nituchao.jvm.prosumer.reentrant;</p>
+<p><strong>共享缓冲区</strong></p>
 
-<p>import java.util.ArrayList;
+<pre><code>package com.nituchao.jvm.prosumer.reentrant;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;</p>
+import java.util.concurrent.locks.ReentrantLock;
 
-<p>/**
+/**
  * 共享缓冲区
  * Created by liang on 2016/12/30.
  */
 public class Buffer {
-    private final List<String> list;
+    private final List&lt;String&gt; list;
     private int MAX_SIZE = 10;
-    private final Lock lock;</p>
+    private final Lock lock;
 
-<pre><code>public Buffer() {
-    this.list = new ArrayList&lt;String&gt;();
-    this.lock = new ReentrantLock();
-}
-
-/**
- * 生产num个元素
- *
- * @param num
- * @return
- */
-public boolean bufferProduct(int num) {
-    boolean result = true;
-    try {
-        lock.lock();
-
-        // 检查缓冲区是否能够容纳要生产的元素
-        if (list.size() + num &lt;= MAX_SIZE) {
-            // 开始生产
-            for (int i = 0; i &lt; num; i++) {
-                list.add(0, Thread.currentThread().getName() + &quot;:&quot; + (i + 1));
-            }
-
-            result = true;
-
-            System.out.printf(&quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
-        } else {
-            result = false;
-
-            System.out.printf(&quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        result = false;
-    } finally {
-        lock.unlock();
+    public Buffer() {
+        this.list = new ArrayList&lt;String&gt;();
+        this.lock = new ReentrantLock();
     }
 
-    return result;
-}
+    /**
+     * 生产num个元素
+     *
+     * @param num
+     * @return
+     */
+    public boolean bufferProduct(int num) {
+        boolean result = true;
+        try {
+            lock.lock();
 
-/**
- * 消费num个元素
- *
- * @param num
- * @return
- */
-public boolean bufferConsume(int num) {
-    boolean result = false;
-    try {
-        lock.lock();
+            // 检查缓冲区是否能够容纳要生产的元素
+            if (list.size() + num &lt;= MAX_SIZE) {
+                // 开始生产
+                for (int i = 0; i &lt; num; i++) {
+                    list.add(0, Thread.currentThread().getName() + &quot;:&quot; + (i + 1));
+                }
 
-        // 检查缓冲区是否有足够的元素供消费
-        if (list.size() &gt;= num) {
-            // 开始消费
-            for (int i = 0; i &lt; num; i++) {
-                list.remove(0);
+                result = true;
+
+                System.out.printf(&quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
+            } else {
+                result = false;
+
+                System.out.printf(&quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
             }
-
-            result = true;
-
-            System.out.printf(&quot;Thread: %s, Buffer Consume succ, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
-        } else {
+        } catch (Exception e) {
+            e.printStackTrace();
             result = false;
-
-            System.out.printf(&quot;Thread: %s, Buffer Consume fail, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
+        } finally {
+            lock.unlock();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-        result = false;
-    } finally {
-        lock.unlock();
+
+        return result;
     }
 
-    return result;
+    /**
+     * 消费num个元素
+     *
+     * @param num
+     * @return
+     */
+    public boolean bufferConsume(int num) {
+        boolean result = false;
+        try {
+            lock.lock();
+
+            // 检查缓冲区是否有足够的元素供消费
+            if (list.size() &gt;= num) {
+                // 开始消费
+                for (int i = 0; i &lt; num; i++) {
+                    list.remove(0);
+                }
+
+                result = true;
+
+                System.out.printf(&quot;Thread: %s, Buffer Consume succ, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
+            } else {
+                result = false;
+
+                System.out.printf(&quot;Thread: %s, Buffer Consume fail, num is %d, buffer size is %d\n&quot;, Thread.currentThread().getName(), num, list.size());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = false;
+        } finally {
+            lock.unlock();
+        }
+
+        return result;
+    }
 }
 </code></pre>
 
-<p>}</p>
+<p><strong>生产者线程</strong></p>
 
-<p>{% endhighlight %}</p>
+<pre><code>package com.nituchao.jvm.prosumer.reentrant;
 
-<p><strong>生产者线程</strong>
-{% highlight java %}
-package com.nituchao.jvm.prosumer.reentrant;</p>
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-<p>import java.util.Random;
-import java.util.concurrent.TimeUnit;</p>
-
-<p>/**
+/**
  * 生产者线程
  * Created by liang on 2016/12/30.
  */
 public class BufferProducer implements Runnable {
     private int num;
-    private Buffer buffer;</p>
+    private Buffer buffer;
 
-<pre><code>public BufferProducer(Buffer buffer, int num) {
-    this.num = num;
-    this.buffer = buffer;
-}
+    public BufferProducer(Buffer buffer, int num) {
+        this.num = num;
+        this.buffer = buffer;
+    }
 
-@Override
-public void run() {
-    // 生产num个元素，如果生产失败，则休眠一段时间重新生产
-    while (!buffer.bufferProduct(num)) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    @Override
+    public void run() {
+        // 生产num个元素，如果生产失败，则休眠一段时间重新生产
+        while (!buffer.bufferProduct(num)) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
+
 </code></pre>
 
-<p>}</p>
+<p><strong>消费者线程</strong></p>
 
-<p>{% endhighlight %}</p>
+<pre><code>package com.nituchao.jvm.prosumer.reentrant;
 
-<p><strong>消费者线程</strong>
-{% highlight java %}
-package com.nituchao.jvm.prosumer.reentrant;</p>
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-<p>import java.util.Random;
-import java.util.concurrent.TimeUnit;</p>
-
-<p>/**
+/**
  * 消费者线程
  * Created by liang on 2016/12/30.
  */
 public class BufferConsumer implements Runnable {
     private int num;
-    private Buffer buffer;</p>
+    private Buffer buffer;
 
-<pre><code>public BufferConsumer(Buffer buffer, int num) {
-    this.num = num;
-    this.buffer = buffer;
-}
+    public BufferConsumer(Buffer buffer, int num) {
+        this.num = num;
+        this.buffer = buffer;
+    }
 
-@Override
-public void run() {
-    // 消费num个产品，如果消费失败，则休眠一段时间再重新消费
-    while (!buffer.bufferConsume(num)) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    @Override
+    public void run() {
+        // 消费num个产品，如果消费失败，则休眠一段时间再重新消费
+        while (!buffer.bufferConsume(num)) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
+
 </code></pre>
 
-<p>}</p>
+<p><strong>主程序</strong></p>
 
-<p>{% endhighlight %}</p>
+<pre><code>package com.nituchao.jvm.prosumer.reentrant;
 
-<p><strong>主程序</strong>
-{% highlight java %}
-package com.nituchao.jvm.prosumer.reentrant;</p>
-
-<p>/**
+/**
  * 主程序
  * Created by liang on 2016/12/30.
  */
-public class BufferMain {</p>
+public class BufferMain {
 
-<pre><code>public static void main(String[] args) {
-    int num = 10;
-    // 实例化Buffer
-    Buffer buffer = new Buffer();
+    public static void main(String[] args) {
+        int num = 10;
+        // 实例化Buffer
+        Buffer buffer = new Buffer();
 
-    // 实例化生产者和消费者线程集合
-    Thread[] threadProducers = new Thread[num];
-    Thread[] threadConsumers = new Thread[num];
+        // 实例化生产者和消费者线程集合
+        Thread[] threadProducers = new Thread[num];
+        Thread[] threadConsumers = new Thread[num];
 
-    // 实例化生产者和消费者线程
-    for (int i = 0; i &lt; num; i++) {
-        Thread threadProducer = new Thread(new BufferProducer(buffer, i + 1));
-        Thread threadConsumer = new Thread(new BufferConsumer(buffer, i + 1));
+        // 实例化生产者和消费者线程
+        for (int i = 0; i &lt; num; i++) {
+            Thread threadProducer = new Thread(new BufferProducer(buffer, i + 1));
+            Thread threadConsumer = new Thread(new BufferConsumer(buffer, i + 1));
 
-        threadProducers[i] = threadProducer;
-        threadConsumers[i] = threadConsumer;
-    }
+            threadProducers[i] = threadProducer;
+            threadConsumers[i] = threadConsumer;
+        }
 
-    // 启动生产者和消费者线程
-    for (int i = 0; i &lt; num; i++) {
-        threadConsumers[i].start();
+        // 启动生产者和消费者线程
+        for (int i = 0; i &lt; num; i++) {
+            threadConsumers[i].start();
 
-        threadProducers[i].start();
+            threadProducers[i].start();
+        }
     }
 }
+
 </code></pre>
-
-<p>}</p>
-
-<p>{% endhighlight %}</p>
 
 <h3 id="运行结果">运行结果</h3>
 
-<p>{% highlight java %}
-Connected to the target VM, address: &lsquo;127.0.0.1:53178&rsquo;, transport: &lsquo;socket&rsquo;
+<pre><code>Connected to the target VM, address: '127.0.0.1:53178', transport: 'socket'
 Thread: Thread-1, Buffer Consume fail, num is 1, buffer size is 0
 Thread Thread-0: Buffer Product succ, num is 1, buffer size is 1
 Thread: Thread-3, Buffer Consume fail, num is 2, buffer size is 1
@@ -346,14 +349,14 @@ Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
 Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
 Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
 Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Disconnected from the target VM, address: &lsquo;127.0.0.1:53178&rsquo;, transport: &lsquo;socket&rsquo;
+Disconnected from the target VM, address: '127.0.0.1:53178', transport: 'socket'
 Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
 Thread Thread-18: Buffer Product succ, num is 10, buffer size is 10
-Thread: Thread-19, Buffer Consume succ, num is 10, buffer size is 0</p>
+Thread: Thread-19, Buffer Consume succ, num is 10, buffer size is 0
 
-<p>Process finished with exit code 0</p>
+Process finished with exit code 0
 
-<p>{% endhighlight %}</p>
+</code></pre>
 
 <h3 id="工作原理">工作原理</h3>
 

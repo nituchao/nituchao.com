@@ -4,7 +4,7 @@
 
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #555;
+  color: #333;
 }
 
 h1, .h1,
@@ -102,7 +102,7 @@ div.doc-search-form {
  */
 
 .doc-main {
-  font-size: 18px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -138,10 +138,10 @@ span.doc-list-category {
   background-color: #f5f5ff;
 }
 ul.doc-list-category > li {
-  font-size: 20px;
+  font-size: 14px;
 }
 ul.doc-list-category > li > ul > li {
-  font-size: 18px;
+  font-size: 14px;
   font-style: normal;
 }
 
@@ -160,7 +160,7 @@ main > article > section > table > thead > tr > td,
 main > article > section > table > tbody > tr > td,
 main > article > section > table > tfoot > tr > td {
   padding: 8px;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.4;
   vertical-align: top;
   border-top: 1px solid #ddd;
@@ -234,7 +234,7 @@ div#sidebar {
 ul.sidebar-category-list > li {
   list-style-type: none;
   margin-left: -1.5em;
-  font-size: 15px;
+  font-size: 14px;
 }
 ul.sidebar-category-list > li,
 ul.sidebar-category-list > li > ul > li {
@@ -291,5 +291,5 @@ ul.sidebar-category-list > li > ul > li > span.active {
   margin-bottom: 0;
 }
 .doc-footer-em {
-  font-size: 16px;
+  font-size: 14px;
 }
