@@ -1,7 +1,7 @@
 title = "泥土巢"
 theme = "bootie-docs"
 languageCode = "zh-CN"
-baseURL = "http://nituchao.com/"
+baseURL = "http://nituchao.com"
 copyright = "Copyright (c) 2017, nituchao | All rights reserved."
 [params]
   author = "liang"
