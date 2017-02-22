@@ -1,8 +1,8 @@
 ---
-categories: ["Reviews"]
+categories: ["Words"]
 tags: ["book"]
 date: "2014-06-22T13:32:00+08:00"
-title: "《浪潮之巅》有感"
+title: "逐浪者必将永生"
 draft: false
 ---
 

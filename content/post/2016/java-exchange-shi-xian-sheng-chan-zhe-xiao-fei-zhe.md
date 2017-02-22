@@ -1,6 +1,6 @@
 ---
 title: "Java通过Exchange机制实现生产者消费者"
-categories: ["生产者VS消费者"]
+categories: ["Queue"]
 tags: ["JAVA"]
 publish: true
 date: "2016-11-26T22:17:12+08:00"

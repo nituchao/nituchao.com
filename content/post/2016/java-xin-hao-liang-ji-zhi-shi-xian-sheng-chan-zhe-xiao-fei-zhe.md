@@ -1,6 +1,6 @@
 ---
 title: "Java通过信号量机制实现生产者消费者"
-categories: ["生产者VS消费者"]
+categories: ["Queue"]
 tags: ["JAVA"]
 publish: true
 date: "2016-12-27T16:12:12+08:00"

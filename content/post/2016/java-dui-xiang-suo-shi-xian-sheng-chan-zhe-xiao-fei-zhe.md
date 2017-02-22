@@ -1,7 +1,7 @@
 ---
 title:  "Java通过对象同步机制实现生产者消费者"
 tags: ["JAVA"]
-categories: ["生产者VS消费者"]
+categories: ["Queue"]
 date: "2016-12-27T12:54:28+08:00"
 publish: true
 
