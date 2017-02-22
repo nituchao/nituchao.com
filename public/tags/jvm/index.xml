@@ -73,7 +73,7 @@
 
 &lt;p&gt;下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;java -Xmx15G \
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;java -Xmx15G \
 -Xms10G \
 -Xmn3G \
 -Xss512k \
