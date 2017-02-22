@@ -107,13 +107,33 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</loc>
+    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2014/zhu-jiu-tan-xi-you-you-gan/</loc>
+    <lastmod>2014-06-22T22:23:00+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/2014/lang-chao-zhi-dian-you-gan/</loc>
     <lastmod>2014-06-22T13:32:00+08:00</lastmod>
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/2013/apache-cxf-parse-hash-map/</loc>
+    <lastmod>2013-12-11T14:06:00+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/kk/</loc>
     <lastmod>2013-12-10T12:34:23+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/</loc>
+    <lastmod>2012-05-18T20:20:00+08:00</lastmod>
   </url>
   
   <url>
@@ -130,7 +150,7 @@
   
   <url>
     <loc>http://nituchao.com/tags/book/</loc>
-    <lastmod>2014-06-22T13:32:00+08:00</lastmod>
+    <lastmod>2014-06-22T22:23:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -140,8 +160,20 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/tags/cxf/</loc>
+    <lastmod>2013-12-11T14:06:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/tags/java/</loc>
     <lastmod>2016-12-29T13:53:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/java/</loc>
+    <lastmod>2013-12-11T14:06:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -154,6 +186,24 @@
   <url>
     <loc>http://nituchao.com/categories/jvm/</loc>
     <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/lfs/</loc>
+    <lastmod>2012-05-18T20:20:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/linux/</loc>
+    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/linux/</loc>
+    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -199,14 +249,26 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/tags/tool/</loc>
+    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/tags/transaction/</loc>
     <lastmod>2017-02-14T14:09:01+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
+    <loc>http://nituchao.com/tags/web-service/</loc>
+    <lastmod>2013-12-11T14:06:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/categories/words/</loc>
-    <lastmod>2014-06-22T13:32:00+08:00</lastmod>
+    <lastmod>2014-06-22T22:23:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux on 泥土巢</title>
+    <link>http://nituchao.com/tags/linux/index.xml</link>
+    <description>Recent content in Linux on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Linux终端Session管理工具整理</title>
+      <link>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</link>
+      <pubDate>Tue, 24 Jun 2014 15:19:00 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</guid>
+      <description>
+
+&lt;h2 id=&#34;tmux&#34;&gt;Tmux&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;2017年2月22日更新&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;最近一直在用Tmux作为默认的终端Session管理工具。Tmux可以轻松的完成窗口创建，屏幕切分，文本模式，命令行模式等功能。&lt;/p&gt;
+
+&lt;p&gt;最让我满意的是多屏幕的同步操作功能。每次需要ssh到服务器查看日志时，我会将屏幕切割成四块，分别登陆到4个服务器上，然后开启sync模式，这样输入的命令将同时在4台服务器上一起执行，大大提高了操作效率。&lt;/p&gt;
+
+&lt;p&gt;Tmux的Session支持后台运行，可以通过attache随时进入Tmux，并立即恢复工作状态。&lt;/p&gt;
+
+&lt;h3 id=&#34;同步操作&#34;&gt;同步操作&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/tmux-session.png&#34; width=780px height=500px alt=&#34;tmux同步操作&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;byoby&#34;&gt;Byoby&lt;/h2&gt;
+
+&lt;p&gt;byoby是Ubuntu团队开发的screen的替代产品，支持session管理，屏幕切分，SSH管理。配置和使用也非常简单，一直是我非常喜欢的系统Terminal的替代产品，大赞。&lt;/p&gt;
+
+&lt;h3 id=&#34;帮助菜单&#34;&gt;帮助菜单&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://hanquan.qiniudn.com/byobuhelp.png&#34; alt=&#34;byobu帮助&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>编译自己的Linux系统</title>
+      <link>http://nituchao.com/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/</link>
+      <pubDate>Fri, 18 May 2012 20:20:00 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/</guid>
+      <description>&lt;p&gt;LFS，全称是Linux from Scratch，是一个教科书项目的名称，由 Gerard Beekmans 所发展并维护。这个项目旨在教人们完全从零开始编译自己的linux系统，所有的软件都是通过源码包安装，每个人都可以按照自己的需要定制自己的linux，这样可以做出来最小，最快也最满足自己需要的linux，我的这个linux就是按照LFS的思想来编译构建的。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.linuxfromscratch.org/lfs/&#34;&gt;LFS官网&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;在高中时我就想过将来有机会一定要做一个自己的操作系统出来，后来发现这并不是一件容易的事情，当然，也不是完全不可能，三年前接触了linux后，我就在构思如何能编译一个linux出来。后来，在研究破解无线网的过程中我接触到Beini Linux(奶瓶操作系统)，只有不到60M(ps:据说这个系统的作者是为了庆祝自己女儿的出生写下的这个操作系统),这让我觉得linux是完全可以自己定制并做的很小很小。&lt;/p&gt;
+
+&lt;p&gt;言归正传，我第一次接触LFS是在一年前，当时对linux的底层原理和库依赖关系等还是非常不清楚，对整个LFS的过程云里雾里的，所以就搁浅了。&lt;/p&gt;
+
+&lt;p&gt;最近又拿起来LFS，细细读了读，发现很多东西已经理解很透了，于是就在着手在自己的笔记本上构建LFS系统，说实话这个过程很费精力，我前后总共用了四天时间，几乎每天醒着的时间都在搞这个系统，当然，最后做出来后，很是自豪，这个系统我称之为”Egg Boiler 1.0“，吼吼~~。&lt;/p&gt;
+
+&lt;p&gt;基本的LFS系统构建好以后，开机只要3s左右就到登陆界面了，真是快的一塌糊涂，爽啊。之后，我又在这个系统上安装了DHCP和pppoe，使得他可以自动获取IP地址，由于没有GUI界面，我安装了lynx浏览器，这样就可以通过文本方式访问互联网。&lt;/p&gt;
+
+&lt;p&gt;由于是第一次编译linux系统，下面说说自己遇到的困难:&lt;/p&gt;
+
+&lt;p&gt;首先是宿主系统的选择，最初用的是Fadero 16，因为他是基于Rad hat的，应该会很稳定，结果它搭载的Gnome3.4界面在root用户登陆的情况下总是崩溃，而且崩溃之后就进不了系统，在这种情况下重装了好几次，最后还是决定放弃Fadero。之后试用了Arch Linux也不是很顺利，最后还是决定用ubuntu 10.10，ubuntu果然不负众望，基本没出什么问题直到新系统的诞生…&lt;/p&gt;
+
+&lt;p&gt;其次是宿主系统环境的设置，LFS对GCC，Glib的环境的要求非常苛刻，刚开始不清楚，有些就没有按照官方给的配置设置环境，结果编译到一半，尤其是GCC的编译，总是出错，几近崩溃了都，最后还是老老实实按照官方给的要求重新配置了ubuntu的软件环境，总算是一步一步进行下去了…&lt;/p&gt;
+
+&lt;p&gt;再者是LFS版本的选择。早一点的LFS版本有中文翻译，我最早就是用的LFS 6.3，因为文档又中文，但是在编译GCC时总是出错，看了论坛上前人的经验才最后决定用LFS 6.8，虽然文档全是英文，但是基本上都能看懂能理解，结果LFS 6.8在我的ubuntu上果然一路顺利。可见，LFS的版本还是很重要的，一定要选对LFS版本，并严格按照文档来才能成功。&lt;/p&gt;
+
+&lt;p&gt;我还没有想好我做的这个系统究竟用来做什么，不过有了这个基础，将来根据需要把它改成服务器系统或嵌入式系统就很轻松了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+                             oo$$$$$$$$$$oo
+                          oooo$$$$$$$$$$$$oooo
+                      oo$$$$$$$$$$$$$$$$$$$$$$$$o
+                   oo$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o         o$   $$ o$
+   o $ oo        o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o       $$ $$ $$o$
+oo $ $ &amp;quot;$      o$$$$$$$$$    $$$$$$$$$$$$$    $$$$$$$$$o       $$$o$$o$
+&amp;quot;$$$$$$o$     o$$$$$$$$$      $$$$$$$$$$$      $$$$$$$$$$o    $$$$$$$$
+  $$$$$$$    $$$$$$$$$$$      $$$$$$$$$$$      $$$$$$$$$$$$$$$$$$$$$$$
+  $$$$$$$$$$$$$$$$$$$$$$$    $$$$$$$$$$$$$    $$$$$$$$$$$$$$  &amp;quot;&amp;quot;&amp;quot;$$$
+   &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     &amp;quot;$$$
+    $$$   o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     &amp;quot;$$$o
+   o$$&amp;quot;   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$       $$$o
+   $$$    $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&amp;quot; &amp;quot;$$$$$$ooooo$$$$o
+  o$$$oooo$$$$$  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$   o$$$$$$$$$$$$$$$$$
+  $$$$$$$$&amp;quot;$$$$   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     $$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;
+ &amp;quot;&amp;quot;&amp;quot;&amp;quot;       $$$$    &amp;quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$&amp;quot;      o$$$
+            &amp;quot;$$$o     &amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$$$$$$$$&amp;quot;$$&amp;quot;         $$$
+              $$$o          &amp;quot;$$&amp;quot;&amp;quot;$$$$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;           o$$$
+               $$$$o                                o$$$&amp;quot;
+                &amp;quot;$$$$o      o$$$$$$o&amp;quot;$$$$o        o$$$$
+                  &amp;quot;$$$$$oo     &amp;quot;&amp;quot;$$$$o$$$$$o   o$$$$&amp;quot;&amp;quot;
+                     &amp;quot;&amp;quot;$$$$$oooo  &amp;quot;$$$o$$$$$$$$$&amp;quot;&amp;quot;&amp;quot;
+                        &amp;quot;&amp;quot;$$$$$$$oo $$$$$$$$$$
+                                &amp;quot;&amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$
+                                    $$$$$$$$$$$$
+                                     $$$$$$$$$$&amp;quot;
+                                      &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;
+                                      &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
