@@ -1,7 +1,7 @@
 ---
 categories: ["Reviews"]
 tags: ["book"]
-date: "2017-02-22T12:50:12+08:00"
+date: "2014-06-22T13:32:00+08:00"
 title: "《浪潮之巅》有感"
 draft: false
 ---

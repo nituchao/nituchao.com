@@ -2,11 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://nituchao.com/post/2014/lang-chao-zhi-dian-you-gan/</loc>
-    <lastmod>2017-02-22T12:50:12+08:00</lastmod>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/te/</loc>
     <lastmod>2017-02-20T12:34:23+08:00</lastmod>
   </url>
@@ -112,6 +107,11 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/2014/lang-chao-zhi-dian-you-gan/</loc>
+    <lastmod>2014-06-22T13:32:00+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/kk/</loc>
     <lastmod>2013-12-10T12:34:23+08:00</lastmod>
   </url>
@@ -130,7 +130,7 @@
   
   <url>
     <loc>http://nituchao.com/tags/book/</loc>
-    <lastmod>2017-02-22T12:50:12+08:00</lastmod>
+    <lastmod>2014-06-22T13:32:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -146,25 +146,25 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/jvm/</loc>
-    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/tags/jvm/</loc>
     <lastmod>2016-12-29T20:15:12+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/mysql/</loc>
-    <lastmod>2017-02-14T14:09:01+08:00</lastmod>
+    <loc>http://nituchao.com/categories/jvm/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://nituchao.com/tags/mysql/</loc>
+    <lastmod>2017-02-14T14:09:01+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/mysql/</loc>
     <lastmod>2017-02-14T14:09:01+08:00</lastmod>
     <priority>0</priority>
   </url>
@@ -177,13 +177,13 @@
   
   <url>
     <loc>http://nituchao.com/post/</loc>
-    <lastmod>2017-02-22T12:50:12+08:00</lastmod>
+    <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://nituchao.com/categories/reviews/</loc>
-    <lastmod>2017-02-22T12:50:12+08:00</lastmod>
+    <lastmod>2014-06-22T13:32:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -199,13 +199,13 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/xa/</loc>
+    <loc>http://nituchao.com/tags/xa/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/tags/xa/</loc>
+    <loc>http://nituchao.com/categories/xa/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
@@ -218,7 +218,7 @@
   
   <url>
     <loc>http://nituchao.com/</loc>
-    <lastmod>2017-02-22T12:50:12+08:00</lastmod>
+    <lastmod>2017-02-20T12:34:23+08:00</lastmod>
     <priority>0</priority>
   </url>
   
