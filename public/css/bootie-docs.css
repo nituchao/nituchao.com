@@ -29,13 +29,24 @@ pre {
     overflow: auto;
     word-wrap: normal;
     border-style: none;
-    border-radius: 0;
+    border-radius: 5px;
     padding: 10px;
     margin: 0 0 10px;
 }
 pre code {
     white-space: pre;
 }
+
+p {
+    margin: 0 0 10px;
+    line-height: 2;
+}
+
+img {
+    padding: 5px 10px 10px 5px;
+    border-radius: 5px;
+}
+
 
 /*
  * Override Bootstrap's default container.
@@ -292,9 +303,4 @@ ul.sidebar-category-list > li > ul > li > span.active {
 }
 .doc-footer-em {
   font-size: 14px;
-}
-
-p {
-    margin: 0 0 10px;
-    line-height: 2;
 }
