@@ -30,7 +30,7 @@ pre {
     word-wrap: normal;
     border-style: none;
     border-radius: 0;
-    padding: 0;
+    padding: 10px;
     margin: 0 0 10px;
 }
 pre code {

@@ -5,7 +5,7 @@ draft: false
 ---
 
 ## 截图
-<img src="http://olno3yiqc.bkt.clouddn.com/blog/kk/kk.png" width=800px height=600px/>
+<img src="http://olno3yiqc.bkt.clouddn.com/blog/kk/kk.png" width=780px height=600px />
 
 ## 下载
 * [kk for windows 32bit](http://olno3yiqc.bkt.clouddn.com/blog/kk/kk.zip)
