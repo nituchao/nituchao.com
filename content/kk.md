@@ -7,6 +7,9 @@ draft: false
 ## 截图
 <img src="http://olno3yiqc.bkt.clouddn.com/blog/kk/kk.png" width=780px height=600px />
 
+## 源码
+* [Github源码](https://github.com/nituchao/nituchao-kk)
+
 ## 下载
 * [kk for windows 32bit](http://olno3yiqc.bkt.clouddn.com/blog/kk/kk.zip)
 
