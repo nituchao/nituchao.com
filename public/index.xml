@@ -7,8 +7,32 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Mon, 20 Feb 2017 12:34:23 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 22 Feb 2017 12:50:12 +0800</lastBuildDate>
     <atom:link href="http://nituchao.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>《浪潮之巅》有感</title>
+      <link>http://nituchao.com/post/2014/lang-chao-zhi-dian-you-gan/</link>
+      <pubDate>Wed, 22 Feb 2017 12:50:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2014/lang-chao-zhi-dian-you-gan/</guid>
+      <description>&lt;p&gt;《浪潮之巅》是Google黑板报里的一个系列，我从两年前第一次看到吴军的这个连载文章，当时也是一下子就被吸引住了，因为我了解到了一个更加真实，残酷，同时充满生机的信息技术产业。&lt;/p&gt;
+
+&lt;p&gt;记得当时读的第一篇是《“水果”公司的复兴–传奇小子》，讲的是乔布斯的硅谷传奇人生，然后我就一发不可收拾，一口气读完了所有的章节，从AT&amp;amp;T到IBM，再到MOTO，苹果，微软，雅虎，一直到现在的Google，计算机产业的发展史让我的观念发生了很大的变化。&lt;/p&gt;
+
+&lt;p&gt;为什么说IT领域非常残酷呢。信息技术从20世纪70年代走出实验室，紧接着走入寻常人家到现在只不过短短的40年，在段时间里，有很多公司取得了成功，通常在短短的时间里就迅速发展成为巨无霸企业，比如苹果，微软。但是，不可否认的是，在IT领域没有永远的赢家，比如当年牛气冲天的AT&amp;amp;T，后来硬是被分拆，最终走向了没落，AT&amp;amp;T名下最有名的贝尔实验室(发明了C语言，UNIX操作系统)曾是无数科学家心中的天堂，但是也随之被分拆，走向没落。再比如， 摩托罗拉，一个没落的贵族，也是还记得我的第一部手机就是MOTO V3IE，当年最薄的手机，贝克汉姆亲自给做的广告，但也阻止不了他在几年内迅速没落，最终被后起之秀GOOGLE收购，至今我听到”Hello MOTO”还有些许的伤感…&lt;/p&gt;
+
+&lt;p&gt;另外，IT领域更是充满了活力和机会。在21世纪，信息技术发展迅速，新技术层出不穷，新的理念也不断推出，信息技术造就了诸如Apple，Google，Facebook这样的科技巨头，更是造就了诸如比尔盖茨这样的科技界的拿破仑。能进入这样的一个快速发展而又充满机会的行业我真的感到非常自豪。&lt;/p&gt;
+
+&lt;p&gt;另外，我有一些体会，我有个同学现在在读化学材料方面的研究生，通过与他的交流，我发现他们学习的专业其实发展非常缓慢，诸如水泥的配方之类的东西几十年不会变，而且这些技术通常也被国外垄断，因此他们能做的事情本身就非常少，他有个同学找了工作，在一个厂子里，没多少事情做，厂里的领导不舍得让这些本科生下车间，但又没有多少技术活交给他们做，于是他们几乎每天都在办公室里闲着，拿死工资，然后等着拿养老金…&lt;/p&gt;
+
+&lt;p&gt;王小波说我们的人生终将走向平庸(结婚生子就是走向平庸？)，但是话说回来，我们更应该珍惜青春，来做一些更具价值的事情，而信息技术(IT)恰恰能够为我们提供这个机会，信息技术就是生产力，我们可以竭尽全力掌握这一生产力，做一些真正能产生影响力的事情。 最后引用《浪潮之巅》里的一段话结个尾:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;计算机产业发展更新速度极快，历史上产生了一个又一个IT帝国，这些帝国经历了短暂的辉煌后总会被时代的浪潮退下巅峰，然后是新的时代宠儿被推上浪潮的巅峰。&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+    </item>
     
     <item>
       <title>经济学人</title>
@@ -1238,291 +1262,6 @@ Process finished with exit code 0
 &lt;p&gt;消费者线程负责从缓冲区里消费元素，每个消费者消费的数量都各不相同，从而能更好的观察效果。消费者首先回去尝试获取信号量(acquire)，然后检查当前共享缓冲区中是否有足够的元素供自己消费。如果有，则进行消费，如果没有，则不进行消费。最后，释放信号量(release)并把消费的结果返回(boolean)。消费者线程如果发现自己消费失败，则会随机休眠一段时间再重复上面的操作，直到消费操作成功。&lt;/p&gt;
 
 &lt;p&gt;生产者线程和消费者线程访问是信号量是公平竞争，第一个获取信号量的线程将能够访问临界区，其余的线程将被信号量阻塞，直到信号量被释放。一旦信号量被释放，被被阻塞的线程就可以重新竞争信号量并访问临界区。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过重入锁实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-chong-ru-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 16:12:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-chong-ru-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
-      <description>
-
-&lt;p&gt;ReentrantLock是一个可重入的互斥锁，又被称为&amp;rdquo;独占锁&amp;rdquo;，ReentrantLock锁在同一个时间点只能被一个线程锁持有，而可重入的意思是，ReentrantLock可以被单个线程多次获取，ReentrantLock的性能并不高，优点是比价灵活。ReentrantLock比Synchronized关键词更加灵活，并且能支持条件变量，后面我还会单独介绍使用条件变量实现生产者消费者模型的方法。&lt;/p&gt;
-
-&lt;h3 id=&#34;设计思想&#34;&gt;设计思想&lt;/h3&gt;
-
-&lt;p&gt;本文希望同ReentrantLock来实现一个共享缓冲区，生产者线程和消费者线程通过该共享缓冲区来实现相关的生产和消费操作，每个线程对共享缓冲区的访问是互斥的。&lt;/p&gt;
-
-&lt;p&gt;另外，由于共享缓冲区是有空间限制的，生产者在生产前要判断共享缓冲区空间是否充足。消费者在消费前要判断共享缓冲区内的元素是否足够消费。&lt;/p&gt;
-
-&lt;h3 id=&#34;代码实现&#34;&gt;代码实现&lt;/h3&gt;
-
-&lt;p&gt;根据上面的设计思想，我们需要实现共享缓冲区，生产者线程，消费者线程，主程序等四个部分。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;共享缓冲区&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-/**
- * 共享缓冲区
- * Created by liang on 2016/12/30.
- */
-public class Buffer {
-    private final List&amp;lt;String&amp;gt; list;
-    private int MAX_SIZE = 10;
-    private final Lock lock;
-
-    public Buffer() {
-        this.list = new ArrayList&amp;lt;String&amp;gt;();
-        this.lock = new ReentrantLock();
-    }
-
-    /**
-     * 生产num个元素
-     *
-     * @param num
-     * @return
-     */
-    public boolean bufferProduct(int num) {
-        boolean result = true;
-        try {
-            lock.lock();
-
-            // 检查缓冲区是否能够容纳要生产的元素
-            if (list.size() + num &amp;lt;= MAX_SIZE) {
-                // 开始生产
-                for (int i = 0; i &amp;lt; num; i++) {
-                    list.add(0, Thread.currentThread().getName() + &amp;quot;:&amp;quot; + (i + 1));
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                result = false;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        } finally {
-            lock.unlock();
-        }
-
-        return result;
-    }
-
-    /**
-     * 消费num个元素
-     *
-     * @param num
-     * @return
-     */
-    public boolean bufferConsume(int num) {
-        boolean result = false;
-        try {
-            lock.lock();
-
-            // 检查缓冲区是否有足够的元素供消费
-            if (list.size() &amp;gt;= num) {
-                // 开始消费
-                for (int i = 0; i &amp;lt; num; i++) {
-                    list.remove(0);
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                result = false;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume fail, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        } finally {
-            lock.unlock();
-        }
-
-        return result;
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;生产者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 生产者线程
- * Created by liang on 2016/12/30.
- */
-public class BufferProducer implements Runnable {
-    private int num;
-    private Buffer buffer;
-
-    public BufferProducer(Buffer buffer, int num) {
-        this.num = num;
-        this.buffer = buffer;
-    }
-
-    @Override
-    public void run() {
-        // 生产num个元素，如果生产失败，则休眠一段时间重新生产
-        while (!buffer.bufferProduct(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;消费者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 消费者线程
- * Created by liang on 2016/12/30.
- */
-public class BufferConsumer implements Runnable {
-    private int num;
-    private Buffer buffer;
-
-    public BufferConsumer(Buffer buffer, int num) {
-        this.num = num;
-        this.buffer = buffer;
-    }
-
-    @Override
-    public void run() {
-        // 消费num个产品，如果消费失败，则休眠一段时间再重新消费
-        while (!buffer.bufferConsume(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;主程序&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-/**
- * 主程序
- * Created by liang on 2016/12/30.
- */
-public class BufferMain {
-
-    public static void main(String[] args) {
-        int num = 10;
-        // 实例化Buffer
-        Buffer buffer = new Buffer();
-
-        // 实例化生产者和消费者线程集合
-        Thread[] threadProducers = new Thread[num];
-        Thread[] threadConsumers = new Thread[num];
-
-        // 实例化生产者和消费者线程
-        for (int i = 0; i &amp;lt; num; i++) {
-            Thread threadProducer = new Thread(new BufferProducer(buffer, i + 1));
-            Thread threadConsumer = new Thread(new BufferConsumer(buffer, i + 1));
-
-            threadProducers[i] = threadProducer;
-            threadConsumers[i] = threadConsumer;
-        }
-
-        // 启动生产者和消费者线程
-        for (int i = 0; i &amp;lt; num; i++) {
-            threadConsumers[i].start();
-
-            threadProducers[i].start();
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;运行结果&#34;&gt;运行结果&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;Connected to the target VM, address: &#39;127.0.0.1:53178&#39;, transport: &#39;socket&#39;
-Thread: Thread-1, Buffer Consume fail, num is 1, buffer size is 0
-Thread Thread-0: Buffer Product succ, num is 1, buffer size is 1
-Thread: Thread-3, Buffer Consume fail, num is 2, buffer size is 1
-Thread Thread-2: Buffer Product succ, num is 2, buffer size is 3
-Thread: Thread-3, Buffer Consume succ, num is 2, buffer size is 1
-Thread: Thread-5, Buffer Consume fail, num is 3, buffer size is 1
-Thread: Thread-5, Buffer Consume fail, num is 3, buffer size is 1
-Thread: Thread-5, Buffer Consume fail, num is 3, buffer size is 1
-Thread Thread-4: Buffer Product succ, num is 3, buffer size is 4
-Thread: Thread-7, Buffer Consume succ, num is 4, buffer size is 0
-Thread Thread-6: Buffer Product succ, num is 4, buffer size is 4
-Thread: Thread-9, Buffer Consume fail, num is 5, buffer size is 4
-Thread: Thread-9, Buffer Consume fail, num is 5, buffer size is 4
-Thread: Thread-9, Buffer Consume fail, num is 5, buffer size is 4
-Thread Thread-8: Buffer Product succ, num is 5, buffer size is 9
-Thread: Thread-11, Buffer Consume succ, num is 6, buffer size is 3
-Thread Thread-10: Buffer Product succ, num is 6, buffer size is 9
-Thread: Thread-13, Buffer Consume succ, num is 7, buffer size is 2
-Thread Thread-12: Buffer Product succ, num is 7, buffer size is 9
-Thread: Thread-15, Buffer Consume succ, num is 8, buffer size is 1
-Thread Thread-14: Buffer Product succ, num is 8, buffer size is 9
-Thread: Thread-17, Buffer Consume succ, num is 9, buffer size is 0
-Thread Thread-16: Buffer Product succ, num is 9, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread Thread-18: Buffer Product succ, num is 10, buffer size is 9
-Thread: Thread-1, Buffer Consume succ, num is 1, buffer size is 8
-Thread: Thread-5, Buffer Consume succ, num is 3, buffer size is 5
-Thread: Thread-9, Buffer Consume succ, num is 5, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Disconnected from the target VM, address: &#39;127.0.0.1:53178&#39;, transport: &#39;socket&#39;
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread Thread-18: Buffer Product succ, num is 10, buffer size is 10
-Thread: Thread-19, Buffer Consume succ, num is 10, buffer size is 0
-
-Process finished with exit code 0
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;工作原理&#34;&gt;工作原理&lt;/h3&gt;
-
-&lt;p&gt;主程序首先实例化一个共享缓冲区对象buffer，然后将该共享缓冲区对象buffer作为构造参数生成若干个生产者线程，和若干个消费者线程。&lt;/p&gt;
-
-&lt;p&gt;生产者线程调用共享缓冲区的bufferProduce(num)方法生产元素，在生产前要先获取锁(lock.lock()方法)，并判断当前共享缓冲区是否能够容纳所有元素，如果不能容纳，则直接返回false，并释放锁。如果可以容纳，则进行生产活动，返回true，并释放锁。生产者线程在一个while循环里判断，如果生产失败(返回false)，则等待一段时间，重新开始执行生产操作。如果生产成功，则结束当前线程。&lt;/p&gt;
-
-&lt;p&gt;消费者线程调用共享缓冲区的bufferConsume(num)方法消费元素，在生产前要先获取锁(lock.lock()方法)，并判断当前共享缓冲区是否有足够的元素供消费，如果元素数量不够，则直接返回false，并释放锁。如果元素足够，则进行消费活动，返回true，并释放锁。消费者线程在一个while循环里判断，如果消费失败(返回false)，则等待一段时间，重新开始执行消费操作。如果消费成功，则结束当前线程。&lt;/p&gt;
 </description>
     </item>
     
