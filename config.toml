@@ -14,11 +14,11 @@ copyright = "Copyright (c) 2017, nituchao | All rights reserved."
     name = "文章"
     link = "post"
 [[params.mainMenu]]
-    name = "书籍"
-    link = "book"
-[[params.mainMenu]]
-    name = "编辑器"
+    name = "作品"
     link = "kk"
+[[params.mainMenu]]
+    name = "书单"
+    link = "book"
 [[params.mainMenu]]
     name = "设备"
     link = "device"
