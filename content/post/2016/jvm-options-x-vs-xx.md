@@ -14,7 +14,32 @@ description: 启动JVM时通过指定的配置参数来指导虚拟机按照我�
 下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：
 
 ```
-java -Xmx15G -Xms10G -Xmn3G -Xss512k -XX:MaxPermSize=512M -XX:PermSize=512M -XX:+PrintFlagsFinal -XX:MaxTenuringThreshold=1 -XX:SurvivorRatio=23 -XX:TargetSurvivorRatio=80 -Xnoclassgc -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -XX:ParallelGCThreads=24 -XX:ConcGCThreads=24 -XX:+CMSParallelRemarkEnabled -XX:+CMSScavengeBeforeRemark -XX:+ExplicitGCInvokesConcurrent -XX:+UseTLAB -XX:TLABSize=64K, -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintGCApplicationStoppedTime -Xloggc:./gc.log
+java -Xmx15G \
+-Xms10G \
+-Xmn3G \
+-Xss512k \
+-XX:MaxPermSize=512M \
+-XX:PermSize=512M \
+-XX:+PrintFlagsFinal \
+-XX:MaxTenuringThreshold=1 \
+-XX:SurvivorRatio=23 \
+-XX:TargetSurvivorRatio=80 \
+-Xnoclassgc \
+-XX:+UseParNewGC \
+-XX:+UseConcMarkSweepGC \
+-XX:CMSInitiatingOccupancyFraction=80 \
+-XX:ParallelGCThreads=24 \
+-XX:ConcGCThreads=24 \
+-XX:+CMSParallelRemarkEnabled \
+-XX:+CMSScavengeBeforeRemark \
+-XX:+ExplicitGCInvokesConcurrent \
+-XX:+UseTLAB \
+-XX:TLABSize=64K, -verbose:gc \
+-XX:+PrintGCDetails \
+-XX:+PrintGCDateStamps \
+-XX:+PrintGCTimeStamps \
+-XX:+PrintGCApplicationStoppedTime \
+-Xloggc:./gc.log
 ```
 
 
