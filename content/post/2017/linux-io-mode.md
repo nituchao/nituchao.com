@@ -37,7 +37,9 @@ recvfrom从应用层到内核的时候，如果该缓冲区没有数据的话，
 ![非阻塞I/O模型](http://olno3yiqc.bkt.clouddn.com/blog/img/non-block-io.png)
 
 ### I/O复用模型
-Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：
+Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。
+
+Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：
 
 ![I/O复用模型](http://olno3yiqc.bkt.clouddn.com/blog/img/selector-io.png)
 
