@@ -27,7 +27,7 @@ h2, .h2 {
 /* Override Bootstrap's style not to break line in code blocks */
 pre {
     overflow: auto;
-    word-wrap: normal;
+    word-wrap: word-wrap:break-word;
     border-style: none;
     border-radius: 5px;
     padding: 10px;
