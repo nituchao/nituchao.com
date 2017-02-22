@@ -1,8 +1,8 @@
 ---
-title: "Linux终端Session管理工具整理"
+title: "终端Session管理工具整理"
 date: "2014-06-24T15:19:00+08:00"
-categories: ["Linux"]
-tags: ["Linux", "Tool"]
+categories: ["MacOS"]
+tags: ["MacOS", "Tool"]
 draft: false
 ---
 

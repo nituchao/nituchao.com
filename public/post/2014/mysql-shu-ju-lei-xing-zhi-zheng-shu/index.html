@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>MySQL数据类型之整数 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/railscasts.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">作品</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书单</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/java">Java</a></li>
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
+						
+							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/queue">Queue</a></li>
+						
+							<li><a href="http://nituchao.com/categories/words">Words</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">MySQL数据类型之整数</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2014-09-12">2014年09月12日</time></span>
+				</div>
+				<section>
+					<p>数字有两种类型：整数(Whole Number)和实数(Real Number)。</p>
+
+<p>如果存储整数，就可以使用这几种整数类型：</p>
+
+<ul>
+<li><code>TINYINT</code> : 8位, [-128, 127]。</li>
+<li><code>SMALLINT</code> : 16位, [-65536, 65535]。</li>
+<li><code>MEDIUMINT</code> : 24位, [-16777216, 16777215]。</li>
+<li><code>INT</code> : 32位, [-4294967296, 4294967295]。</li>
+<li><code>BIGINT</code> : 64位, [-1.84467440737096E19 + 1, 1.84467440737096E19]。</li>
+</ul>
+
+<p>整数类型有可选的<code>UNSIGNED</code>属性，表示不允许负数，并大致把正上限提高了一倍。</p>
+
+<p>MySQL还可以对整数类型的定义宽度，比如INT(11)。这对于大多数应用程序都是没有意义的：它不会限制值的范围，只规定了MySQL的交互工具(例如，命令行客户端)来显示字符的个数。对于存储和计算，INT(1)和INT(20)是一样的。</p>
+
+<p>提示：</p>
+
+<blockquote>
+<p>Falcon 存储引擎和MSQLAB提供的其他存储引擎内部存储整数的机制是不同的。用户不能控制存储数据的实际大小。第三方存储引擎，例如Brighthouse，也有自己的存储过时和压缩方法。</p>
+</blockquote>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">MySQL数据类型之整数</a></strong></li>
+			</ul>
+			
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

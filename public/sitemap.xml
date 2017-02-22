@@ -107,6 +107,26 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/2014/mysql-shu-ju-lei-xing-zhi-shi-shu/</loc>
+    <lastmod>2014-09-12T10:30:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2014/mysql-shu-ju-lei-xing-zhi-zheng-shu/</loc>
+    <lastmod>2014-09-12T10:20:00+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2014/macos-an-zhuang-hadoop/</loc>
+    <lastmod>2014-08-15T17:17:17+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2014/fu-wu-duan-yu-ke-hu-duan-jia-mi-tong-xin-she-ji/</loc>
+    <lastmod>2014-07-12T19:19:00+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</loc>
     <lastmod>2014-06-24T15:19:00+08:00</lastmod>
   </url>
@@ -122,6 +142,11 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/2014/emacs-shot-key/</loc>
+    <lastmod>2014-04-04T09:19:00+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/2013/apache-cxf-parse-hash-map/</loc>
     <lastmod>2013-12-11T14:06:00+08:00</lastmod>
   </url>
@@ -129,6 +154,16 @@
   <url>
     <loc>http://nituchao.com/kk/</loc>
     <lastmod>2013-12-10T12:34:23+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2012/chameleon-yin-dao-ubuntu/</loc>
+    <lastmod>2012-06-03T18:18:18+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2012/windows-ying-pan-an-zhuang-mac/</loc>
+    <lastmod>2012-05-20T20:20:00+08:00</lastmod>
   </url>
   
   <url>
@@ -145,6 +180,12 @@
   <url>
     <loc>http://nituchao.com/tags/3pc/</loc>
     <lastmod>2017-02-15T10:12:58+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/android/</loc>
+    <lastmod>2014-07-12T19:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -166,6 +207,18 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/tags/emacs/</loc>
+    <lastmod>2014-04-04T09:19:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/hadoop/</loc>
+    <lastmod>2014-08-15T17:17:17+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/tags/java/</loc>
     <lastmod>2016-12-29T13:53:12+08:00</lastmod>
     <priority>0</priority>
@@ -173,7 +226,7 @@
   
   <url>
     <loc>http://nituchao.com/categories/java/</loc>
-    <lastmod>2013-12-11T14:06:00+08:00</lastmod>
+    <lastmod>2014-07-12T19:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -197,12 +250,24 @@
   
   <url>
     <loc>http://nituchao.com/tags/linux/</loc>
-    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
+    <lastmod>2012-05-18T20:20:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://nituchao.com/categories/linux/</loc>
+    <lastmod>2012-05-18T20:20:00+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/macos/</loc>
+    <lastmod>2014-08-15T17:17:17+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/macos/</loc>
     <lastmod>2014-06-24T15:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
@@ -240,6 +305,12 @@
   <url>
     <loc>http://nituchao.com/categories/queue/</loc>
     <lastmod>2016-12-27T16:12:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/rsa/</loc>
+    <lastmod>2014-07-12T19:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
