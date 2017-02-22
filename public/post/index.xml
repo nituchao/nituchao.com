@@ -7,8 +7,97 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Wed, 15 Feb 2017 10:13:27 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 22 Feb 2017 18:25:27 +0800</lastBuildDate>
     <atom:link href="http://nituchao.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Linux网络I/O模型整理</title>
+      <link>http://nituchao.com/post/2017/linux-io-mode/</link>
+      <pubDate>Wed, 22 Feb 2017 18:25:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/linux-io-mode/</guid>
+      <description>
+
+&lt;p&gt;Linux的内核将所有外部设备都看做一个文件来操作，对一个文件的读写操作会调用内核提供的系统命令，返回一个file description(fd，文件描述符)。而对一个socket的读写也会有相应的描述符，称为socketfd(socket描述符)，描述符就是一个数字，它指向内核中的一个结构体(文件路径，数据区等一些属性)。&lt;/p&gt;
+
+&lt;h2 id=&#34;linux文件类型&#34;&gt;Linux文件类型&lt;/h2&gt;
+
+&lt;p&gt;Linux操作系统定义了七种文件，针对这些文件的操作都属于I/O操作。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;d: 目录文件&lt;/li&gt;
+&lt;li&gt;l: 符号链接文件&lt;/li&gt;
+&lt;li&gt;s: 套接字文件&lt;/li&gt;
+&lt;li&gt;b: 块设备文件，二进制文件&lt;/li&gt;
+&lt;li&gt;c: 字符设备文件&lt;/li&gt;
+&lt;li&gt;p: 命名管道文件&lt;/li&gt;
+&lt;li&gt;-: 普通文件&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;linux网络i-o模型&#34;&gt;Linux网络I/O模型&lt;/h2&gt;
+
+&lt;p&gt;根据UNIX网络编程对I/O模型的分类，UNIX提供了五种I/O模型，服务器会根据自己的类型定位，使用其中一种或者多种I/O模型来处理网络请求。&lt;/p&gt;
+
+&lt;h3 id=&#34;阻塞i-o模型&#34;&gt;阻塞I/O模型&lt;/h3&gt;
+
+&lt;p&gt;最常用的I/O模型就是阻塞I/O模型，缺省情形下，所有文件操作都是阻塞的。我们以套接字借口为例来讲解此模型：在进程空间中调用recvfrom，其系统调用直到数据包到达且被复制到应用进程的缓冲区中或者发生错误时才返回，在此期间一直会等待，进程在从调用recvfrom开始到它返回的整段时间内都是被阻塞的，因此被称为阻塞I/O模型，如图1-1所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/block-io.png&#34; alt=&#34;阻塞I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;非阻塞i-o模型&#34;&gt;非阻塞I/O模型&lt;/h3&gt;
+
+&lt;p&gt;recvfrom从应用层到内核的时候，如果该缓冲区没有数据的话，就直接返回一个EWORLDBLOCK错误，一般都对非阻塞I/O模型进行轮询检查这个状态，看内核是不是有数据到来，如图1-2所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/non-block-io.png&#34; alt=&#34;非阻塞I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;i-o复用模型&#34;&gt;I/O复用模型&lt;/h3&gt;
+
+&lt;p&gt;Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/selector-io.png&#34; alt=&#34;I/O复用模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;信号驱动i-o模型&#34;&gt;信号驱动I/O模型&lt;/h3&gt;
+
+&lt;p&gt;首先开启套接字接口信号驱动I/O功能，并通过系统调用sigaction执行一个信号处理函数(此系统调用立即返回，进程继续工作，它是非阻塞的)。当数据准备就绪时，就为该进程生成一个SIGIO信号，通过信号回调通知应用程序调用recvfrom来读取数据，并通知主循环函数处理数据，如图1-4所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/signal-io.png&#34; alt=&#34;信号驱动I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;异步i-o模型&#34;&gt;异步I/O模型&lt;/h3&gt;
+
+&lt;p&gt;告知内核启动某个操作，并让内核在整个操作完成后（包括将数据从内核复制到用户自己的缓冲区）通知我们。这种模型与信号驱动模型的主要区别是：信号驱动I/O由内核通过我们何时可以开始一个I/O操作；异步I/O模型由内核通知我们I/O操作何时已经完成，如图1-5所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/aio-io.png&#34; alt=&#34;异步I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;常用服务器&#34;&gt;常用服务器&lt;/h2&gt;
+
+&lt;p&gt;目前流行的服务器大致分为普通应用服务器和高性能服务器两种。&lt;/p&gt;
+
+&lt;p&gt;应用服务器通常会运行具体的业务代码，比如：订单交易，网站管理等。这些业务通常使用基于MVC模式的框架，并进行数据库操作。应用服务器往往跟编程语言和应用框架绑定，提供上下文管理能力，单次业务的处理时间比较长，业务逻辑比较复杂。因此，应用服务器往往采用阻塞式I/O模型或者非阻塞I/O模型。基于请求/响应的方式工作。&lt;/p&gt;
+
+&lt;p&gt;高性能服务器往往需要面对极高的并发网络连接，并对内存分配、CPU使用提出更加苛刻的要求，比如：适用于反向代理的负载均衡服务器Nignx。因此，高性能服务器往往采用I/O复用模型或信号驱动I/O模型，有些对性能要求更高得服务器会采用纯异步I/O模型。相比较请求/响应的工作方式，使用后面三种I/O模型的服务器的处理方式更多样，也更复杂。&lt;/p&gt;
+
+&lt;h3 id=&#34;使用阻塞i-o模型或非阻塞i-o模型的服务器&#34;&gt;使用阻塞I/O模型或非阻塞I/O模型的服务器&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Apache&lt;/li&gt;
+&lt;li&gt;Tomcat&lt;/li&gt;
+&lt;li&gt;Resin&lt;/li&gt;
+&lt;li&gt;Caddy&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;使用多路复用i-o模型的服务器&#34;&gt;使用多路复用I/O模型的服务器&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Nginx&lt;/li&gt;
+&lt;li&gt;Netty&lt;/li&gt;
+&lt;li&gt;Mina&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
+
+&lt;p&gt;1, 《Netty权威指南 第二版》，李林峰&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Paxos协议整理</title>
@@ -1071,16 +1160,6 @@ Process finished with exit code 0
       
       <guid>http://nituchao.com/post/2016/java-tiao-jian-bian-liang-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
       <description>&lt;p&gt;Java通过条件变量来实现生产者消费者。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过读写锁实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-du-xie-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 15:12:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-du-xie-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
-      <description>&lt;p&gt;Java通过读写锁实现生产者消费者。&lt;/p&gt;
 </description>
     </item>
     
