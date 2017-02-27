@@ -103,7 +103,7 @@
 
 <h2 id="linux文件类型">Linux文件类型</h2>
 
-<p>Linux操作系统定义了七种文件，对这些文件的操作都属于I/O操作。其中，操作套接字文件时会产生网络I/O。</p>
+<p>Linux操作系统定义了七种文件，对这些文件的操作都属于I/O操作。其中，操作TCP套接字文件时会产生网络I/O。</p>
 
 <ul>
 <li>d: 目录文件</li>
@@ -133,7 +133,9 @@
 
 <h3 id="i-o复用模型">I/O复用模型</h3>
 
-<p>Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：</p>
+<p>Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。</p>
+
+<p>Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：</p>
 
 <p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/selector-io.png" alt="I/O复用模型" /></p>
 
