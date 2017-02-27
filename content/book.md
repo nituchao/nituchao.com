@@ -48,7 +48,7 @@ draft: false
 | 名称                                 | 作者                     |    页数 | 评分   | 年份     |
 | :-------------------------           | :------                  | :------ | :----- | :------- |
 | RabbitMQ实战，高效部署分布式消息队列 | Alvarao Videla/汪佳南    |     334 | ※※※ | 2017     |
-| Spring AMQP                          | Mark Pollack/Mark Fisher |     115 | ※※※ | 2017     |
+| Spring AMQP Reference                | Mark Pollack/Mark Fisher |     115 | ※※※ | 2017     |
 
 ## 设计模式
 | 名称                       | 作者    | 页数    | 评分   | 年份     |
