@@ -11,7 +11,7 @@
     <atom:link href="http://nituchao.com/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>通过jstack命令分析Java线程的堆栈信息</title>
+      <title>jstack命令</title>
       <link>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</link>
       <pubDate>Tue, 28 Feb 2017 19:01:58 +0800</pubDate>
       
@@ -96,54 +96,7 @@ Options:
     - sun.reflect.GeneratedMethodAccessor31.invoke(java.lang.Object, java.lang.Object[]) @bci=48 (Compiled frame)
     - sun.reflect.DelegatingMethodAccessorImpl.invoke(java.lang.Object, java.lang.Object[]) @bci=6, line=43 (Compiled frame)
     - java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) @bci=57, line=606 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ActionEngine$InvocationChainImpl.doNext() @bci=185, line=487 (Compiled frame)
-    - net.paoding.rose.web.ControllerInterceptorAdapter.round(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=1, line=136 (Compiled frame)
-    - net.paoding.rose.web.ControllerInterceptorAdapter.roundInvocation(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=37, line=104 (Compiled frame)
-    - net.paoding.rose.web.InterceptorDelegate.roundInvocation(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=6, line=106 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ActionEngine$InvocationChainImpl.doNext() @bci=52, line=468 (Compiled frame)
-    - net.paoding.rose.web.ControllerInterceptorAdapter.round(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=1, line=136 (Compiled frame)
-    - net.paoding.rose.web.ControllerInterceptorAdapter.roundInvocation(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=37, line=104 (Compiled frame)
-    - net.paoding.rose.web.InterceptorDelegate.roundInvocation(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=6, line=106 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ActionEngine$InvocationChainImpl.doNext() @bci=52, line=468 (Compiled frame)
-    - net.paoding.rose.web.ControllerInterceptorAdapter.round(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=1, line=136 (Compiled frame)
-    - net.paoding.rose.web.portal.impl.WindowCancelableSupportInterceptor.round(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=22, line=39 (Compiled frame)
-    - net.paoding.rose.web.ControllerInterceptorAdapter.roundInvocation(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=37, line=104 (Compiled frame)
-    - net.paoding.rose.web.InterceptorDelegate.roundInvocation(net.paoding.rose.web.Invocation, net.paoding.rose.web.InvocationChain) @bci=6, line=106 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ActionEngine$InvocationChainImpl.doNext() @bci=52, line=468 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ActionEngine.innerExecute(net.paoding.rose.web.impl.thread.Rose) @bci=357, line=445 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ActionEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=2, line=391 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.LinkedEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=27, line=69 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.Rose.doNext() @bci=24, line=121 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ControllerEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=1, line=83 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.LinkedEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=27, line=69 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.Rose.doNext() @bci=24, line=121 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.ModuleEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=37, line=119 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.LinkedEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=27, line=69 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.Rose.doNext() @bci=24, line=121 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.RootEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=122, line=126 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.LinkedEngine.execute(net.paoding.rose.web.impl.thread.Rose) @bci=27, line=69 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.Rose.doNext() @bci=24, line=121 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.Rose.innerStart() @bci=880, line=256 (Compiled frame)
-    - net.paoding.rose.web.impl.thread.Rose.start() @bci=23, line=109 (Compiled frame)
-    - net.paoding.rose.RoseFilter.doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain) @bci=176, line=346 (Compiled frame)
-    - com.caucho.server.dispatch.FilterFilterChain.doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse) @bci=66, line=89 (Compiled frame)
-    - com.xiaomi.miui.sec.web.AnalyticsFilter.doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain) @bci=86, line=48 (Compiled frame)
-    - com.caucho.server.dispatch.FilterFilterChain.doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse) @bci=66, line=89 (Compiled frame)
-    - com.caucho.server.webapp.WebAppFilterChain.doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse) @bci=93, line=156 (Compiled frame)
-    - com.caucho.server.webapp.AccessLogFilterChain.doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse) @bci=6, line=95 (Compiled frame)
-    - com.caucho.server.dispatch.ServletInvocation.service(javax.servlet.ServletRequest, javax.servlet.ServletResponse) @bci=61, line=289 (Compiled frame)
-    - com.caucho.server.http.HttpRequest.handleRequest() @bci=380, line=838 (Compiled frame)
-    - com.caucho.network.listen.TcpSocketLink.dispatchRequest() @bci=98, line=1346 (Compiled frame)
-    - com.caucho.network.listen.TcpSocketLink.handleRequest() @bci=1, line=1302 (Compiled frame)
-    - com.caucho.network.listen.TcpSocketLink.handleRequestsImpl(boolean) @bci=48, line=1286 (Compiled frame)
-    - com.caucho.network.listen.TcpSocketLink.handleRequests(boolean) @bci=11, line=1194 (Compiled frame)
-    - com.caucho.network.listen.TcpSocketLink.handleAcceptTaskImpl() @bci=180, line=993 (Compiled frame)
-    - com.caucho.network.listen.ConnectionTask.runThread() @bci=54, line=117 (Interpreted frame)
-    - com.caucho.network.listen.ConnectionTask.run() @bci=19, line=93 (Interpreted frame)
-    - com.caucho.network.listen.SocketLinkThreadLauncher.handleTasks(boolean) @bci=108, line=169 (Compiled frame)
-    - com.caucho.network.listen.TcpSocketAcceptThread.run() @bci=61, line=61 (Interpreted frame)
-    - com.caucho.env.thread2.ResinThread2.runTasks() @bci=158, line=173 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
+    
 
 &lt;/code&gt;&lt;/pre&gt;
 
