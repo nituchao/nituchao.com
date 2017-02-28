@@ -10,6 +10,25 @@
     <atom:link href="http://nituchao.com/tags/java/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>通过jstack命令分析Java线程的堆栈信息</title>
+      <link>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</link>
+      <pubDate>Tue, 28 Feb 2017 19:01:58 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</guid>
+      <description>&lt;p&gt;Java程序在操作系统上是以单进程、多线程的形式运行。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>解决Java进程占用CPU过高的问题</title>
+      <link>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</link>
+      <pubDate>Tue, 28 Feb 2017 09:16:18 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>JVM行为相关的配置参数</title>
       <link>http://nituchao.com/post/2016/jvm-xing-wei-xiang-guan-de-pei-zhi-can-shu/</link>
       <pubDate>Thu, 29 Dec 2016 13:53:12 +0800</pubDate>

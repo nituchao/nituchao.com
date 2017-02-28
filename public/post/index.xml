@@ -7,8 +7,27 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Wed, 22 Feb 2017 18:25:27 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 28 Feb 2017 19:01:58 +0800</lastBuildDate>
     <atom:link href="http://nituchao.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>通过jstack命令分析Java线程的堆栈信息</title>
+      <link>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</link>
+      <pubDate>Tue, 28 Feb 2017 19:01:58 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</guid>
+      <description>&lt;p&gt;Java程序在操作系统上是以单进程、多线程的形式运行。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>解决Java进程占用CPU过高的问题</title>
+      <link>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</link>
+      <pubDate>Tue, 28 Feb 2017 09:16:18 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Linux网络I/O模型整理</title>
@@ -1142,26 +1161,6 @@ Process finished with exit code 0
 &lt;p&gt;生产者线程调用共享缓冲区的bufferProduce(num)方法生产元素，在生产前要先获取锁(lock.lock()方法)，并判断当前共享缓冲区是否能够容纳所有元素，如果不能容纳，则直接返回false，并释放锁。如果可以容纳，则进行生产活动，返回true，并释放锁。生产者线程在一个while循环里判断，如果生产失败(返回false)，则等待一段时间，重新开始执行生产操作。如果生产成功，则结束当前线程。&lt;/p&gt;
 
 &lt;p&gt;消费者线程调用共享缓冲区的bufferConsume(num)方法消费元素，在生产前要先获取锁(lock.lock()方法)，并判断当前共享缓冲区是否有足够的元素供消费，如果元素数量不够，则直接返回false，并释放锁。如果元素足够，则进行消费活动，返回true，并释放锁。消费者线程在一个while循环里判断，如果消费失败(返回false)，则等待一段时间，重新开始执行消费操作。如果消费成功，则结束当前线程。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过阻塞队列实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-zu-se-dui-lie-shi-xian-sheng-chan-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 16:10:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-zu-se-dui-lie-shi-xian-sheng-chan-xiao-fei-zhe/</guid>
-      <description>&lt;p&gt;Java通过阻塞队列实现生产者消费者。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过条件变量实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-tiao-jian-bian-liang-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 16:00:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-tiao-jian-bian-liang-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
-      <description>&lt;p&gt;Java通过条件变量来实现生产者消费者。&lt;/p&gt;
 </description>
     </item>
     

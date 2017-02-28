@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Daily on 泥土巢</title>
+    <link>http://nituchao.com/categories/daily/index.xml</link>
+    <description>Recent content in Daily on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/categories/daily/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>解决Java进程占用CPU过高的问题</title>
+      <link>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</link>
+      <pubDate>Tue, 28 Feb 2017 09:16:18 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

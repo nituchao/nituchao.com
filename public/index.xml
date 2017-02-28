@@ -7,8 +7,27 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Wed, 22 Feb 2017 18:25:27 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 28 Feb 2017 19:01:58 +0800</lastBuildDate>
     <atom:link href="http://nituchao.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>通过jstack命令分析Java线程的堆栈信息</title>
+      <link>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</link>
+      <pubDate>Tue, 28 Feb 2017 19:01:58 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</guid>
+      <description>&lt;p&gt;Java程序在操作系统上是以单进程、多线程的形式运行。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>解决Java进程占用CPU过高的问题</title>
+      <link>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</link>
+      <pubDate>Tue, 28 Feb 2017 09:16:18 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/ji-lu-yi-ci-cpu-guo-gao-chu-li/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Linux网络I/O模型整理</title>
@@ -769,7 +788,7 @@
 &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h2 id=&#34;message-queue&#34;&gt;Message Queue&lt;/h2&gt;
+&lt;h2 id=&#34;mq-amqp&#34;&gt;MQ/AMQP&lt;/h2&gt;
 
 &lt;table&gt;
 &lt;thead&gt;
@@ -1002,389 +1021,6 @@
       
       <guid>http://nituchao.com/post/2016/jvm-xing-neng-xiang-guan-de-pei-zhi-can-shu/</guid>
       <description>&lt;p&gt;本问将介绍JVM性能相关的配置参数。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>JVM配置参数-X与-XX的区别</title>
-      <link>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</link>
-      <pubDate>Wed, 28 Dec 2016 13:14:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</guid>
-      <description>
-
-&lt;p&gt;启动JVM时通过指定配置参数来指导虚拟机按照我们的要求提供服务，这一点对大多数的Java程序员来说已经是司空见惯。&lt;/p&gt;
-
-&lt;p&gt;在指定配置参数时，会有-X和-XX两种形式，那么它们两者有什么区别呢，今天我想借这篇文章总结一下。&lt;/p&gt;
-
-&lt;p&gt;下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;java -Xmx15G \
--Xms10G \
--Xmn3G \
--Xss512k \
--XX:MaxPermSize=512M \
--XX:PermSize=512M \
--XX:+PrintFlagsFinal \
--XX:MaxTenuringThreshold=1 \
--XX:SurvivorRatio=23 \
--XX:TargetSurvivorRatio=80 \
--Xnoclassgc \
--XX:+UseParNewGC \
--XX:+UseConcMarkSweepGC \
--XX:CMSInitiatingOccupancyFraction=80 \
--XX:ParallelGCThreads=24 \
--XX:ConcGCThreads=24 \
--XX:+CMSParallelRemarkEnabled \
--XX:+CMSScavengeBeforeRemark \
--XX:+ExplicitGCInvokesConcurrent \
--XX:+UseTLAB \
--XX:TLABSize=64K, -verbose:gc \
--XX:+PrintGCDetails \
--XX:+PrintGCDateStamps \
--XX:+PrintGCTimeStamps \
--XX:+PrintGCApplicationStoppedTime \
--Xloggc:./gc.log
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Java HotSpot VM的官方文档中将启动参数分为如下两类：&lt;/p&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;center&#34;&gt;配置 参数&lt;/th&gt;
-&lt;th align=&#34;center&#34;&gt;类型&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;说明&lt;/th&gt;
-&lt;th align=&#34;center&#34;&gt;举例&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;center&#34;&gt;-X&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;non-standard&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;非标准参数。&lt;br/&gt;&lt;br/&gt;这些参数不是虚拟机规范规定的。因此，不是所有VM的实现(如:HotSpot,JRockit,J9等)都支持这些配置参数。&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;-Xmx、-Xms、-Xmn、-Xss&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;center&#34;&gt;-XX&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;not-stable&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;不稳定参数。&lt;br/&gt;&lt;br/&gt;这些参数是虚拟机规范中规定的。这些参数指定虚拟机实例在运行时的各种行为，从而对虚拟机的运行时性能有很大影响。&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;-XX:SurvivorRatio、-XX:+UseParNewGc&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;补充: -X和-XX两种参数都可能随着JDK版本的变更而发生变化，有些参数可以能会被废弃掉，有些参数的功能会发生改变，但是JDK官方不会通知开发者这些变化，需要使用者注意。&lt;/p&gt;
-
-&lt;p&gt;-XX参数被称为不稳定参数，是因为这类参数的设置会引起JVM运行时性能上的差异，配置得当可以提高JVM性能，配置不当则会使JVM出现各种问题, 甚至造成JVM崩溃。&lt;/p&gt;
-
-&lt;p&gt;国外有个哥们从HotSpot VM的源码里发现了934个此类型的配置参数，因此能对JVM做出很多组合配置，对JVM的调优也没有统一的标准，需要我们在实践中不断总结经验，并结合实际业务来进行操作，最终找到最适合当前业务的那些配置。&lt;/p&gt;
-
-&lt;h2 id=&#34;一些有用的-xx配置&#34;&gt;一些有用的-XX配置&lt;/h2&gt;
-
-&lt;p&gt;对于-XX类型的配置选项，虚拟机规范有一些惯例，针对不同的平台虚拟机也会提供不同的默认值。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;对于布尔(Boolean)类型的配置选项，通过&lt;code&gt;-XX:+&amp;lt;option&amp;gt;&lt;/code&gt;来开启，通过&lt;code&gt;-XX:-&amp;lt;option&amp;gt;&lt;/code&gt;来关闭。&lt;/li&gt;
-&lt;li&gt;对于数字(Numberic)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;number&amp;gt;&lt;/code&gt;来配置。&lt;code&gt;&amp;lt;number&amp;gt;&lt;/code&gt;后面可以携带单位字母，比如: &amp;lsquo;k&amp;rsquo;或者&amp;rsquo;K&amp;rsquo;代表千字节，&amp;rsquo;m&amp;rsquo;或者&amp;rsquo;M&amp;rsquo;代表兆字节，&amp;rsquo;g&amp;rsquo;或者&amp;rsquo;G&amp;rsquo;代表千兆字节。&lt;/li&gt;
-&lt;li&gt;对于字符串(String)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;string&amp;gt;&lt;/code&gt;来配置。这种配置通过用来指定文件，路径或者命令列表。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&#34;参考文献&#34;&gt;参考文献&lt;/h2&gt;
-
-&lt;p&gt;1, &lt;a href=&#34;http://jvm-options.tech.xebia.fr/&#34;&gt;JVM Options - The complete reference&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;2, &lt;a href=&#34;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&#34;&gt;Java HotSpot VM Options&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过信号量机制实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-xin-hao-liang-ji-zhi-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 16:12:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-xin-hao-liang-ji-zhi-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
-      <description>
-
-&lt;p&gt;信号量是一种计数器，用来保护一个或者多个共享资源的访问。Java提供了Semaphore类来实现信号量机制。&lt;/p&gt;
-
-&lt;p&gt;如果线程要访问一个共享资源，它必须先获得信号量。如果信号量的内部计数器大于0，信号量将减1，然后允许访问这个共享资源。计数器大于0意味着有可以使用的资源，因此线程将被允许使用其中一个资源。&lt;/p&gt;
-
-&lt;p&gt;否则，如果信号量的计数器等于0，信号量将会把线程置入休眠直至计数器大于0.计数器等于0的时候意味着所有的共享资源已经被其他线程使用了，所以需要访问这个共享资源的线程必须等待。&lt;/p&gt;
-
-&lt;p&gt;当线程使用完某个共享资源时，信号量必须被释放，以便其他线程能够访问共享资源。释放操作将使信号量的内部计数器增加1。&lt;/p&gt;
-
-&lt;h3 id=&#34;设计思想&#34;&gt;设计思想&lt;/h3&gt;
-
-&lt;p&gt;为了使用信号量机制来实现生产者VS消费者模型，我们需要实例化一个二进制信号量对象，即内部计数器只有0和1两个值。多个生产者线程和多个消费者线程竞争这个信号量来互斥访问共享缓冲区。&lt;/p&gt;
-
-&lt;p&gt;另外，由于共享缓冲区是有空间限制的，生产者在生产前要判断共享缓冲区空间是否充足。消费者在消费前要判断共享缓冲区内的元素是否足够消费。&lt;/p&gt;
-
-&lt;h3 id=&#34;代码实现&#34;&gt;代码实现&lt;/h3&gt;
-
-&lt;p&gt;基于上面的设计思想，我们需要实现共享缓冲区，生产者线程，消费者线程和主程序四部分。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;共享缓冲区&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-
-/**
- * 缓冲区
- * Created by liang on 2016/12/29.
- */
-public class Buffer {
-    private int MAX_SIZE = 100;
-    private final List&amp;lt;String&amp;gt; list;
-    private final Semaphore semaphore;
-
-    public Buffer() {
-        this.list = new ArrayList&amp;lt;&amp;gt;();
-        this.semaphore = new Semaphore(1);
-    }
-
-    /**
-     * 生产Buffer元素
-     *
-     * @param num
-     */
-    public boolean BufferProduct(int num) {
-        boolean result = true;
-
-        try {
-            // 获取信号量
-            semaphore.acquire();
-
-            // 如果缓冲区能够容纳要生成的元素，允许生产
-            if (list.size() + num &amp;lt;= MAX_SIZE) {
-                // 开始生产
-                for (int i = 1; i &amp;lt;= num; i++) {
-                    list.add(0, Thread.currentThread().getName() + &amp;quot; : &amp;quot; + i);
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                // 缓冲区无法容纳要生成的元素，禁止生产
-                result = false;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product fail, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            semaphore.release();
-        }
-
-        return result;
-    }
-
-    /**
-     * 消费Buffer元素
-     *
-     * @param num
-     * @return
-     */
-    public boolean BufferConsume(int num) {
-        boolean result = true;
-
-        try {
-            // 获取信号量
-            semaphore.acquire();
-
-            // 如果缓冲区中有足够的元素消费，允许消费
-            if (list.size() - num &amp;gt;= 0) {
-                // 开始消费
-                for (int i = 1; i &amp;lt;= num; i++) {
-                    String element = list.remove(0);
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                // 缓冲取没有足够的元素供消费，禁止消费
-                result = false;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume fail, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            semaphore.release();
-        }
-
-        return result;
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;生产者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 生产者线程
- * Created by liang on 2016/12/29.
- */
-public class BufferProducer implements Runnable {
-    private Buffer buffer;
-    private int num;
-
-    public BufferProducer(Buffer buffer, int num) {
-        this.buffer = buffer;
-        this.num = num;
-    }
-
-    @Override
-    public void run() {
-        while (!buffer.BufferProduct(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;消费者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 消费者线程
- * Created by liang on 2016/12/29.
- */
-public class BufferConsumer implements Runnable {
-    private Buffer buffer;
-    private int num;
-
-    public BufferConsumer(Buffer buffer, int num) {
-        this.buffer = buffer;
-        this.num = num;
-    }
-
-    @Override
-    public void run() {
-        while (!buffer.BufferConsume(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;主程序&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-/**
- * 主程序
- * Created by liang on 2016/12/29.
- */
-public class BufferMain {
-
-    public static void main(String[] args) {
-        int num = 10;
-
-        // 初始化Buffer对象
-        Buffer buffer = new Buffer();
-
-        // 实例化num个生产者和消费者线程
-        Thread[] threadProducers = new Thread[num];
-        Thread[] threadConsumers = new Thread[num];
-
-        for (int i = 0; i &amp;lt; num; i++) {
-            threadProducers[i] = new Thread(new BufferProducer(buffer, i + 1));
-            threadConsumers[i] = new Thread(new BufferConsumer(buffer, i + 1));
-        }
-
-        // 分别启动生产者和消费者线程
-        for (int i = 0; i &amp;lt; num; i++) {
-            // 故意先开始消费
-            threadConsumers[i].start();
-
-            // 故意后开始生产
-            threadProducers[i].start();
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;运行结果&#34;&gt;运行结果&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;Connected to the target VM, address: &#39;127.0.0.1:61012&#39;, transport: &#39;socket&#39;
-Thread: Thread-1, Buffer Consume fail, num is 1, buffer size is 0
-Thread Thread-0: Buffer Product succ, num is 1, buffer size is 1
-Thread: Thread-3, Buffer Consume fail, num is 2, buffer size is 1
-Thread Thread-2: Buffer Product succ, num is 2, buffer size is 3
-Thread: Thread-5, Buffer Consume succ, num is 3, buffer size is 0
-Thread Thread-4: Buffer Product succ, num is 3, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread Thread-6: Buffer Product succ, num is 4, buffer size is 7
-Thread: Thread-9, Buffer Consume succ, num is 5, buffer size is 2
-Thread Thread-8: Buffer Product succ, num is 5, buffer size is 7
-Thread: Thread-11, Buffer Consume succ, num is 6, buffer size is 1
-Thread Thread-10: Buffer Product succ, num is 6, buffer size is 7
-Thread: Thread-13, Buffer Consume succ, num is 7, buffer size is 0
-Thread Thread-12: Buffer Product succ, num is 7, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread Thread-14: Buffer Product succ, num is 8, buffer size is 15
-Thread: Thread-17, Buffer Consume succ, num is 9, buffer size is 6
-Thread Thread-16: Buffer Product succ, num is 9, buffer size is 15
-Thread: Thread-19, Buffer Consume succ, num is 10, buffer size is 5
-Thread Thread-18: Buffer Product succ, num is 10, buffer size is 15
-Thread: Thread-3, Buffer Consume succ, num is 2, buffer size is 13
-Thread: Thread-1, Buffer Consume succ, num is 1, buffer size is 12
-Thread: Thread-7, Buffer Consume succ, num is 4, buffer size is 8
-Thread: Thread-15, Buffer Consume succ, num is 8, buffer size is 0
-Disconnected from the target VM, address: &#39;127.0.0.1:61012&#39;, transport: &#39;socket&#39;
-
-Process finished with exit code 0
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;工作原理&#34;&gt;工作原理&lt;/h3&gt;
-
-&lt;p&gt;主程序首先实例化一个二进制信号量对象semaphore，指定该信号量内部计数器只有0和1，这样可以保证同一时间只有一个线程能够访问共享缓冲区。这样一来，共享缓冲区buffer本质上就成为一个队列。&lt;/p&gt;
-
-&lt;p&gt;主程序实例化num个生产者线程和num个消费者线程。&lt;/p&gt;
-
-&lt;p&gt;生产者线程负责向缓冲区里生产元素，每个生产者生产的数量都各不相同，从而能更好的观察效果。生产者首先会去尝试获取信号量(acquire)，然后检查当前共享缓冲区是否有足够空间容纳自己可生产的元素。如果有，则进行生产，如果没有，则不进行生产。最后，释放信号量(release)并把生产的结果返回(boolen)。生产者线程如果发现自己生产失败，则会随机休眠一段时间再重复上面的操作，直到生产操作成功。&lt;/p&gt;
-
-&lt;p&gt;消费者线程负责从缓冲区里消费元素，每个消费者消费的数量都各不相同，从而能更好的观察效果。消费者首先回去尝试获取信号量(acquire)，然后检查当前共享缓冲区中是否有足够的元素供自己消费。如果有，则进行消费，如果没有，则不进行消费。最后，释放信号量(release)并把消费的结果返回(boolean)。消费者线程如果发现自己消费失败，则会随机休眠一段时间再重复上面的操作，直到消费操作成功。&lt;/p&gt;
-
-&lt;p&gt;生产者线程和消费者线程访问是信号量是公平竞争，第一个获取信号量的线程将能够访问临界区，其余的线程将被信号量阻塞，直到信号量被释放。一旦信号量被释放，被被阻塞的线程就可以重新竞争信号量并访问临界区。&lt;/p&gt;
 </description>
     </item>
     
