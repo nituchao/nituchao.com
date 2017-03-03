@@ -41,8 +41,7 @@ Options:
 &lt;h2 id=&#34;jstack参数说明&#34;&gt;jstack参数说明&lt;/h2&gt;
 
 &lt;ol&gt;
-&lt;li&gt;连接到运行中的进程&lt;/li&gt;
-&lt;/ol&gt;
+&lt;li&gt;&lt;p&gt;连接到运行中的进程&lt;/p&gt;
 
 &lt;p&gt;&amp;ldquo;jstack pid&amp;rdquo;，pid为进程号，可以通过jps或者top命令查到。&lt;/p&gt;
 
@@ -50,23 +49,27 @@ Options:
 
 &lt;p&gt;导出的文本中包含线程号，线程号状态，线程调用栈等信息，结合ps命令中查询出的线程号，可以分析出CPU使用率比较高的线程，以及该线程中的调用堆栈，进而可以定位到项目代码。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;   Thread 1091: (state = BLOCKED)
+&lt;p&gt;```
+Thread 1091: (state = BLOCKED)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;sun.misc.Unsafe.park(boolean, long) @bci=0 (Compiled frame; information may be imprecise)&lt;/li&gt;
+&lt;li&gt;java.util.concurrent.locks.LockSupport.park() @bci=5, line=315 (Interpreted frame)&lt;/li&gt;
+&lt;li&gt;com.caucho.env.thread2.ResinThread2.park() @bci=29, line=196 (Compiled frame)&lt;/li&gt;
+&lt;li&gt;com.caucho.env.thread2.ResinThread2.runTasks() @bci=65, line=147 (Compiled frame)&lt;/li&gt;
+&lt;li&gt;com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
+```&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Thread 1089: (state = BLOCKED)
     - sun.misc.Unsafe.park(boolean, long) @bci=0 (Compiled frame; information may be imprecise)
     - java.util.concurrent.locks.LockSupport.park() @bci=5, line=315 (Interpreted frame)
     - com.caucho.env.thread2.ResinThread2.park() @bci=29, line=196 (Compiled frame)
     - com.caucho.env.thread2.ResinThread2.runTasks() @bci=65, line=147 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
+    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)&lt;/p&gt;
 
-
-   Thread 1089: (state = BLOCKED)
-    - sun.misc.Unsafe.park(boolean, long) @bci=0 (Compiled frame; information may be imprecise)
-    - java.util.concurrent.locks.LockSupport.park() @bci=5, line=315 (Interpreted frame)
-    - com.caucho.env.thread2.ResinThread2.park() @bci=29, line=196 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.runTasks() @bci=65, line=147 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
-
-
-   Thread 1088: (state = IN_NATIVE)
+&lt;p&gt;Thread 1088: (state = IN_NATIVE)
     - java.net.SocketInputStream.socketRead0(java.io.FileDescriptor, byte[], int, int, int) @bci=0 (Compiled frame; information may be imprecise)
     - java.net.SocketInputStream.read(byte[], int, int, int) @bci=79, line=150 (Compiled frame)
     - java.net.SocketInputStream.read(byte[], int, int) @bci=11, line=121 (Compiled frame)
@@ -95,18 +98,21 @@ Options:
     - com.xiaomi.miui.sec.controllers.InfoController.setting(net.paoding.rose.web.Invocation, java.lang.String) @bci=73, line=252 (Compiled frame)
     - sun.reflect.GeneratedMethodAccessor31.invoke(java.lang.Object, java.lang.Object[]) @bci=48 (Compiled frame)
     - sun.reflect.DelegatingMethodAccessorImpl.invoke(java.lang.Object, java.lang.Object[]) @bci=6, line=43 (Compiled frame)
-    - java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) @bci=57, line=606 (Compiled frame)
-    
+    - java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) @bci=57, line=606 (Compiled frame)&lt;/p&gt;
 
+&lt;pre&gt;&lt;code&gt;
+   ​
+
+## jstack分析java线程的CPU使用率和使用时长
+
+
+
+## jstack分析分析已有的javacore文件
+
+
+
+## jstack连接到远程调试服务器进行分析
 &lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;​&lt;/p&gt;
-
-&lt;h2 id=&#34;jstack分析java线程的cpu使用率和使用时长&#34;&gt;jstack分析java线程的CPU使用率和使用时长&lt;/h2&gt;
-
-&lt;h2 id=&#34;jstack分析分析已有的javacore文件&#34;&gt;jstack分析分析已有的javacore文件&lt;/h2&gt;
-
-&lt;h2 id=&#34;jstack连接到远程调试服务器进行分析&#34;&gt;jstack连接到远程调试服务器进行分析&lt;/h2&gt;
 </description>
     </item>
     

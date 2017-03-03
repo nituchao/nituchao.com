@@ -59,11 +59,11 @@
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
 						<ul class="dropdown-menu" role="menu">
 						
+							<li><a href="http://nituchao.com/categories/console">Console</a></li>
+						
 							<li><a href="http://nituchao.com/categories/daily">Daily</a></li>
 						
 							<li><a href="http://nituchao.com/categories/java">Java</a></li>
-						
-							<li><a href="http://nituchao.com/categories/jtool">Jtool</a></li>
 						
 							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
 						
@@ -126,8 +126,7 @@ Options:
 <h2 id="jstack参数说明">jstack参数说明</h2>
 
 <ol>
-<li>连接到运行中的进程</li>
-</ol>
+<li><p>连接到运行中的进程</p>
 
 <p>&ldquo;jstack pid&rdquo;，pid为进程号，可以通过jps或者top命令查到。</p>
 
@@ -135,23 +134,27 @@ Options:
 
 <p>导出的文本中包含线程号，线程号状态，线程调用栈等信息，结合ps命令中查询出的线程号，可以分析出CPU使用率比较高的线程，以及该线程中的调用堆栈，进而可以定位到项目代码。</p>
 
-<pre><code>   Thread 1091: (state = BLOCKED)
+<p>```
+Thread 1091: (state = BLOCKED)</p>
+
+<ul>
+<li>sun.misc.Unsafe.park(boolean, long) @bci=0 (Compiled frame; information may be imprecise)</li>
+<li>java.util.concurrent.locks.LockSupport.park() @bci=5, line=315 (Interpreted frame)</li>
+<li>com.caucho.env.thread2.ResinThread2.park() @bci=29, line=196 (Compiled frame)</li>
+<li>com.caucho.env.thread2.ResinThread2.runTasks() @bci=65, line=147 (Compiled frame)</li>
+<li>com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
+```</li>
+</ul></li>
+</ol>
+
+<p>Thread 1089: (state = BLOCKED)
     - sun.misc.Unsafe.park(boolean, long) @bci=0 (Compiled frame; information may be imprecise)
     - java.util.concurrent.locks.LockSupport.park() @bci=5, line=315 (Interpreted frame)
     - com.caucho.env.thread2.ResinThread2.park() @bci=29, line=196 (Compiled frame)
     - com.caucho.env.thread2.ResinThread2.runTasks() @bci=65, line=147 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
+    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)</p>
 
-
-   Thread 1089: (state = BLOCKED)
-    - sun.misc.Unsafe.park(boolean, long) @bci=0 (Compiled frame; information may be imprecise)
-    - java.util.concurrent.locks.LockSupport.park() @bci=5, line=315 (Interpreted frame)
-    - com.caucho.env.thread2.ResinThread2.park() @bci=29, line=196 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.runTasks() @bci=65, line=147 (Compiled frame)
-    - com.caucho.env.thread2.ResinThread2.run() @bci=15, line=118 (Interpreted frame)
-
-
-   Thread 1088: (state = IN_NATIVE)
+<p>Thread 1088: (state = IN_NATIVE)
     - java.net.SocketInputStream.socketRead0(java.io.FileDescriptor, byte[], int, int, int) @bci=0 (Compiled frame; information may be imprecise)
     - java.net.SocketInputStream.read(byte[], int, int, int) @bci=79, line=150 (Compiled frame)
     - java.net.SocketInputStream.read(byte[], int, int) @bci=11, line=121 (Compiled frame)
@@ -180,18 +183,21 @@ Options:
     - com.xiaomi.miui.sec.controllers.InfoController.setting(net.paoding.rose.web.Invocation, java.lang.String) @bci=73, line=252 (Compiled frame)
     - sun.reflect.GeneratedMethodAccessor31.invoke(java.lang.Object, java.lang.Object[]) @bci=48 (Compiled frame)
     - sun.reflect.DelegatingMethodAccessorImpl.invoke(java.lang.Object, java.lang.Object[]) @bci=6, line=43 (Compiled frame)
-    - java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) @bci=57, line=606 (Compiled frame)
-    
+    - java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) @bci=57, line=606 (Compiled frame)</p>
 
+<pre><code>
+   ​
+
+## jstack分析java线程的CPU使用率和使用时长
+
+
+
+## jstack分析分析已有的javacore文件
+
+
+
+## jstack连接到远程调试服务器进行分析
 </code></pre>
-
-<p>​</p>
-
-<h2 id="jstack分析java线程的cpu使用率和使用时长">jstack分析java线程的CPU使用率和使用时长</h2>
-
-<h2 id="jstack分析分析已有的javacore文件">jstack分析分析已有的javacore文件</h2>
-
-<h2 id="jstack连接到远程调试服务器进行分析">jstack连接到远程调试服务器进行分析</h2>
 
 				</section>
 			</article>
@@ -213,9 +219,6 @@ Options:
 <li>
 <ul>
 <li><a href="#jstack参数说明">jstack参数说明</a></li>
-<li><a href="#jstack分析java线程的cpu使用率和使用时长">jstack分析java线程的CPU使用率和使用时长</a></li>
-<li><a href="#jstack分析分析已有的javacore文件">jstack分析分析已有的javacore文件</a></li>
-<li><a href="#jstack连接到远程调试服务器进行分析">jstack连接到远程调试服务器进行分析</a></li>
 </ul></li>
 </ul>
 </nav>
