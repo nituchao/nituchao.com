@@ -2,6 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</loc>
+    <lastmod>2017-03-06T09:34:07+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/2017/centos-an-zhuang-rabbit-cluster/</loc>
+    <lastmod>2017-03-02T17:35:54+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/2017/tong-guo-jstack-fen-xi/</loc>
     <lastmod>2017-02-28T19:01:58+08:00</lastmod>
   </url>
@@ -199,6 +209,12 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/categories/amqp/</loc>
+    <lastmod>2017-03-02T17:35:54+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/tags/android/</loc>
     <lastmod>2014-07-12T19:19:00+08:00</lastmod>
     <priority>0</priority>
@@ -229,7 +245,7 @@
   
   <url>
     <loc>http://nituchao.com/categories/daily/</loc>
-    <lastmod>2017-02-28T09:16:18+08:00</lastmod>
+    <lastmod>2017-03-06T09:34:07+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -265,7 +281,7 @@
   
   <url>
     <loc>http://nituchao.com/tags/jvm/</loc>
-    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+    <lastmod>2017-03-06T09:34:07+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -325,7 +341,7 @@
   
   <url>
     <loc>http://nituchao.com/post/</loc>
-    <lastmod>2017-02-28T19:01:58+08:00</lastmod>
+    <lastmod>2017-03-06T09:34:07+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -338,6 +354,12 @@
   <url>
     <loc>http://nituchao.com/categories/queue/</loc>
     <lastmod>2016-12-27T16:12:12+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/tags/rabbitmq/</loc>
+    <lastmod>2017-03-02T17:35:54+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -389,6 +411,12 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/tags/yourkit/</loc>
+    <lastmod>2017-03-06T09:34:07+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
     <lastmod>2016-12-27T16:00:12+08:00</lastmod>
     <priority>0</priority>
@@ -396,7 +424,7 @@
   
   <url>
     <loc>http://nituchao.com/</loc>
-    <lastmod>2017-02-28T19:01:58+08:00</lastmod>
+    <lastmod>2017-03-06T09:34:07+08:00</lastmod>
     <priority>0</priority>
   </url>
   

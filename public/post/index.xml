@@ -7,8 +7,311 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Tue, 28 Feb 2017 19:01:58 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 06 Mar 2017 09:34:07 +0800</lastBuildDate>
     <atom:link href="http://nituchao.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>YourKit远程连接线上服务器</title>
+      <link>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</link>
+      <pubDate>Mon, 06 Mar 2017 09:34:07 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</guid>
+      <description>
+
+&lt;p&gt;YourKit是一款业内领先的性能分析工具，目前支持Java和.NET两个平台。该工具功能全面强悍，能通过本地连接或者远程连接的方式，对各种服务器，框架，平台的业务进行分析，并提供了多种由浅入深，适合开发环境或者生产环境的分析模式。该工具提供了高效的图形化显示方式，动动鼠标就可以对系统进行显微镜式的观察分析。&lt;/p&gt;
+
+&lt;p&gt;通过YourKit可以对以下内容进行分析：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CPU profiling - investigate performace issues&lt;/li&gt;
+&lt;li&gt;Memory profiling - memory leaks, usage, GC&lt;/li&gt;
+&lt;li&gt;Threads and synchronization&lt;/li&gt;
+&lt;li&gt;Exception profiling&lt;/li&gt;
+&lt;li&gt;Web, Database, I/O&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;YourKit提供了两种方式连接到Java进程，一种是attach方式，另一种是integrate方式。&lt;/p&gt;
+
+&lt;h2 id=&#34;通过attach方式连接到远程服务器&#34;&gt;通过attach方式连接到远程服务器&lt;/h2&gt;
+
+&lt;p&gt;在控制台，通过attach方法可以通过进程号，直接连接到运行中的任何Java进程中，这种方式并不保证总能连接成功，而且在会禁用某些分析功能。&lt;/p&gt;
+
+&lt;h4 id=&#34;线上环境&#34;&gt;线上环境&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS release 6.3 64-Bit&lt;/li&gt;
+&lt;li&gt;Java 1.7.0_79 HotSpot&amp;trade; 64-Bit Server VM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;下载安装包&#34;&gt;下载安装包&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# wget https://www.yourkit.com/download/yjp-2017.02-b53.zip
+# unzip yjp-2017.02-b53.zip
+# cd yjp-2017.02
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;确定服务进程号&#34;&gt;确定服务进程号&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# jps
+2230 Resin
+3959 Jps
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;console连接进程&#34;&gt;Console连接进程&lt;/h4&gt;
+
+&lt;p&gt;通过下面的命令来连接到Java进程。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# bin/yjp.sh -attach
+[YourKit Java Profiler 2017.02-b53] Log file: /root/.yjp/log/yjp-4473.log
+Running JVMs:
+
+Name                             |   PID| Status
+-------------------------------- |------|--------------------------------
+Resin                            | 11760| Ready for attach
+ThriftMain                       |  2934| Ready for attach
+Resin                            |  2230| Agent already loaded, agent port is 10001
+Resin                            | 14232| Ready for attach
+Resin                            |  3657| Ready for attach
+WatchdogManager                  | 16411| Ready for attach
+
+Enter PID of the application you want to attach (0 to exit) and press Enter:
+&amp;gt;2230
+Please specify comma-separated list of startup options, or press Enter for default options (recommended):
+&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面的操作执行完成后，会出现如下提示，表示YourKit Console服务已经成功运行，并在10001开始工作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;Attaching to process 2230 using default options
+[YourKit Java Profiler 2017.02-b53] Log file: /root/.yjp/log/yjp-30209.log
+The profiler agent has attached. Waiting while it initializes...
+The agent is loaded and is listening on port 10001.
+You can connect to it from the profiler UI.
+# lsof -i:10001
+COMMAND  PID USER   FD   TYPE    DEVICE SIZE/OFF NODE NAME
+java    2230 root   72u  IPv4 199000044      0t0  TCP *:scp-config (LISTEN)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在浏览器，通过ip:port的方式，可以看到YourKit的运行概况。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/your-kit-attach.png&#34; alt=&#34;YourKit Attach&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;yourkit-ui连接远程服务&#34;&gt;YourKit UI连接远程服务&lt;/h4&gt;
+
+&lt;p&gt;打开YourKit UI，点击Connect to remote application，输入IP:PORT进行连接。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-connect-attach.png&#34; alt=&#34;YourKit Connect&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;连接成功后，进行性能分析界面，大功告成。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-home-attach.png&#34; alt=&#34;YourKit性能分析界面&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;疑难问题&#34;&gt;疑难问题&lt;/h4&gt;
+
+&lt;p&gt;通过attach方式并不总能连接到Java进程，常常会出现JVM无响应的问题，控制台报错如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;Attaching to process 31833 using options
+com.yourkit.util.bf: com.sun.tools.attach.AttachNotSupportedException: Unable to open socket file: target process not responding or HotSpot VM not loaded
+	at com.yourkit.b.f.a(a:128)
+	at com.yourkit.b.c.attach(a:1)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.yourkit.h.run(a:17)
+
+Attach to a running JVM failed.
+
+Solution: start JVM with the profiler agent instead of attaching it to a running JVM:
+https://www.yourkit.com/docs/java/help/running_with_profiler.jsp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;因此，分析本地Java进程时可以选择attach方式，对于远程服务，还是推荐integrate方式。&lt;/p&gt;
+
+&lt;h2 id=&#34;通过integrate方式连接到远程服务器&#34;&gt;通过integrate方式连接到远程服务器&lt;/h2&gt;
+
+&lt;p&gt;integrate方式通过修服务器启动配置文件，随服务启动，这种方式比较稳定，而且能够全面启用YourKit的所有功能。&lt;/p&gt;
+
+&lt;h4 id=&#34;线上环境-1&#34;&gt;线上环境&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS release 6.3 64-Bit&lt;/li&gt;
+&lt;li&gt;Java 1.7.0_79 HotSpot&amp;trade; 64-Bit Server VM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;下载安装包-1&#34;&gt;下载安装包&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# wget https://www.yourkit.com/download/yjp-2017.02-b53.zip
+# unzip yjp-2017.02-b53.zip
+# cd yjp-2017.02
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;确定服务进程号-1&#34;&gt;确定服务进程号&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# jps
+2230 Resin
+3959 Jps
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;console连接进程-1&#34;&gt;Console连接进程&lt;/h4&gt;
+
+&lt;p&gt;通过下面的命令来连接到Java进程。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# bin/yjp.sh -integrate
+Choose server to integrate with:
+1) Geronimo
+2) GlassFish
+3) JBoss / WildFly
+4) Jetty
+5) JRun 4
+6) Resin 3.1/4
+7) Tomcat 3–8
+8) WebLogic 9 and newer
+9) WebSphere Application Server 7 or newer
+10) WebSphere Application Server V8.5 Liberty profile
+11) Generic server (use if your server is not on the list)
+Enter number which corresponds to your server (0 to exit) and press Enter:
+&amp;gt;6
+Please specify whether the server runs on a 32-bit JVM or a 64-bit JVM.
+Hint: If you are not sure what to choose, choose &amp;quot;32-bit JVM&amp;quot;. If with this choice the server does not start with profiling, re-run the integration and choose &amp;quot;64-bit Java&amp;quot; option.
+1) 32-bit JVM
+2) 64-bit JVM
+&amp;gt;2
+Resin configuration file (&amp;lt;RESIN_HOME&amp;gt;/conf/resin.xml or &amp;lt;RESIN_HOME&amp;gt;/conf/resin.conf):
+&amp;gt;/home/work/bin/miui-sec-adv/resin/conf/resin.xml
+
+Startup options configuration: step 1 of 5
+Should option &#39;disablestacktelemetry&#39; be specified?
+1) Yes (recommended to minimize profiling overhead in production)
+2) No
+&amp;gt;2
+Startup options configuration: step 2 of 5
+Should option &#39;exceptions=disable&#39; be specified?
+1) Yes (recommended to minimize profiling overhead in production)
+2) No
+&amp;gt;1
+Startup options configuration: step 3 of 5
+Built-in probes:
+
+1) Enabled: recommended for use in DEVELOPMENT; gives high level profiling results, but may add overhead
+2) Disabled: recommended for use in PRODUCTION to minimise overhead, or for troubleshooting
+
+Hint: It&#39;s recommended to choose #1 in development and #2 in production.
+If choosing #1 makes profiling overhead big or there are startup issues, re-run the integration and choose #2.
+&amp;gt;2
+Startup options configuration: step 4 of 5
+Should option &#39;delay=10000&#39; be specified?
+1) Yes (recommended)
+2) No
+&amp;gt;1
+Startup options configuration: step 5 of 5
+Please specify comma-separated list of additional startup options, or press Enter for no additional options:
+&amp;gt;
+A new config file is created:
+
+/home/work/bin/miui-sec-adv/resin/conf/resin_yjp.xml
+
+To profile the server:
+
+1) [Recommended] Backup original &#39;resin.xml&#39;
+2) Rename &#39;resin_yjp.xml&#39; to &#39;resin.xml&#39;
+3) Start the server
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面的操作执行完成后，会在操作中指定的resin配置文件目录生成&lt;code&gt;resin_yjp.xml&lt;/code&gt;文件，接下来将该&lt;code&gt;resin_yjp.xml&lt;/code&gt;重命名为&lt;code&gt;resin.xml&lt;/code&gt;，并启动服务器。正常情况下，YourKit的Console程序便会随着Resin服务器自动启动，可以通过&lt;code&gt;lsof&lt;/code&gt;命令确认一下。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# lsof -i:10001
+COMMAND  PID USER   FD   TYPE     DEVICE SIZE/OFF NODE NAME
+java    2389 work    8u  IPv4 3188835745      0t0  TCP *:scp-config (LISTEN)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;同时，可以通过IP:PORT的方式在浏览器中查看YourKit Console服务的概况。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-page-integrate.png&#34; alt=&#34;YourKit Page&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;yourkit-ui连接远程服务-1&#34;&gt;YourKit UI连接远程服务&lt;/h4&gt;
+
+&lt;p&gt;打开YourKit UI，点击Connect to remote application，输入IP:PORT进行连接。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-ui-connect-integrate.png&#34; alt=&#34;YourKit UI Connect&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;连接成功后，进行性能分析界面，大功告成。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/your-kit-home-integrate.png&#34; alt=&#34;YourKit性能分析界面&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>在CentOS上安装Rabbitmq集群</title>
+      <link>http://nituchao.com/post/2017/centos-an-zhuang-rabbit-cluster/</link>
+      <pubDate>Thu, 02 Mar 2017 17:35:54 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/centos-an-zhuang-rabbit-cluster/</guid>
+      <description>
+
+&lt;h2 id=&#34;系统环境&#34;&gt;系统环境&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS 7 四台&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;安装包准备&#34;&gt;安装包准备&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;wxBase-2.8.12-1.el6.centos.x86_64.rpm&lt;/li&gt;
+&lt;li&gt;wxGTK-2.8.12-1.el6.centos.x86_64.rpm&lt;/li&gt;
+&lt;li&gt;wxGTK-gl-2.8.12-1.el6.centos.x86_64.rpm&lt;/li&gt;
+&lt;li&gt;esl-erlang_19.2.3~centos~6_amd64.rpm&lt;/li&gt;
+&lt;li&gt;otp_src_19.1.tar.gz&lt;/li&gt;
+&lt;li&gt;rabbitmq-server-3.6.6-1.el6.noarch.rpm&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;安装erlang环境&#34;&gt;安装Erlang环境&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# yum localinstall wxBase-2.8.12-1.el6.centos.x86_64.rpm
+# yum localinstall wxGTK-2.8.12-1.el6.centos.x86_64.rpm
+# yum localinstall wxGTK-gl-2.8.12-1.el6.centos.x86_64.rpm
+# yum localinstall esl-erlang_19.2.3~centos~6_amd64.rpm
+# yum install build-essential openssl openssl-devel unixODBC unixODBC-devel make gcc gcc-c++ kernel-devel m4 ncurses-devel tk tc
+# tar -zxvf otp_src_19.1.tar.gz
+# cd otp_src_19.1
+# ./configure --prefix=/home/erlang --without-javac
+# make &amp;amp;&amp;amp; make install
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;安装完Erlang之后，修改/etc/profile增加&lt;/p&gt;
+
+&lt;p&gt;export PATH=$PATH:/home/erlang/bin&lt;/p&gt;
+
+&lt;p&gt;执行source /etc/profile使得环境变量生效&lt;/p&gt;
+
+&lt;h1 id=&#34;安装rabbitmq&#34;&gt;安装Rabbitmq&lt;/h1&gt;
+
+&lt;h4 id=&#34;安装rabbitmq-1&#34;&gt;安装rabbitmq&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+# rpm --nodeps -Uvh rabbitmq-server-3.6.6-1.noarch.rpm
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;添加开机启动&#34;&gt;添加开机启动&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# chkconfig rabbitmq-server on
+# service rabbitmq-server start
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;开启web管理界面&#34;&gt;开启web管理界面&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# rabbitmq-plugins enable rabbitmq_management
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;添加用户&#34;&gt;添加用户&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# rabbitmqctl add_user work workO^m15213
+# rabbitmqctl set_user_tags work administrator
+# rabbitmqctl set_permissions -p / work &amp;quot;.*&amp;quot;&amp;quot;.*&amp;quot;&amp;quot;.*&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>jstack命令</title>
@@ -684,579 +987,6 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
 &lt;p&gt;1, &lt;a href=&#34;http://jvm-options.tech.xebia.fr/&#34;&gt;JVM Options - The complete reference&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;2, &lt;a href=&#34;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&#34;&gt;Java HotSpot VM Options&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过信号量机制实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-xin-hao-liang-ji-zhi-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 16:12:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-xin-hao-liang-ji-zhi-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
-      <description>
-
-&lt;p&gt;信号量是一种计数器，用来保护一个或者多个共享资源的访问。Java提供了Semaphore类来实现信号量机制。&lt;/p&gt;
-
-&lt;p&gt;如果线程要访问一个共享资源，它必须先获得信号量。如果信号量的内部计数器大于0，信号量将减1，然后允许访问这个共享资源。计数器大于0意味着有可以使用的资源，因此线程将被允许使用其中一个资源。&lt;/p&gt;
-
-&lt;p&gt;否则，如果信号量的计数器等于0，信号量将会把线程置入休眠直至计数器大于0.计数器等于0的时候意味着所有的共享资源已经被其他线程使用了，所以需要访问这个共享资源的线程必须等待。&lt;/p&gt;
-
-&lt;p&gt;当线程使用完某个共享资源时，信号量必须被释放，以便其他线程能够访问共享资源。释放操作将使信号量的内部计数器增加1。&lt;/p&gt;
-
-&lt;h3 id=&#34;设计思想&#34;&gt;设计思想&lt;/h3&gt;
-
-&lt;p&gt;为了使用信号量机制来实现生产者VS消费者模型，我们需要实例化一个二进制信号量对象，即内部计数器只有0和1两个值。多个生产者线程和多个消费者线程竞争这个信号量来互斥访问共享缓冲区。&lt;/p&gt;
-
-&lt;p&gt;另外，由于共享缓冲区是有空间限制的，生产者在生产前要判断共享缓冲区空间是否充足。消费者在消费前要判断共享缓冲区内的元素是否足够消费。&lt;/p&gt;
-
-&lt;h3 id=&#34;代码实现&#34;&gt;代码实现&lt;/h3&gt;
-
-&lt;p&gt;基于上面的设计思想，我们需要实现共享缓冲区，生产者线程，消费者线程和主程序四部分。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;共享缓冲区&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-
-/**
- * 缓冲区
- * Created by liang on 2016/12/29.
- */
-public class Buffer {
-    private int MAX_SIZE = 100;
-    private final List&amp;lt;String&amp;gt; list;
-    private final Semaphore semaphore;
-
-    public Buffer() {
-        this.list = new ArrayList&amp;lt;&amp;gt;();
-        this.semaphore = new Semaphore(1);
-    }
-
-    /**
-     * 生产Buffer元素
-     *
-     * @param num
-     */
-    public boolean BufferProduct(int num) {
-        boolean result = true;
-
-        try {
-            // 获取信号量
-            semaphore.acquire();
-
-            // 如果缓冲区能够容纳要生成的元素，允许生产
-            if (list.size() + num &amp;lt;= MAX_SIZE) {
-                // 开始生产
-                for (int i = 1; i &amp;lt;= num; i++) {
-                    list.add(0, Thread.currentThread().getName() + &amp;quot; : &amp;quot; + i);
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                // 缓冲区无法容纳要生成的元素，禁止生产
-                result = false;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product fail, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            semaphore.release();
-        }
-
-        return result;
-    }
-
-    /**
-     * 消费Buffer元素
-     *
-     * @param num
-     * @return
-     */
-    public boolean BufferConsume(int num) {
-        boolean result = true;
-
-        try {
-            // 获取信号量
-            semaphore.acquire();
-
-            // 如果缓冲区中有足够的元素消费，允许消费
-            if (list.size() - num &amp;gt;= 0) {
-                // 开始消费
-                for (int i = 1; i &amp;lt;= num; i++) {
-                    String element = list.remove(0);
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                // 缓冲取没有足够的元素供消费，禁止消费
-                result = false;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume fail, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            semaphore.release();
-        }
-
-        return result;
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;生产者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 生产者线程
- * Created by liang on 2016/12/29.
- */
-public class BufferProducer implements Runnable {
-    private Buffer buffer;
-    private int num;
-
-    public BufferProducer(Buffer buffer, int num) {
-        this.buffer = buffer;
-        this.num = num;
-    }
-
-    @Override
-    public void run() {
-        while (!buffer.BufferProduct(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;消费者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 消费者线程
- * Created by liang on 2016/12/29.
- */
-public class BufferConsumer implements Runnable {
-    private Buffer buffer;
-    private int num;
-
-    public BufferConsumer(Buffer buffer, int num) {
-        this.buffer = buffer;
-        this.num = num;
-    }
-
-    @Override
-    public void run() {
-        while (!buffer.BufferConsume(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;主程序&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.semaphore;
-
-/**
- * 主程序
- * Created by liang on 2016/12/29.
- */
-public class BufferMain {
-
-    public static void main(String[] args) {
-        int num = 10;
-
-        // 初始化Buffer对象
-        Buffer buffer = new Buffer();
-
-        // 实例化num个生产者和消费者线程
-        Thread[] threadProducers = new Thread[num];
-        Thread[] threadConsumers = new Thread[num];
-
-        for (int i = 0; i &amp;lt; num; i++) {
-            threadProducers[i] = new Thread(new BufferProducer(buffer, i + 1));
-            threadConsumers[i] = new Thread(new BufferConsumer(buffer, i + 1));
-        }
-
-        // 分别启动生产者和消费者线程
-        for (int i = 0; i &amp;lt; num; i++) {
-            // 故意先开始消费
-            threadConsumers[i].start();
-
-            // 故意后开始生产
-            threadProducers[i].start();
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;运行结果&#34;&gt;运行结果&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;Connected to the target VM, address: &#39;127.0.0.1:61012&#39;, transport: &#39;socket&#39;
-Thread: Thread-1, Buffer Consume fail, num is 1, buffer size is 0
-Thread Thread-0: Buffer Product succ, num is 1, buffer size is 1
-Thread: Thread-3, Buffer Consume fail, num is 2, buffer size is 1
-Thread Thread-2: Buffer Product succ, num is 2, buffer size is 3
-Thread: Thread-5, Buffer Consume succ, num is 3, buffer size is 0
-Thread Thread-4: Buffer Product succ, num is 3, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread: Thread-7, Buffer Consume fail, num is 4, buffer size is 3
-Thread Thread-6: Buffer Product succ, num is 4, buffer size is 7
-Thread: Thread-9, Buffer Consume succ, num is 5, buffer size is 2
-Thread Thread-8: Buffer Product succ, num is 5, buffer size is 7
-Thread: Thread-11, Buffer Consume succ, num is 6, buffer size is 1
-Thread Thread-10: Buffer Product succ, num is 6, buffer size is 7
-Thread: Thread-13, Buffer Consume succ, num is 7, buffer size is 0
-Thread Thread-12: Buffer Product succ, num is 7, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread: Thread-15, Buffer Consume fail, num is 8, buffer size is 7
-Thread Thread-14: Buffer Product succ, num is 8, buffer size is 15
-Thread: Thread-17, Buffer Consume succ, num is 9, buffer size is 6
-Thread Thread-16: Buffer Product succ, num is 9, buffer size is 15
-Thread: Thread-19, Buffer Consume succ, num is 10, buffer size is 5
-Thread Thread-18: Buffer Product succ, num is 10, buffer size is 15
-Thread: Thread-3, Buffer Consume succ, num is 2, buffer size is 13
-Thread: Thread-1, Buffer Consume succ, num is 1, buffer size is 12
-Thread: Thread-7, Buffer Consume succ, num is 4, buffer size is 8
-Thread: Thread-15, Buffer Consume succ, num is 8, buffer size is 0
-Disconnected from the target VM, address: &#39;127.0.0.1:61012&#39;, transport: &#39;socket&#39;
-
-Process finished with exit code 0
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;工作原理&#34;&gt;工作原理&lt;/h3&gt;
-
-&lt;p&gt;主程序首先实例化一个二进制信号量对象semaphore，指定该信号量内部计数器只有0和1，这样可以保证同一时间只有一个线程能够访问共享缓冲区。这样一来，共享缓冲区buffer本质上就成为一个队列。&lt;/p&gt;
-
-&lt;p&gt;主程序实例化num个生产者线程和num个消费者线程。&lt;/p&gt;
-
-&lt;p&gt;生产者线程负责向缓冲区里生产元素，每个生产者生产的数量都各不相同，从而能更好的观察效果。生产者首先会去尝试获取信号量(acquire)，然后检查当前共享缓冲区是否有足够空间容纳自己可生产的元素。如果有，则进行生产，如果没有，则不进行生产。最后，释放信号量(release)并把生产的结果返回(boolen)。生产者线程如果发现自己生产失败，则会随机休眠一段时间再重复上面的操作，直到生产操作成功。&lt;/p&gt;
-
-&lt;p&gt;消费者线程负责从缓冲区里消费元素，每个消费者消费的数量都各不相同，从而能更好的观察效果。消费者首先回去尝试获取信号量(acquire)，然后检查当前共享缓冲区中是否有足够的元素供自己消费。如果有，则进行消费，如果没有，则不进行消费。最后，释放信号量(release)并把消费的结果返回(boolean)。消费者线程如果发现自己消费失败，则会随机休眠一段时间再重复上面的操作，直到消费操作成功。&lt;/p&gt;
-
-&lt;p&gt;生产者线程和消费者线程访问是信号量是公平竞争，第一个获取信号量的线程将能够访问临界区，其余的线程将被信号量阻塞，直到信号量被释放。一旦信号量被释放，被被阻塞的线程就可以重新竞争信号量并访问临界区。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java通过重入锁实现生产者消费者</title>
-      <link>http://nituchao.com/post/2016/java-chong-ru-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
-      <pubDate>Tue, 27 Dec 2016 16:12:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/java-chong-ru-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
-      <description>
-
-&lt;p&gt;ReentrantLock是一个可重入的互斥锁，又被称为&amp;rdquo;独占锁&amp;rdquo;，ReentrantLock锁在同一个时间点只能被一个线程锁持有，而可重入的意思是，ReentrantLock可以被单个线程多次获取，ReentrantLock的性能并不高，优点是比价灵活。ReentrantLock比Synchronized关键词更加灵活，并且能支持条件变量，后面我还会单独介绍使用条件变量实现生产者消费者模型的方法。&lt;/p&gt;
-
-&lt;h3 id=&#34;设计思想&#34;&gt;设计思想&lt;/h3&gt;
-
-&lt;p&gt;本文希望同ReentrantLock来实现一个共享缓冲区，生产者线程和消费者线程通过该共享缓冲区来实现相关的生产和消费操作，每个线程对共享缓冲区的访问是互斥的。&lt;/p&gt;
-
-&lt;p&gt;另外，由于共享缓冲区是有空间限制的，生产者在生产前要判断共享缓冲区空间是否充足。消费者在消费前要判断共享缓冲区内的元素是否足够消费。&lt;/p&gt;
-
-&lt;h3 id=&#34;代码实现&#34;&gt;代码实现&lt;/h3&gt;
-
-&lt;p&gt;根据上面的设计思想，我们需要实现共享缓冲区，生产者线程，消费者线程，主程序等四个部分。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;共享缓冲区&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-/**
- * 共享缓冲区
- * Created by liang on 2016/12/30.
- */
-public class Buffer {
-    private final List&amp;lt;String&amp;gt; list;
-    private int MAX_SIZE = 10;
-    private final Lock lock;
-
-    public Buffer() {
-        this.list = new ArrayList&amp;lt;String&amp;gt;();
-        this.lock = new ReentrantLock();
-    }
-
-    /**
-     * 生产num个元素
-     *
-     * @param num
-     * @return
-     */
-    public boolean bufferProduct(int num) {
-        boolean result = true;
-        try {
-            lock.lock();
-
-            // 检查缓冲区是否能够容纳要生产的元素
-            if (list.size() + num &amp;lt;= MAX_SIZE) {
-                // 开始生产
-                for (int i = 0; i &amp;lt; num; i++) {
-                    list.add(0, Thread.currentThread().getName() + &amp;quot;:&amp;quot; + (i + 1));
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                result = false;
-
-                System.out.printf(&amp;quot;Thread %s: Buffer Product succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        } finally {
-            lock.unlock();
-        }
-
-        return result;
-    }
-
-    /**
-     * 消费num个元素
-     *
-     * @param num
-     * @return
-     */
-    public boolean bufferConsume(int num) {
-        boolean result = false;
-        try {
-            lock.lock();
-
-            // 检查缓冲区是否有足够的元素供消费
-            if (list.size() &amp;gt;= num) {
-                // 开始消费
-                for (int i = 0; i &amp;lt; num; i++) {
-                    list.remove(0);
-                }
-
-                result = true;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume succ, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            } else {
-                result = false;
-
-                System.out.printf(&amp;quot;Thread: %s, Buffer Consume fail, num is %d, buffer size is %d\n&amp;quot;, Thread.currentThread().getName(), num, list.size());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            result = false;
-        } finally {
-            lock.unlock();
-        }
-
-        return result;
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;生产者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 生产者线程
- * Created by liang on 2016/12/30.
- */
-public class BufferProducer implements Runnable {
-    private int num;
-    private Buffer buffer;
-
-    public BufferProducer(Buffer buffer, int num) {
-        this.num = num;
-        this.buffer = buffer;
-    }
-
-    @Override
-    public void run() {
-        // 生产num个元素，如果生产失败，则休眠一段时间重新生产
-        while (!buffer.bufferProduct(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;消费者线程&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-/**
- * 消费者线程
- * Created by liang on 2016/12/30.
- */
-public class BufferConsumer implements Runnable {
-    private int num;
-    private Buffer buffer;
-
-    public BufferConsumer(Buffer buffer, int num) {
-        this.num = num;
-        this.buffer = buffer;
-    }
-
-    @Override
-    public void run() {
-        // 消费num个产品，如果消费失败，则休眠一段时间再重新消费
-        while (!buffer.bufferConsume(num)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(new Random(1000).nextInt());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;主程序&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;package com.nituchao.jvm.prosumer.reentrant;
-
-/**
- * 主程序
- * Created by liang on 2016/12/30.
- */
-public class BufferMain {
-
-    public static void main(String[] args) {
-        int num = 10;
-        // 实例化Buffer
-        Buffer buffer = new Buffer();
-
-        // 实例化生产者和消费者线程集合
-        Thread[] threadProducers = new Thread[num];
-        Thread[] threadConsumers = new Thread[num];
-
-        // 实例化生产者和消费者线程
-        for (int i = 0; i &amp;lt; num; i++) {
-            Thread threadProducer = new Thread(new BufferProducer(buffer, i + 1));
-            Thread threadConsumer = new Thread(new BufferConsumer(buffer, i + 1));
-
-            threadProducers[i] = threadProducer;
-            threadConsumers[i] = threadConsumer;
-        }
-
-        // 启动生产者和消费者线程
-        for (int i = 0; i &amp;lt; num; i++) {
-            threadConsumers[i].start();
-
-            threadProducers[i].start();
-        }
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;运行结果&#34;&gt;运行结果&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;Connected to the target VM, address: &#39;127.0.0.1:53178&#39;, transport: &#39;socket&#39;
-Thread: Thread-1, Buffer Consume fail, num is 1, buffer size is 0
-Thread Thread-0: Buffer Product succ, num is 1, buffer size is 1
-Thread: Thread-3, Buffer Consume fail, num is 2, buffer size is 1
-Thread Thread-2: Buffer Product succ, num is 2, buffer size is 3
-Thread: Thread-3, Buffer Consume succ, num is 2, buffer size is 1
-Thread: Thread-5, Buffer Consume fail, num is 3, buffer size is 1
-Thread: Thread-5, Buffer Consume fail, num is 3, buffer size is 1
-Thread: Thread-5, Buffer Consume fail, num is 3, buffer size is 1
-Thread Thread-4: Buffer Product succ, num is 3, buffer size is 4
-Thread: Thread-7, Buffer Consume succ, num is 4, buffer size is 0
-Thread Thread-6: Buffer Product succ, num is 4, buffer size is 4
-Thread: Thread-9, Buffer Consume fail, num is 5, buffer size is 4
-Thread: Thread-9, Buffer Consume fail, num is 5, buffer size is 4
-Thread: Thread-9, Buffer Consume fail, num is 5, buffer size is 4
-Thread Thread-8: Buffer Product succ, num is 5, buffer size is 9
-Thread: Thread-11, Buffer Consume succ, num is 6, buffer size is 3
-Thread Thread-10: Buffer Product succ, num is 6, buffer size is 9
-Thread: Thread-13, Buffer Consume succ, num is 7, buffer size is 2
-Thread Thread-12: Buffer Product succ, num is 7, buffer size is 9
-Thread: Thread-15, Buffer Consume succ, num is 8, buffer size is 1
-Thread Thread-14: Buffer Product succ, num is 8, buffer size is 9
-Thread: Thread-17, Buffer Consume succ, num is 9, buffer size is 0
-Thread Thread-16: Buffer Product succ, num is 9, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 9
-Thread Thread-18: Buffer Product succ, num is 10, buffer size is 9
-Thread: Thread-1, Buffer Consume succ, num is 1, buffer size is 8
-Thread: Thread-5, Buffer Consume succ, num is 3, buffer size is 5
-Thread: Thread-9, Buffer Consume succ, num is 5, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Disconnected from the target VM, address: &#39;127.0.0.1:53178&#39;, transport: &#39;socket&#39;
-Thread: Thread-19, Buffer Consume fail, num is 10, buffer size is 0
-Thread Thread-18: Buffer Product succ, num is 10, buffer size is 10
-Thread: Thread-19, Buffer Consume succ, num is 10, buffer size is 0
-
-Process finished with exit code 0
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;工作原理&#34;&gt;工作原理&lt;/h3&gt;
-
-&lt;p&gt;主程序首先实例化一个共享缓冲区对象buffer，然后将该共享缓冲区对象buffer作为构造参数生成若干个生产者线程，和若干个消费者线程。&lt;/p&gt;
-
-&lt;p&gt;生产者线程调用共享缓冲区的bufferProduce(num)方法生产元素，在生产前要先获取锁(lock.lock()方法)，并判断当前共享缓冲区是否能够容纳所有元素，如果不能容纳，则直接返回false，并释放锁。如果可以容纳，则进行生产活动，返回true，并释放锁。生产者线程在一个while循环里判断，如果生产失败(返回false)，则等待一段时间，重新开始执行生产操作。如果生产成功，则结束当前线程。&lt;/p&gt;
-
-&lt;p&gt;消费者线程调用共享缓冲区的bufferConsume(num)方法消费元素，在生产前要先获取锁(lock.lock()方法)，并判断当前共享缓冲区是否有足够的元素供消费，如果元素数量不够，则直接返回false，并释放锁。如果元素足够，则进行消费活动，返回true，并释放锁。消费者线程在一个while循环里判断，如果消费失败(返回false)，则等待一段时间，重新开始执行消费操作。如果消费成功，则结束当前线程。&lt;/p&gt;
 </description>
     </item>
     
