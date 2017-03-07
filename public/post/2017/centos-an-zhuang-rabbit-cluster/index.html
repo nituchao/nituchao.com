@@ -141,26 +141,26 @@
 
 <p>执行source /etc/profile使得环境变量生效</p>
 
-<h1 id="安装rabbitmq">安装Rabbitmq</h1>
+<h2 id="安装rabbitmq">安装Rabbitmq</h2>
 
-<h4 id="安装rabbitmq-1">安装rabbitmq</h4>
+<h3 id="安装rabbitmq-1">安装rabbitmq</h3>
 
 <pre><code class="language-shell"># rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
 # rpm --nodeps -Uvh rabbitmq-server-3.6.6-1.noarch.rpm
 </code></pre>
 
-<h4 id="添加开机启动">添加开机启动</h4>
+<h3 id="添加开机启动">添加开机启动</h3>
 
 <pre><code class="language-shell"># chkconfig rabbitmq-server on
 # service rabbitmq-server start
 </code></pre>
 
-<h4 id="开启web管理界面">开启web管理界面</h4>
+<h3 id="开启web管理界面">开启web管理界面</h3>
 
 <pre><code class="language-shell"># rabbitmq-plugins enable rabbitmq_management
 </code></pre>
 
-<h4 id="添加用户">添加用户</h4>
+<h3 id="添加用户">添加用户</h3>
 
 <pre><code class="language-shell"># rabbitmqctl add_user work workO^m15213
 # rabbitmqctl set_user_tags work administrator
@@ -189,18 +189,12 @@
 <li><a href="#系统环境">系统环境</a></li>
 <li><a href="#安装包准备">安装包准备</a></li>
 <li><a href="#安装erlang环境">安装Erlang环境</a></li>
-</ul></li>
 <li><a href="#安装rabbitmq">安装Rabbitmq</a>
-<ul>
-<li>
-<ul>
-<li>
 <ul>
 <li><a href="#安装rabbitmq-1">安装rabbitmq</a></li>
 <li><a href="#添加开机启动">添加开机启动</a></li>
 <li><a href="#开启web管理界面">开启web管理界面</a></li>
 <li><a href="#添加用户">添加用户</a></li>
-</ul></li>
 </ul></li>
 </ul></li>
 </ul>

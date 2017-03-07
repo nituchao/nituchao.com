@@ -45,9 +45,9 @@ export PATH=$PATH:/home/erlang/bin
 
 
 
-# 安装Rabbitmq
+## 安装Rabbitmq
 
-#### 安装rabbitmq
+### 安装rabbitmq
 
 ```shell
 # rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
@@ -56,7 +56,7 @@ export PATH=$PATH:/home/erlang/bin
 
 
 
-#### 添加开机启动
+### 添加开机启动
 
 ```shell
 # chkconfig rabbitmq-server on
@@ -65,7 +65,7 @@ export PATH=$PATH:/home/erlang/bin
 
 
 
-#### 开启web管理界面
+### 开启web管理界面
 
 ```shell
 # rabbitmq-plugins enable rabbitmq_management
@@ -73,7 +73,7 @@ export PATH=$PATH:/home/erlang/bin
 
 
 
-#### 添加用户
+### 添加用户
 
 ```shell
 # rabbitmqctl add_user work workO^m15213

@@ -61,10 +61,14 @@ draft: false
 | 设计模式之禅 | 秦小波  | 555  | ※※※  | 2017 |
 
 ## 分布式计算
-| 名称                           | 作者   | 页数   | 评分   | 年份   |
-| :--------------------------- | :--- | :--- | :--- | :--- |
-| 分布式服务框架：原理与实践                | 李林峰  | 312  | ※※※  | 2017 |
-| 从Paxos到Zookeeper：分布式一致性原理与实践 | 倪超   | 422  | ※※※※ | 2017 |
+| 名称                                       | 作者                 | 页数   | 评分   | 年份   |
+| :--------------------------------------- | :----------------- | :--- | :--- | :--- |
+| 分布式服务框架：原理与实践                            | 李林峰                | 312  | ※※※  | 2017 |
+| 从Paxos到Zookeeper：分布式一致性原理与实践             | 倪超                 | 422  | ※※※※ | 2017 |
+| Zab: High-performance broadcast forprimary-backup systems | Flavio P.Junqueira | 12   | ※※※  | 2017 |
+| ZooKeeper’s atomic broadcast protocol:Theory and practice | Andre Medeiros     | 19   | ※※※  | 2017 |
+| A simple totally ordered broadcast protocol | Benjamin Reed      | 6    | ※※※  | 2017 |
+|                                          |                    |      |      |      |
 
 ## 大数据处理
 | 名称                                | 作者                     | 页数   | 评分   | 年份        |

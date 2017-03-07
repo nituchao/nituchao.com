@@ -17,7 +17,7 @@
       <guid>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</guid>
       <description>
 
-&lt;p&gt;YourKit是一款业内领先的性能分析工具，目前支持Java和.NET两个平台。该工具功能全面强悍，能通过本地连接或者远程连接的方式，对各种服务器，框架，平台的业务进行分析，并提供了多种由浅入深，适合开发环境或者生产环境的分析模式。该工具提供了高效的图形化显示方式，动动鼠标就可以对系统进行显微镜式的观察分析。&lt;/p&gt;
+&lt;p&gt;YourKit是一款业内领先的性能分析工具，目前支持Java和.NET两个平台。该工具功能全面强悍，能通过本地连接或者远程连接的方式，对各种服务器，框架，平台的性能进行分析，并提供了多种由浅入深，针对开发环境或者生产环境的分析模式。该工具提供了高效的图形化显示方式，动动鼠标就可以对系统进行显微镜式的观察分析。&lt;/p&gt;
 
 &lt;p&gt;通过YourKit可以对以下内容进行分析：&lt;/p&gt;
 
@@ -29,11 +29,11 @@
 &lt;li&gt;Web, Database, I/O&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;YourKit提供了两种方式连接到Java进程，一种是attach方式，另一种是integrate方式。&lt;/p&gt;
+&lt;p&gt;本文想总结一下，YourKit提供的两种连接到Java进程的方式，一种是attach方式，另一种是integrate方式。&lt;/p&gt;
 
 &lt;h2 id=&#34;通过attach方式连接到远程服务器&#34;&gt;通过attach方式连接到远程服务器&lt;/h2&gt;
 
-&lt;p&gt;在控制台，通过attach方法可以通过进程号，直接连接到运行中的任何Java进程中，这种方式并不保证总能连接成功，而且在会禁用某些分析功能。&lt;/p&gt;
+&lt;p&gt;在控制台，attach方式可以通过进程号，连接到运行中的任何Java进程中，这种方式并不保证总能连接成功，而且会禁用某些分析功能。&lt;/p&gt;
 
 &lt;h4 id=&#34;线上环境&#34;&gt;线上环境&lt;/h4&gt;
 
