@@ -127,7 +127,7 @@ https://www.yourkit.com/docs/java/help/running_with_profiler.jsp
 
 &lt;p&gt;因此，分析本地Java进程时可以选择attach方式，对于远程服务，还是推荐integrate方式。&lt;/p&gt;
 
-&lt;h2 id=&#34;通过integrate方式连接到远程服务器&#34;&gt;通过integrate方式连接到远程服务器&lt;/h2&gt;
+&lt;h2 id=&#34;通过integrate方式连接到远程服务器-重点推荐&#34;&gt;通过integrate方式连接到远程服务器（重点推荐）&lt;/h2&gt;
 
 &lt;p&gt;integrate方式通过修服务器启动配置文件，随服务启动，这种方式比较稳定，而且能够全面启用YourKit的所有功能。&lt;/p&gt;
 

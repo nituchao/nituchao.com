@@ -135,7 +135,7 @@ https://www.yourkit.com/docs/java/help/running_with_profiler.jsp
 
 
 
-## 通过integrate方式连接到远程服务器
+## 通过integrate方式连接到远程服务器（重点推荐）
 
 integrate方式通过修服务器启动配置文件，随服务启动，这种方式比较稳定，而且能够全面启用YourKit的所有功能。
 
