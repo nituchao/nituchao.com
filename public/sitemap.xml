@@ -268,20 +268,14 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/java/</loc>
-    <lastmod>2014-07-12T19:19:00+08:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/tags/java/</loc>
     <lastmod>2017-02-28T19:01:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/jvm/</loc>
-    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
+    <loc>http://nituchao.com/categories/java/</loc>
+    <lastmod>2014-07-12T19:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -292,14 +286,14 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/tags/lfs/</loc>
-    <lastmod>2012-05-18T20:20:00+08:00</lastmod>
+    <loc>http://nituchao.com/categories/jvm/</loc>
+    <lastmod>2016-12-29T20:15:12+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/linux/</loc>
-    <lastmod>2017-02-22T18:25:27+08:00</lastmod>
+    <loc>http://nituchao.com/tags/lfs/</loc>
+    <lastmod>2012-05-18T20:20:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -310,8 +304,8 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/macos/</loc>
-    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
+    <loc>http://nituchao.com/categories/linux/</loc>
+    <lastmod>2017-02-22T18:25:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -322,13 +316,19 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/mysql/</loc>
-    <lastmod>2017-02-14T14:09:01+08:00</lastmod>
+    <loc>http://nituchao.com/categories/macos/</loc>
+    <lastmod>2014-06-24T15:19:00+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://nituchao.com/tags/mysql/</loc>
+    <lastmod>2017-02-14T14:09:01+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/mysql/</loc>
     <lastmod>2017-02-14T14:09:01+08:00</lastmod>
     <priority>0</priority>
   </url>
@@ -346,13 +346,13 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/queue/</loc>
+    <loc>http://nituchao.com/tags/queue/</loc>
     <lastmod>2016-12-27T16:12:12+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/tags/queue/</loc>
+    <loc>http://nituchao.com/categories/queue/</loc>
     <lastmod>2016-12-27T16:12:12+08:00</lastmod>
     <priority>0</priority>
   </url>
@@ -399,13 +399,13 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/categories/xa/</loc>
+    <loc>http://nituchao.com/tags/xa/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://nituchao.com/tags/xa/</loc>
+    <loc>http://nituchao.com/categories/xa/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
   </url>
