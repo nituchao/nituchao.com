@@ -1,6 +1,6 @@
 ---
 title: "换个角度看西游的故事"
-date: "2014-06-22T22:23:00+08:00"
+date: "2012-06-22T22:23:00+08:00"
 tags: ["Book"]
 categories: ["Words"]
 draft: false
