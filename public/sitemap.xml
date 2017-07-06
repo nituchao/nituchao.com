@@ -22,12 +22,12 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</loc>
-    <lastmod>2017-02-23T18:25:27+08:00</lastmod>
+    <loc>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</loc>
+    <lastmod>2017-02-23T18:26:27+08:00</lastmod>
   </url>
   
   <url>
-    <loc>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</loc>
+    <loc>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</loc>
     <lastmod>2017-02-23T18:25:27+08:00</lastmod>
   </url>
   
@@ -243,13 +243,13 @@
   
   <url>
     <loc>http://nituchao.com/tags/concurrent/</loc>
-    <lastmod>2017-02-23T18:25:27+08:00</lastmod>
+    <lastmod>2017-02-23T18:26:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>http://nituchao.com/categories/concurrent/</loc>
-    <lastmod>2017-02-23T18:25:27+08:00</lastmod>
+    <lastmod>2017-02-23T18:26:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
