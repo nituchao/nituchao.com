@@ -6,7 +6,7 @@ tags: ["Java", "Concurrent"]
 draft: false
 ---
 
-## 一句话
+## 一言
 
 `CopyOnWriteArraySet`是线程安全的无序集合，它是通过聚合了一个`CopyOnWriteArray`成员变量来实现的。
 

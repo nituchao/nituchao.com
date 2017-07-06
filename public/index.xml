@@ -1162,7 +1162,7 @@ public V putIfAbsent(K key, V value) {
       <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</guid>
       <description>
 
-&lt;h2 id=&#34;一句话&#34;&gt;一句话&lt;/h2&gt;
+&lt;h2 id=&#34;一言&#34;&gt;一言&lt;/h2&gt;
 
 &lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;是线程安全的无序集合，它是通过聚合了一个&lt;code&gt;CopyOnWriteArray&lt;/code&gt;成员变量来实现的。&lt;/p&gt;
 
