@@ -73,6 +73,8 @@
 						
 							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
 						
+							<li><a href="http://nituchao.com/categories/lock">Lock</a></li>
+						
 							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
 						
 							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
@@ -749,7 +751,7 @@ Collection&lt;V&gt; values()
 }
 </code></pre>
 
-<h3 id="size-方法">size()方法</h3>
+<h3 id="size">size()</h3>
 
 <p>要统计整个ConcurrentHashMap里元素的大小，就必须统计所有Segment里元素的大小后求和。Segment里的全局变量count是一个volatile变量，那么在多线程场景下，我们是不是直接把所有Segment的count相加就可以得到整个ConcurrentHashMap大小了呢？不是的，虽然相加时可以获取每个Segment的count的最新值，但是拿到之后可能累加前使用的count发生了变化，那么统计结果就不准了。所以最安全的做法，是在统计size的时候把所有Segment的put，remove和clean方法全部锁住，但是这种做法显然非常低效。</p>
 
@@ -867,7 +869,7 @@ public V putIfAbsent(K key, V value) {
 <li><a href="#构造函数">构造函数</a></li>
 <li><a href="#put-k-key-v-value">put(K key, V value)</a></li>
 <li><a href="#get-k-key">get(K key)</a></li>
-<li><a href="#size-方法">size()方法</a></li>
+<li><a href="#size">size()</a></li>
 <li><a href="#putifabsent-k-key-v-value">putIfAbsent(K key, V value)</a></li>
 </ul></li>
 </ul></li>

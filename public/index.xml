@@ -429,6 +429,317 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
     </item>
     
     <item>
+      <title>SPIN锁、TICKET锁、MCS锁、CLH锁原理</title>
+      <link>http://nituchao.com/post/juc.lock/clh-spin-ticket-mcs-lock/</link>
+      <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/clh-spin-ticket-mcs-lock/</guid>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;锁作为数据同步工具，Java提供了两种实现：synchronized和AQS，这两种锁的实现根本不同，但是在加锁和解锁的过程中，也有很多共同点。它们或多或少的利用了下面几种常见的加锁/解锁方式。对于这几种加锁/解锁设计的研究，可以帮助我们更好的理解Java的锁框架。&lt;/p&gt;
+
+&lt;h2 id=&#34;spin锁&#34;&gt;SPIN锁&lt;/h2&gt;
+
+&lt;p&gt;Spin锁即自旋锁。自旋锁是采用让当前线程不停地在循环体内&lt;code&gt;检测并设置临界资源的状态&lt;/code&gt;，直到状态满足条件并设置为指定的新状态。&lt;code&gt;检测并设置临界资源&lt;/code&gt;操作必须是原子的，这样即使多个线程在给定时间自旋，也只有一个线程可获得该锁。&lt;/p&gt;
+
+&lt;p&gt;自旋锁的优点之一是自旋的线程不会被阻塞，一直处于活跃状态，对于锁保护的临界区较小的情况下，自旋获取锁和释放锁的成本都比较低，时间比较短。&lt;/p&gt;
+
+&lt;h3 id=&#34;java中的自旋锁&#34;&gt;Java中的自旋锁&lt;/h3&gt;
+
+&lt;p&gt;在JAVA中，我们可以使用原子变量和Unsafe类的CAS操作来实现自旋锁：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class SpinLock {
+  private AtomicReference&amp;lt;Thread&amp;gt; atomic = new AtomicReference&amp;lt;Thread&amp;gt;();
+  
+  public void lock() {
+    Thread currentThread = Thread.currentThread();
+    
+    // 如果锁未被占用，则设置当前线程为锁的拥有者。
+    while(!atomic.compareAndSet(null, currentThread)) {}
+  }
+  
+  public void unlock() {
+    Thread currentThread = Thread.currentThread();
+    // 只有锁的拥有者能释放锁
+    atomic.compareAndSet(currentThread, null);
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;缺点&#34;&gt;缺点&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;CAS操作需要硬件的配合；&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;保证各个CPU的缓存（L1、L2、L3、跨CPU Socket、主存）的数据一致性，通讯开销很大，在多处理器系统上更严重；&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;没法保证公平性，不保证等待进程/线程按照FIFO顺序获得锁。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;​&lt;/p&gt;
+
+&lt;h3 id=&#34;linux中的自旋锁&#34;&gt;Linux中的自旋锁&lt;/h3&gt;
+
+&lt;p&gt;自旋锁在Linux内核中广泛使用。在Linux操作系统中，自旋锁是一个互斥设备，它只有两个值&lt;code&gt;锁定&lt;/code&gt;和&lt;code&gt;解锁&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;由于操作系统和CPU直接打交道，自旋锁又可分为在单核处理器上和多核处理器上。&lt;/p&gt;
+
+&lt;h4 id=&#34;单核处理器&#34;&gt;单核处理器&lt;/h4&gt;
+
+&lt;p&gt;用在单核处理器上，有可分为两种：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;系统不支持内核抢占&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;此时自旋锁什么也不做，确实也不需要做什么，因为单核处理器只有一个线程在执行，又不支持内核抢占，因此资源不可能会被其他的线程访问到。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;系统支持内核抢占&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;这种情况下，自旋锁加锁仅仅是禁止了内核抢占，解锁则是启用了内核抢占。&lt;/p&gt;
+
+&lt;p&gt;在上述两种情况下，在获取自旋锁后可能会发生中断，若中断处理程序去访问自旋锁所保护的资源，则会发生死锁。因此，linux内核又提供了spin_lock_irq()和spin_lock_irqsave()，这两个函数会在获取自旋锁的同时（同时禁止内核抢占），禁止本地外部可屏蔽中断，从而保证自旋锁的原子操作。&lt;/p&gt;
+
+&lt;h4 id=&#34;多核处理器&#34;&gt;多核处理器&lt;/h4&gt;
+
+&lt;p&gt;多核处理器意味着有多个线程可以同时在不同的处理器上并行执行。&lt;/p&gt;
+
+&lt;p&gt;举个例子：&lt;/p&gt;
+
+&lt;p&gt;四核处理器，若A处理器上的线程1获取了锁,B、C两个处理器恰好这个时候也要访问这个锁保护的资源，因此他俩CPU就一直自旋忙等待。D并不需要这个资源，因此它可以正常处理其他事情。&lt;/p&gt;
+
+&lt;p&gt;自旋锁的几个特点：&lt;/p&gt;
+
+&lt;p&gt;1.被自旋锁保护的临界区代码执行时不能睡眠。单核处理器下，获取到锁的线程睡眠，若恰好此时CPU调度的另一个执行线程也需要获取这个锁，则会造成死锁；多核处理器下，若想获取锁的线程在同一个处理器下，同样会造成死锁，若位于另外的处理器，则会长时间占用CPU等待睡眠的线程释放锁，从而浪费CPU资源。&lt;/p&gt;
+
+&lt;p&gt;2.被自旋锁保护的临界区代码执行时不能被其他中断打断。&lt;/p&gt;
+
+&lt;p&gt;3.被自旋锁保护的临界区代码在执行时，内核不能被抢占。&lt;/p&gt;
+
+&lt;h4 id=&#34;自旋锁函数&#34;&gt;自旋锁函数&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;// 最基本得自旋锁函数，它不失效本地中断。
+void spin_lock(spinlock_t *lock);
+// 在获得自旋锁之前禁用硬中断（只在本地处理器上），而先前的中断状态保存在flags中
+void spin_lock_irqsave(spinlock_t *lock, unsigned long flags);
+// 在获得自旋锁之前禁用硬中断（只在本地处理器上），不保存中断状态
+void spin_lockirq(spinlock_t *lock);
+// 在获得锁前禁用软中断，保持硬中断打开状态
+void spin_lock_bh(spinlock_t *lock);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;ticket锁&#34;&gt;TICKET锁&lt;/h2&gt;
+
+&lt;p&gt;Ticket锁即排队自旋锁，Ticket锁是为了解决上面自旋锁的公平性问题，类似于现实中海底捞的排队叫号：锁拥有一个服务号，表示正在服务的线程，还有一个排队号；每个线程尝试获取锁之前先拿一个排队号，然后不断轮训锁的当前服务号是否是自己的排队号，如果是，则表示自己拥有了锁，不是则继续轮训。&lt;/p&gt;
+
+&lt;p&gt;当前线程释放锁时，将服务号加1，这样下一个线程看到这个变化，就退出自旋，表示获取到锁。&lt;/p&gt;
+
+&lt;h3 id=&#34;java中的自旋锁-1&#34;&gt;Java中的自旋锁&lt;/h3&gt;
+
+&lt;p&gt;在JAVA中，我们可以使用原子变量和Unsafe类的CAS操作来实现Ticket自旋锁：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class TicketLock {
+   private AtomicInteger serviceNum = new AtomicInteger(); // 服务号
+   private AtomicInteger ticketNum = new AtomicInteger(); // 排队号
+
+   public int lock() {
+         // 首先原子性地获得一个排队号
+         int myTicketNum = ticketNum.getAndIncrement();
+
+         // 只要当前服务号不是自己的就不断轮询
+       	while (serviceNum.get() != myTicketNum) {}
+
+       	return myTicketNum;
+    }
+
+    public void unlock(int myTicket) {
+        // 只有当前线程拥有者才能释放锁
+        int next = myTicket + 1;
+        serviceNum.compareAndSet(myTicket, next);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;缺点-1&#34;&gt;缺点&lt;/h4&gt;
+
+&lt;p&gt;Ticket Lock 虽然解决了公平性的问题，但是多处理器系统上，每个进程/线程占用的处理器都在读写同一个变量&lt;code&gt;serviceNum&lt;/code&gt; ，每次读写操作都必须在多个处理器缓存之间进行缓存同步，这会导致繁重的系统总线和内存的流量，大大降低系统整体的性能。&lt;/p&gt;
+
+&lt;h3 id=&#34;linux中的排队自旋锁&#34;&gt;Linux中的排队自旋锁&lt;/h3&gt;
+
+&lt;p&gt;排队自旋锁(FIFO Ticket Spinlock)是Linux内核2.6.25版本引入的一种新型自旋锁，它解决了传统自旋锁由于无序竞争导致的&amp;rdquo;公平性&amp;rdquo;问题。但是由于排队自旋锁在一个共享变量上“自旋”，因此在锁竞争激烈的多核或 NUMA 系统上导致性能低下。&lt;/p&gt;
+
+&lt;h2 id=&#34;mcs锁&#34;&gt;MCS锁&lt;/h2&gt;
+
+&lt;p&gt;MCS自旋锁是一种基于链表的高性能、可扩展的自旋锁。申请线程之在本地变量上自旋，直接前驱负责通知其结束自旋，从而极大地减少了不必要的处理器缓存同步的次数，降低了总线和内存的开销。&lt;/p&gt;
+
+&lt;p&gt;MCS锁的设计目标如下：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;保证自旋锁申请者以先进先出的顺序获取锁（FIFO Ordering）。&lt;/li&gt;
+&lt;li&gt;只在本地可访问的标志变量上自旋。&lt;/li&gt;
+&lt;li&gt;在处理器个数较少的系统中或锁竞争并不激烈的情况下，保持较高性能。&lt;/li&gt;
+&lt;li&gt;自旋锁的空间复杂度（即锁数据结构和锁操作所需的空间开销）为常数。&lt;/li&gt;
+&lt;li&gt;在没有处理器缓存一致性协议保证的系统中也能很好地工作。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;java中的mcs锁&#34;&gt;Java中的MCS锁&lt;/h3&gt;
+
+&lt;p&gt;在JAVA中，我们可以使用原子变量和Unsafe类的CAS操作来实现MCS自旋锁：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class MCSLock {
+    public static class MCSNode {
+        volatile MCSNode next;
+        volatile boolean isBlock = true; // 本地自旋变量，默认是在等待锁
+    }
+
+    volatile MCSNode queue;// 指向最后一个申请锁的MCSNode
+    private static final AtomicReferenceFieldUpdater UPDATER = 
+      AtomicReferenceFieldUpdater.newUpdater(MCSLock.class, MCSNode.class, &amp;quot;queue&amp;quot;);
+
+    public void lock(MCSNode currentThread) {
+        MCSNode predecessor = UPDATER.getAndSet(this, currentThread);// step 1
+        if (predecessor != null) {
+            predecessor.next = currentThread;// step 2
+
+            while (currentThread.isBlock) {// step 3
+            }
+        }else { // 只有一个线程在使用锁，没有前驱来通知它，所以得自己标记自己为非阻塞
+            currentThread.isBlock = false;
+        }
+    }
+
+    public void unlock(MCSNode currentThread) {
+        if (currentThread.isBlock) {// 锁拥有者进行释放锁才有意义
+            return;
+        }
+
+        if (currentThread.next == null) {// 检查是否有人排在自己后面
+            if (UPDATER.compareAndSet(this, currentThread, null)) {// step 4
+                // compareAndSet返回true表示确实没有人排在自己后面
+                return;
+            } else {
+                // 突然有人排在自己后面了，可能还不知道是谁，下面是等待后续者
+                // 这里之所以要忙等是因为：step 1执行完后，step 2可能还没执行完
+                while (currentThread.next == null) { // step 5
+                }
+            }
+        }
+
+        currentThread.next.isBlock = false;
+        currentThread.next = null;// for GC
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;linux中的mcs锁&#34;&gt;Linux中的MCS锁&lt;/h3&gt;
+
+&lt;p&gt;目前 Linux 内核尚未使用 MCS Spinlock。根据上节的算法描述，我们可以很容易地实现 MCS Spinlock。本文的实现针对x86 体系结构(包括 IA32 和 x86_64)。原子交换、比较-交换操作可以使用带 LOCK 前缀的 xchg(q)，cmpxchg(q)[3] 指令实现。&lt;/p&gt;
+
+&lt;h2 id=&#34;clh锁&#34;&gt;CLH锁&lt;/h2&gt;
+
+&lt;p&gt;CLH（Craig, Landin, and Hagersten）锁也是基于链表的可扩展、高性能、公平的自旋锁，申请线程旨在本地变量上自旋，它不断轮训前驱的状态，如果发现前驱释放了锁就结束自旋。&lt;/p&gt;
+
+&lt;h3 id=&#34;java中的clh锁&#34;&gt;Java中的CLH锁&lt;/h3&gt;
+
+&lt;p&gt;在Java中CLH的应用非常广泛，比如JUC包下的锁框架AbstractQueuedSynchronized就是基于CLH实现的，并进而实现了整个Lock框架体系。&lt;/p&gt;
+
+&lt;p&gt;在JAVA中，我们可以使用原子变量和Unsafe类的CAS操作来实现CLH自旋锁：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class CLHLock {
+    public static class CLHNode {
+        private volatile boolean isLocked = true; // 默认是在等待锁
+    }
+
+    @SuppressWarnings(&amp;quot;unused&amp;quot; )
+    private volatile CLHNode tail ;
+    private static final AtomicReferenceFieldUpdater&amp;lt;CLHLock, CLHNode&amp;gt; UPDATER = AtomicReferenceFieldUpdater
+                  . newUpdater(CLHLock.class, CLHNode .class , &amp;quot;tail&amp;quot; );
+
+    public void lock(CLHNode currentThread) {
+        CLHNode preNode = UPDATER.getAndSet( this, currentThread);
+        if(preNode != null) {//已有线程占用了锁，进入自旋
+            while(preNode.isLocked ) {
+            }
+        }
+    }
+
+    public void unlock(CLHNode currentThread) {
+        // 如果队列里只有当前线程，则释放对当前线程的引用（for GC）。
+        if (!UPDATER .compareAndSet(this, currentThread, null)) {
+            // 还有后续线程
+            currentThread. isLocked = false ;// 改变状态，让后续线程结束自旋
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;clh锁与mcs锁的比较&#34;&gt;CLH锁与MCS锁的比较&lt;/h2&gt;
+
+&lt;p&gt;下图是经典的CLH锁和MCS锁队列图示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://coderbee.net/wp-content/uploads/2013/11/CLH-MCS-SpinLock.png&#34; alt=&#34;CLH和MCS&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;差异：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;从代码实现来看，CLH比MCS要简单得多。&lt;/li&gt;
+&lt;li&gt;从自旋的条件来看，CLH是在前驱节点的属性上自旋，而MCS是在本地属性变量上自旋。&lt;/li&gt;
+&lt;li&gt;从链表队列来看，CLH的队列是隐式的，CLHNode并不实际持有下一个节点；MCS的队列是物理存在的。&lt;/li&gt;
+&lt;li&gt;CLH锁释放时只需要改变自己的属性，MCS锁释放则需要改变后继节点的属性。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;注意：这里实现的锁都是独占的，且不能重入的。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.ibm.com/developerworks/cn/linux/l-cn-mcsspinlock/&#34;&gt;高性能自旋锁 MCS Spinlock 的设计与实现&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cnblogs.com/hdflzh/p/3716156.html&#34;&gt;高效编程之互斥锁和自旋锁的一些知识&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://my.oschina.net/MinGKai/blog/188522&#34;&gt;基于队列的锁:mcs lock简介&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/vividonly/article/details/6594195&#34;&gt;深入理解linux内核自旋锁&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Java锁框架概述</title>
+      <link>http://nituchao.com/post/juc.lock/lock-summary/</link>
+      <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/lock-summary/</guid>
+      <description>
+
+&lt;p&gt;在Java中关于锁有两个体系，一个是synchronized代表的对象监视器同步锁，一个是以AQS为基础的锁框架，该框架位于java.uti.concurrent包下。&lt;/p&gt;
+
+&lt;h2 id=&#34;aqs框架原理-aqs框架图-file-users-liang-library-group-20containers-ubf8t346g9-office-msoclip1-01-65cceb69-4317-8645-9279-f8aa33dad044-png&#34;&gt;AQS框架原理&lt;img src=&#34;file:////Users/liang/Library/Group%20Containers/UBF8T346G9.Office/msoclip1/01/65CCEB69-4317-8645-9279-F8AA33DAD044.png&#34; alt=&#34;AQS框架图&#34; /&gt;&lt;/h2&gt;
+
+&lt;h2 id=&#34;juc包中的锁&#34;&gt;JUC包中的锁&lt;/h2&gt;
+
+&lt;p&gt;相比同步锁，JUC包中的锁的功能更加强大，它为锁提供了一个框架，该框架允许更灵活地使用锁，只是它的用法更难罢了。&lt;/p&gt;
+
+&lt;p&gt;JUC包中的锁，包括：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Lock接口&lt;/li&gt;
+&lt;li&gt;ReadWriteLock接口&lt;/li&gt;
+&lt;li&gt;Condition接口&lt;/li&gt;
+&lt;li&gt;ReentrantLock独占锁&lt;/li&gt;
+&lt;li&gt;ReentrantReadWriteLock读写锁&lt;/li&gt;
+&lt;li&gt;CountDownLatch&lt;/li&gt;
+&lt;li&gt;CyclicBarrier&lt;/li&gt;
+&lt;li&gt;Semaphore&lt;/li&gt;
+&lt;li&gt;AbstractOwnableSynchronizer抽象类&lt;/li&gt;
+&lt;li&gt;AbstractQueuedSynchronizer抽象类&lt;/li&gt;
+&lt;li&gt;AbstractQueuedLongSynchronizer抽象类&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
       <title>ConcurrentHashMap源码分析</title>
       <link>http://nituchao.com/post/juc.concurrent/concurrent-hasmap/</link>
       <pubDate>Thu, 23 Feb 2017 18:27:27 +0800</pubDate>
@@ -1078,7 +1389,7 @@ Collection&amp;lt;V&amp;gt; values()
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;size-方法&#34;&gt;size()方法&lt;/h3&gt;
+&lt;h3 id=&#34;size&#34;&gt;size()&lt;/h3&gt;
 
 &lt;p&gt;要统计整个ConcurrentHashMap里元素的大小，就必须统计所有Segment里元素的大小后求和。Segment里的全局变量count是一个volatile变量，那么在多线程场景下，我们是不是直接把所有Segment的count相加就可以得到整个ConcurrentHashMap大小了呢？不是的，虽然相加时可以获取每个Segment的count的最新值，但是拿到之后可能累加前使用的count发生了变化，那么统计结果就不准了。所以最安全的做法，是在统计size的时候把所有Segment的put，remove和clean方法全部锁住，但是这种做法显然非常低效。&lt;/p&gt;
 
@@ -2125,589 +2436,6 @@ private static class COWIterator&amp;lt;E&amp;gt; implements ListIterator&amp;lt
 &lt;p&gt;&lt;strong&gt;太过保守&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;如果协调者指示参与者进行事务提交询问的过程中，参与者出现故障而导致协调者始终无法获取到所有参与者的相应信息的话，这时协调者只能依靠其自身的超时机制来判断是否需要中断事务，这样的策略显得比较保守。换句话说，二阶段提交协议咩有设计较为完善的容错机制，任意一个节点的失败都会导致整个事务的失败。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>MySQL提供的事务控制语句</title>
-      <link>http://nituchao.com/post/2017/mysql-shi-wu-kong-zhi-yu-ju/</link>
-      <pubDate>Tue, 14 Feb 2017 14:09:01 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2017/mysql-shi-wu-kong-zhi-yu-ju/</guid>
-      <description>
-
-&lt;p&gt;在MySQL命令行的默认设置下，事务都是自动提交的，即执行SQL语句后就会马上执行&lt;code&gt;COMMIT&lt;/code&gt;操作。因此要显式地开启一个事务需要使用命令&lt;code&gt;BEGIN&lt;/code&gt;, &lt;code&gt;START TRANSACTION&lt;/code&gt;, 或者执行命令&lt;code&gt;SET AUTOCOMMIT=0&lt;/code&gt;, 禁用当前会话的自动提交。&lt;/p&gt;
-
-&lt;p&gt;每个数据库厂商自动提交的设置都会不相同，每个DBA或开发人员需要非常明白这一点，这对之后的SQL编程会有非凡的意义，因此用户不能以之前的经验来判断MySQL数据库的运行方式。&lt;/p&gt;
-
-&lt;p&gt;MySQL为开发者提供了三种类型的事务，分别是扁平化事务，带保存点的事务，链式事务。通过带保存点的事务还可以模拟实现嵌套事务。&lt;/p&gt;
-
-&lt;h3 id=&#34;start-transaction-begin&#34;&gt;START TRANSACTION | BEGIN&lt;/h3&gt;
-
-&lt;p&gt;显式地开启一个事务。&lt;/p&gt;
-
-&lt;h3 id=&#34;commit&#34;&gt;COMMIT&lt;/h3&gt;
-
-&lt;p&gt;要想使用这个语句的最简形式，只需要发出&lt;code&gt;COMMIT&lt;/code&gt;。也可以更详细一点，写为&lt;code&gt;COMMIT WORK&lt;/code&gt;, 不过这两者几乎是等价的。&lt;code&gt;COMMIT&lt;/code&gt;会提交事务，并使得已对数据库做的修改称为永久性的。&lt;/p&gt;
-
-&lt;h3 id=&#34;rollback&#34;&gt;ROLLBACK&lt;/h3&gt;
-
-&lt;p&gt;要想使用这个语句的最简形式，只需要发出&lt;code&gt;ROLLBACK&lt;/code&gt;。同样地，也可以写为&lt;code&gt;ROLLBACK WORK&lt;/code&gt;，但两者几乎是等价的。回滚会结束用户的事务，并撤销正在进行的所有未提交的修改。&lt;/p&gt;
-
-&lt;h3 id=&#34;savepoint-identity&#34;&gt;SAVEPOINT identity&lt;/h3&gt;
-
-&lt;p&gt;&lt;code&gt;SAVEPOINT&lt;/code&gt;允许在事务中创建一个保存点，一个事务中可以有多个&lt;code&gt;SAVEPOINT&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h3 id=&#34;release-savepoint-identity&#34;&gt;RELEASE SAVEPOINT identity&lt;/h3&gt;
-
-&lt;p&gt;删除一个事务的保存点，当没有一个保存点执行这语句时，会抛出一个异常。&lt;/p&gt;
-
-&lt;h3 id=&#34;rollback-to-savepoint-identity&#34;&gt;ROLLBACK TO [SAVEPOINT] identity&lt;/h3&gt;
-
-&lt;p&gt;这个语句与&lt;code&gt;SAVEPOINT&lt;/code&gt;命令一起使用。可以把事务回滚到标记点，而不回滚在此标记点之前的任何工作。&lt;/p&gt;
-
-&lt;p&gt;例如，可以发出两调&lt;code&gt;UPDATE&lt;/code&gt;语句，后面跟一个&lt;code&gt;SAVEPOINT&lt;/code&gt;, 然后又是两条&lt;code&gt;DELETE&lt;/code&gt;语句。如果执行&lt;code&gt;DELETE&lt;/code&gt;语句期间出现了某种异常情况，并且捕获到这个异常，同时发出了&lt;code&gt;ROLLBACK TO SAVEPOINT&lt;/code&gt;命令，事务就会回滚到指定的SAVEPOINT，撤销&lt;code&gt;DELETE&lt;/code&gt;完成的所有工作，而&lt;code&gt;UPDATE&lt;/code&gt;语句完成的工作不受影响。&lt;/p&gt;
-
-&lt;h3 id=&#34;set-transaction&#34;&gt;SET TRANSACTION&lt;/h3&gt;
-
-&lt;p&gt;这个语句用来设置事务的隔离级别。&lt;/p&gt;
-
-&lt;p&gt;InnoDB存储引擎提供的事务隔离级别有：&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;READ UNCOMMITED&lt;/li&gt;
-&lt;li&gt;READ COMMITTED&lt;/li&gt;
-&lt;li&gt;REPEATABLE READ&lt;/li&gt;
-&lt;li&gt;SERIALIZABLE&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;code&gt;START TRANSACTION&lt;/code&gt;, &lt;code&gt;BEGIN&lt;/code&gt;语句都可以在MySQL命令行下显示地开启一个事务。但是在存储过程中，MySQL数据库的分析器会自动将BEGIN识别为BEGIN&amp;hellip;END, 因此在存储过程中只能使用&lt;code&gt;START TRANSACTION&lt;/code&gt;语句来开启一个事务。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;COMMIT&lt;/code&gt;和&lt;code&gt;COMMIT WORK&lt;/code&gt;语句基本是一致的，都是用来提交事务。不同之处在于&lt;code&gt;COMMIT WORK&lt;/code&gt;用来控制事务结束后的行为是&lt;code&gt;CHAIN&lt;/code&gt;还是&lt;code&gt;RELEASE&lt;/code&gt;的。如果是&lt;code&gt;CHAIN&lt;/code&gt;方式，那么事务就变成了链事务。&lt;/p&gt;
-
-&lt;p&gt;用户可以通过参数&lt;code&gt;completion_type&lt;/code&gt;来进行控制，该参数默认为0，表示没有任何操作。&lt;/p&gt;
-
-&lt;p&gt;当参数&lt;code&gt;completion_type&lt;/code&gt;的值为1时，&lt;code&gt;COMMIT WORK&lt;/code&gt;等同于&lt;code&gt;COMMIT AND CHAIN&lt;/code&gt;, 表示马上自动开启一个相同隔离级别的事务。&lt;/p&gt;
-
-&lt;p&gt;当参数&lt;code&gt;completion_type&lt;/code&gt;的值为2时，&lt;code&gt;COMMIT WORK&lt;/code&gt;等同于&lt;code&gt;COMMIT AND RELEASE&lt;/code&gt;, 在事务提交后会自动断开与服务器的连接。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>计算机</title>
-      <link>http://nituchao.com/book/</link>
-      <pubDate>Sun, 12 Feb 2017 17:51:45 +0800</pubDate>
-      
-      <guid>http://nituchao.com/book/</guid>
-      <description>
-
-&lt;p&gt;最近几年，大大小小的项目开发了不少，越来越觉得理论知识不够用，于是决心利用空余时间学习行业内的权威书籍。&lt;/p&gt;
-
-&lt;p&gt;这些列出来的书，都完整读过，有些在不同年份读过多次，也都一一列出。&lt;/p&gt;
-
-&lt;h2 id=&#34;java&#34;&gt;Java&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Java虚拟机精讲&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;高翔龙&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;280&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016\2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Effective Java中文版&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;俞黎敏&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;287&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Java并发编程的艺术&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;方腾飞/魏鹏/程晓明&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;422&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016\2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Java并发编程实战&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Brian Goetz/董云兰&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;293&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Java多线程编程核心技术&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;高洪岩&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;306&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Java 7并发编程实战手册&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;申邵勇/俞黎敏&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;339&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Spring揭秘&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;王福强&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;680&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Servlet 3.1 规范&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;穆茂强/张开涛&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;167&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Netty权威指南&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;李林峰&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;572&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2015\2016&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;mysql&#34;&gt;MySQL&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MySQL技术内幕 : InnoDB存储引擎&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;姜承尧&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;436&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MySQL性能调优与架构设计&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;简朝阳&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;392&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;高性能MySQL&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Baron Schwartz/宁海元&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;764&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;高可用MySQL&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Charles Bell/宁青&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;680&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Effective MySQL之备份与恢复&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Ronald Bradford/张骏温&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;283&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Effective MySQL之SQL语句最优化&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Ronald Bradford/李雪锋&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;201&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Effective MySQL之深入理解复制技术&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Ronald Bradford/李雪锋&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;309&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;redis&#34;&gt;Redis&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Redis设计与实现&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;黄建宏&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;388&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Redis实战&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Josiah L. Carlson/黄建宏&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;300&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;linux&#34;&gt;Linux&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;UNIX环境高级编程&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;W.Richard Stevens&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;812&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;理解Unix进程&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Jesse Storimer&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;116&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Linux高性能服务器编程&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;游双&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;360&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;高性能Linux服务器构建实践：运维监控、性能调优与集群应用&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;高俊峰&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;452&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;tcp-ip&#34;&gt;TCP/IP&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;TCP/IP详解·卷一：协议&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;W.Richard Stevens/范建华&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;423&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;mq-amqp&#34;&gt;MQ/AMQP&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;RabbitMQ实战，高效部署分布式消息队列&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Alvarao Videla/汪佳南&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;334&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Spring AMQP Reference&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Mark Pollack/Mark Fisher&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;115&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;设计模式&#34;&gt;设计模式&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;设计模式之禅&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;秦小波&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;555&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;分布式计算&#34;&gt;分布式计算&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;分布式服务框架：原理与实践&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;李林峰&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;312&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;从Paxos到Zookeeper：分布式一致性原理与实践&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;倪超&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;422&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Zab: High-performance broadcast forprimary-backup systems&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Flavio P.Junqueira&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;12&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;ZooKeeper’s atomic broadcast protocol:Theory and practice&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Andre Medeiros&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;19&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;A simple totally ordered broadcast protocol&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Benjamin Reed&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;大数据处理&#34;&gt;大数据处理&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Hive编程指南&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Edward Capriolo/曹坤&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;318&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;HBase权威指南&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Lars George/代志远&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;522&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2015&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Hadoop技术内幕：深入解析YARN架构设计与实现原理&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;董西成&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;396&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2015&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Hadoop技术内幕：深入解析MapReduce架构设计与实现原理&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;董西成&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;332&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2015\2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;快学Scala&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;C.S.霍夫曼/高翔宇&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;408&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;深入理解Scala&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Joshua D.Suereth/苏瑞茨&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;288&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Scala编程&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Martin Odersky/黄海旭/高宇翔&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;492&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;基础架构&#34;&gt;基础架构&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;亿级流量网站架构核心技术&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;张开涛&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;447&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2017&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&#34;其他&#34;&gt;其他&lt;/h2&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;名称&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;作者&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;页数&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;评分&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;年份&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;jQuery基础教程&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Jonathan Chaffer/李松峰&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;318&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;※※※&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;2016&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
 </description>
     </item>
     
