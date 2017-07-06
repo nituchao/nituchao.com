@@ -234,7 +234,7 @@ String toString()
 
 <h2 id="copyonwritearraylist重点函数分析">CopyOnWriteArrayList重点函数分析</h2>
 
-<h4 id="构造函数">构造函数</h4>
+<h3 id="构造函数">构造函数</h3>
 
 <pre><code>// 初始化一个大小为0的对象数组
 public CopyOnWriteArrayList() {
@@ -265,7 +265,9 @@ final void setArray(Object[] a) {
 
 <p>CopyOnWriteArrayList的三个构造函数都调用了setArray()，将新创建的数组赋值给CopyOnWriteArrayList的成员变量array。</p>
 
-<h4 id="添加">添加</h4>
+<h3 id="添加">添加</h3>
+
+<h4 id="直接添加">直接添加</h4>
 
 <p>以add(E e)为例来分析<code>CopyOnWriteArrayList</code>的添加操作。</p>
 
@@ -309,7 +311,37 @@ final void setArray(Object[] a) {
 <li>操作完毕时，会通过setArray()来更新”volatile数组“。而且，前面我们提过”即对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入“；这样，每次添加元素之后，其它线程都能看到新添加的元素。</li>
 </ol>
 
-<h4 id="获取">获取</h4>
+<h4 id="不重复添加">不重复添加</h4>
+
+<p>由于CopyOnWriteArraySet是通过聚合了一个CopyOnWriteArrayList实现的，而CopyOnWriteArraySet是不包含重复元素的，因此CopyOnWriteArrayList提供了一个不添加重复元素的方法<code>addIfAbsent</code>，该方法每次从头遍历数组，如果发现元素已经存在，则直接返回false，如果遍历后待添加元素不存在，则添加到新数组的末尾，然后将新数组设置为成员数组。</p>
+
+<pre><code class="language-java">public boolean addIfAbsent(E e) {
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            // Copy while checking if already present.
+            // This wins in the most common case where it is not present
+            Object[] elements = getArray();
+            int len = elements.length;
+            Object[] newElements = new Object[len + 1];
+            for (int i = 0; i &lt; len; ++i) {
+                if (eq(e, elements[i]))
+                    return false; // exit, throwing away copy
+                else
+                    newElements[i] = elements[i];
+            }
+            newElements[len] = e;
+            setArray(newElements);
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+</code></pre>
+
+<p>有在检查待添加元素是否已经存在时要从头遍历数组，因此随着元素个数递增，该方法的效率线性下降。</p>
+
+<h3 id="获取">获取</h3>
 
 <p>以get(int index)为例，来对<code>CopyOnWriteArrayList</code>的删除操作进行说明。</p>
 
@@ -370,7 +402,7 @@ private E get(Object[] a, int index) {
 
 <p>remove操作没有检查index的合法性，有可能会抛出IndexOutOfBoundsExceptions</p>
 
-<h4 id="遍历">遍历</h4>
+<h3 id="遍历">遍历</h3>
 
 <p>以<code>iterator()</code>为例，来说明<code>CopyOnWriteArrayList</code>的遍历操作。</p>
 
@@ -470,14 +502,17 @@ private static class COWIterator&lt;E&gt; implements ListIterator&lt;E&gt; {
 <li><a href="#copyonwritearraylist函数列表">CopyOnWriteArrayList函数列表</a></li>
 <li><a href="#copyonwritearraylist重点函数分析">CopyOnWriteArrayList重点函数分析</a>
 <ul>
-<li>
-<ul>
 <li><a href="#构造函数">构造函数</a></li>
-<li><a href="#添加">添加</a></li>
-<li><a href="#获取">获取</a></li>
-<li><a href="#删除">删除</a></li>
-<li><a href="#遍历">遍历</a></li>
+<li><a href="#添加">添加</a>
+<ul>
+<li><a href="#直接添加">直接添加</a></li>
+<li><a href="#不重复添加">不重复添加</a></li>
 </ul></li>
+<li><a href="#获取">获取</a>
+<ul>
+<li><a href="#删除">删除</a></li>
+</ul></li>
+<li><a href="#遍历">遍历</a></li>
 </ul></li>
 </ul></li>
 </ul>

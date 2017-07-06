@@ -142,7 +142,7 @@ String toString()
 
 ## CopyOnWriteArrayList重点函数分析
 
-#### 构造函数
+### 构造函数
 
 ```
 // 初始化一个大小为0的对象数组
@@ -176,7 +176,9 @@ CopyOnWriteArrayList的三个构造函数都调用了setArray()，将新创建�
 
 
 
-#### 添加
+### 添加
+
+#### 直接添加
 
 以add(E e)为例来分析`CopyOnWriteArrayList`的添加操作。
 
@@ -219,8 +221,40 @@ transient final ReentrantLock lock = new ReentrantLock();
 2. 操作完毕时，会通过setArray()来更新”volatile数组“。而且，前面我们提过”即对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入“；这样，每次添加元素之后，其它线程都能看到新添加的元素。
 
 
+#### 不重复添加
 
-#### 获取
+由于CopyOnWriteArraySet是通过聚合了一个CopyOnWriteArrayList实现的，而CopyOnWriteArraySet是不包含重复元素的，因此CopyOnWriteArrayList提供了一个不添加重复元素的方法`addIfAbsent`，该方法每次从头遍历数组，如果发现元素已经存在，则直接返回false，如果遍历后待添加元素不存在，则添加到新数组的末尾，然后将新数组设置为成员数组。
+
+```java
+public boolean addIfAbsent(E e) {
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            // Copy while checking if already present.
+            // This wins in the most common case where it is not present
+            Object[] elements = getArray();
+            int len = elements.length;
+            Object[] newElements = new Object[len + 1];
+            for (int i = 0; i < len; ++i) {
+                if (eq(e, elements[i]))
+                    return false; // exit, throwing away copy
+                else
+                    newElements[i] = elements[i];
+            }
+            newElements[len] = e;
+            setArray(newElements);
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+```
+
+有在检查待添加元素是否已经存在时要从头遍历数组，因此随着元素个数递增，该方法的效率线性下降。
+
+
+
+### 获取
 
 以get(int index)为例，来对`CopyOnWriteArrayList`的删除操作进行说明。
 
@@ -287,7 +321,7 @@ remove操作没有检查index的合法性，有可能会抛出IndexOutOfBoundsEx
 
 
 
-#### 遍历
+### 遍历
 
 以`iterator()`为例，来说明`CopyOnWriteArrayList`的遍历操作。
 
