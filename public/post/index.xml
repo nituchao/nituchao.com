@@ -429,6 +429,347 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
     </item>
     
     <item>
+      <title>CopyOnWriteArrayList源码分析</title>
+      <link>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</link>
+      <pubDate>Thu, 23 Feb 2017 18:25:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</guid>
+      <description>
+
+&lt;p&gt;##概述&lt;/p&gt;
+
+&lt;p&gt;CopyOnWriteArrayList相当于线程安全的ArrayList。和ArrayList一样，它是个可变数组；但是和ArrayList不同的是，它具有以下特性：
+1. 它最适合于具有以下特征的应用程序：List大小通常保持很小，只读操作远多于可变操作，需要在遍历期间防止线程间的冲突。
+2. 它是线程安全的。它的线程安全表现在两个方面，修改时使用锁进行同步，读取时使用数据快照。
+3. 因为通常要复制整个基础数组，所以可变操作（add()、set()和remove()等操作）的开销很大。
+4. 迭代器支持hasNext()、next等不可变操作，但不支持可变remove()等操作。
+5. 使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。&lt;/p&gt;
+
+&lt;h2 id=&#34;copyonwritearraylist原理和数据结构&#34;&gt;CopyOnWriteArrayList原理和数据结构&lt;/h2&gt;
+
+&lt;p&gt;CopyOnWriteArrayList的数据结构，如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;CopyOnWriteArrayList UML图&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;说明：
+1. CopyOnWriteArrayList实现了List接口，因此可以认为它是一个有序的集合。
+2. CopyOnWriteArrayList实现了RandomAccess接口，因此可以认为它的元素可以随机访问。
+3. CopyOnWriteArrayList包含一个可重入锁Lock。每一个CopyOnWriteArrayList都和一个互斥锁lock绑定，通过lock，实现了对CopyOnWriteArrayList的互斥访问。
+4. CopyOnWriteArrayList包含了成员array数组，这说明CopyOnWriteArrayList本质上通过数组实现的。而且，可存储的元素个数没有上限。&lt;/p&gt;
+
+&lt;p&gt;下面从&amp;rdquo;动态数组&amp;rdquo;和&amp;rdquo;线程安全&amp;rdquo;两个方面进一步对CopyOnWriteArrayList的原理进行说明。
+1. &lt;strong&gt;CopyOnWriteArrayList的&amp;rdquo;动态数组&amp;rdquo;机制&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;它内部有个&amp;rdquo;volatile数组&amp;rdquo;(array)来保持数据。在&amp;rdquo;添加/修改/删除&amp;rdquo;数据时，都会新建一个数组，并将更新后的数据拷贝到新建的数组中，最后再将该数组赋值给&amp;rdquo;volatile数组&amp;rdquo;。这就是它叫做CopyOnWriteArrayList的原因！&lt;/p&gt;
+
+&lt;p&gt;CopyOnWriteArrayList就是通过这种方式实现的动态数组；不过正由于它在&amp;rdquo;添加/修改/删除&amp;rdquo;数据时，都会新建数组，所以涉及到修改数据的操作，CopyOnWriteArrayList效率很低。但是单单只是进行遍历的话，效率比较高。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;CopyOnWriteArrayList的&amp;rdquo;线程安全&amp;rdquo;机制&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;是通过volatile和互斥锁来实现的。
+ a. CopyOnWriteArrayList是通过&amp;rdquo;volatile数组&amp;rdquo;来保存数据的。&lt;/p&gt;
+
+&lt;p&gt;一个线程读取volatile数组时，总能看到其他线程对该volatile变量最后的写入。就这样，通过volatile提供了&amp;rdquo;读取到的数据总是最新的&amp;rdquo;这个机制的保证。
+ b. CopyOnWriteArrayList通过互斥锁来保护数据。&lt;/p&gt;
+
+&lt;p&gt;在&amp;rdquo;添加/修改/删除&amp;rdquo;数据时，会先&amp;rdquo;获取互斥锁&amp;rdquo;，在修改完毕后，先将数据更新到&amp;rdquo;volatile数组&amp;rdquo;中，然后再&amp;rdquo;释放互斥锁&amp;rdquo;；这样，就达到了保护数据的目的。&lt;/p&gt;
+
+&lt;h2 id=&#34;copyonwritearraylist成员变量&#34;&gt;CopyOnWriteArrayList成员变量&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;/** 可重入锁，对数组进行添加/修改/删除操作时，通过lock来进行同步操作 */
+transient final ReentrantLock lock = new ReentrantLock();
+
+/** 数组，保存数据的地方。对数组array的操作都要通过getArray和setArray进行操作 */
+private volatile transient Object[] array;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;copyonwritearraylist函数列表&#34;&gt;CopyOnWriteArrayList函数列表&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 创建一个空列表，默认大小为0。
+CopyOnWriteArrayList()
+// 创建一个按 collection 的迭代器返回元素的顺序包含指定 collection 元素的列表。
+CopyOnWriteArrayList(Collection&amp;lt;? extends E&amp;gt; c)
+// 创建一个保存给定数组的副本的列表。 
+CopyOnWriteArrayList(E[] toCopyIn)
+// 将指定元素添加到此列表的尾部。
+boolean add(E e)
+// 在此列表的指定位置上插入指定元素。
+void add(int index, E element)
+// 按照指定 collection 的迭代器返回元素的顺序，将指定 collection 中的所有元素添加此列表的尾部。
+boolean addAll(Collection&amp;lt;? extends E&amp;gt; c)
+// 从指定位置开始，将指定 collection 的所有元素插入此列表。
+boolean addAll(int index, Collection&amp;lt;? extends E&amp;gt; c)
+// 按照指定 collection 的迭代器返回元素的顺序，将指定 collection 中尚未包含在此列表中的所有元素添加列表的尾部。
+int addAllAbsent(Collection&amp;lt;? extends E&amp;gt; c)
+// 添加元素（如果不存在）。
+boolean addIfAbsent(E e)
+// 从此列表移除所有元素。
+void clear()
+// 返回此列表的浅表副本。
+Object clone()
+// 如果此列表包含指定的元素，则返回 true。
+boolean contains(Object o)
+// 如果此列表包含指定 collection 的所有元素，则返回 true。
+boolean containsAll(Collection&amp;lt;?&amp;gt; c)
+// 比较指定对象与此列表的相等性。
+boolean equals(Object o)
+// 返回列表中指定位置的元素。
+E get(int index)
+// 返回此列表的哈希码值。
+int hashCode()
+// 返回第一次出现的指定元素在此列表中的索引，从 index 开始向前搜索，如果没有找到该元素，则返回 -1。
+int indexOf(E e, int index)
+// 返回此列表中第一次出现的指定元素的索引；如果此列表不包含该元素，则返回 -1。
+int indexOf(Object o)
+// 如果此列表不包含任何元素，则返回 true。
+boolean isEmpty()
+// 返回以恰当顺序在此列表元素上进行迭代的迭代器。
+Iterator&amp;lt;E&amp;gt; iterator()
+// 返回最后一次出现的指定元素在此列表中的索引，从 index 开始向后搜索，如果没有找到该元素，则返回 -1。
+int lastIndexOf(E e, int index)
+// 返回此列表中最后出现的指定元素的索引；如果列表不包含此元素，则返回 -1。
+int lastIndexOf(Object o)
+// 返回此列表元素的列表迭代器（按适当顺序）。
+ListIterator&amp;lt;E&amp;gt; listIterator()
+// 返回列表中元素的列表迭代器（按适当顺序），从列表的指定位置开始。
+ListIterator&amp;lt;E&amp;gt; listIterator(int index)
+// 移除此列表指定位置上的元素。
+E remove(int index)
+// 从此列表移除第一次出现的指定元素（如果存在）。
+boolean remove(Object o)
+// 从此列表移除所有包含在指定 collection 中的元素。
+boolean removeAll(Collection&amp;lt;?&amp;gt; c)
+// 只保留此列表中包含在指定 collection 中的元素。
+boolean retainAll(Collection&amp;lt;?&amp;gt; c)
+// 用指定的元素替代此列表指定位置上的元素。
+E set(int index, E element)
+// 返回此列表中的元素数。
+int size()
+// 返回此列表中 fromIndex（包括）和 toIndex（不包括）之间部分的视图。
+List&amp;lt;E&amp;gt; subList(int fromIndex, int toIndex)
+// 返回一个按恰当顺序（从第一个元素到最后一个元素）包含此列表中所有元素的数组。
+Object[] toArray()
+// 返回以恰当顺序（从第一个元素到最后一个元素）包含列表所有元素的数组；返回数组的运行时类型是指定数组的运行时类型。
+&amp;lt;T&amp;gt; T[] toArray(T[] a)
+// 返回此列表的字符串表示形式。
+String toString()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;copyonwritearraylist重点函数分析&#34;&gt;CopyOnWriteArrayList重点函数分析&lt;/h2&gt;
+
+&lt;h4 id=&#34;构造函数&#34;&gt;构造函数&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;// 初始化一个大小为0的对象数组
+public CopyOnWriteArrayList() {
+    setArray(new Object[0]);
+}
+
+// 使用一个集合里的元素来初始化一个对象数组
+public CopyOnWriteArrayList(Collection&amp;lt;? extends E&amp;gt; c) {
+    Object[] elements = c.toArray();
+    if (elements.getClass() != Object[].class)
+        elements = Arrays.copyOf(elements, elements.length, Object[].class);
+    setArray(elements);
+}
+
+// 使用一个数组里元素来初始化一个对象数组
+public CopyOnWriteArrayList(E[] toCopyIn) {
+    setArray(Arrays.copyOf(toCopyIn, toCopyIn.length, Object[].class));
+}
+
+final Object[] getArray() {
+    return array;
+}
+
+final void setArray(Object[] a) {
+    array = a;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;CopyOnWriteArrayList的三个构造函数都调用了setArray()，将新创建的数组赋值给CopyOnWriteArrayList的成员变量array。&lt;/p&gt;
+
+&lt;h4 id=&#34;添加&#34;&gt;添加&lt;/h4&gt;
+
+&lt;p&gt;以add(E e)为例来分析&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的添加操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean add(E e) {
+    final ReentrantLock lock = this.lock;
+    // 获取“锁”
+    lock.lock();
+    try {
+        // 获取原始”volatile数组“中的数据和数据长度。
+        Object[] elements = getArray();
+        int len = elements.length;
+        // 新建一个数组newElements，并将原始数据拷贝到newElements中；
+        // newElements数组的长度=“原始数组的长度”+1
+        Object[] newElements = Arrays.copyOf(elements, len + 1);
+        // 将“新增加的元素”保存到newElements中。
+        newElements[len] = e;
+        // 将newElements赋值给”volatile数组“。
+        setArray(newElements);
+        return true;
+    } finally {
+        // 释放“锁”
+        lock.unlock();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;add(E e)的作用就是将数据e添加到”volatile数组“中。它的实现方式是，新建一个数组，接着将原始的”volatile数组“的数据拷贝到新数组中，然后将新增数据也添加到新数组中；最后，将新数组赋值给”volatile数组“。&lt;/p&gt;
+
+&lt;p&gt;在add(E e)中有两点需要关注。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;在”添加操作“开始前，获取独占锁(lock)，若此时有需要线程要获取锁，则必须等待；在操作完毕后，释放独占锁(lock)，此时其它线程才能获取锁。通过独占锁，来防止多线程同时修改数据！lock的定义如下：&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;transient final ReentrantLock lock = new ReentrantLock();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;操作完毕时，会通过setArray()来更新”volatile数组“。而且，前面我们提过”即对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入“；这样，每次添加元素之后，其它线程都能看到新添加的元素。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&#34;获取&#34;&gt;获取&lt;/h4&gt;
+
+&lt;p&gt;以get(int index)为例，来对&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的删除操作进行说明。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public E get(int index) {
+    return get(getArray(), index);
+}
+
+private E get(Object[] a, int index) {
+    return (E) a[index];
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;说明:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;get(int index)的实现非常简单，就是返回&amp;rdquo;volatile数组&amp;rdquo;中的第index个元素。读取元素的过程不需要加锁，是读取时array的镜像。&lt;/p&gt;
+
+&lt;h4 id=&#34;删除&#34;&gt;删除&lt;/h4&gt;
+
+&lt;p&gt;以remove(int index)为例，来说明&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的删除操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public E remove(int index) {
+    final ReentrantLock lock = this.lock;
+    // 获取“锁”
+    lock.lock();
+    try {
+        // 获取原始”volatile数组“中的数据和数据长度。
+        Object[] elements = getArray();
+        int len = elements.length;
+        // 获取elements数组中的第index个数据。
+        E oldValue = get(elements, index);
+        int numMoved = len - index - 1;
+        // 如果被删除的是最后一个元素，则直接通过Arrays.copyOf()进行处理，而不需要新建数组。
+        // 否则，新建数组，然后将”volatile数组中被删除元素之外的其它元素“拷贝到新数组中。
+        // 最后，将新数组赋值给”volatile数组“。
+        if (numMoved == 0)
+            setArray(Arrays.copyOf(elements, len - 1));
+        else {
+            Object[] newElements = new Object[len - 1];
+            System.arraycopy(elements, 0, newElements, 0, index);
+            System.arraycopy(elements, index + 1, newElements, index,
+                             numMoved);
+            setArray(newElements);
+        }
+        return oldValue;
+    } finally {
+        // 释放“锁”
+        lock.unlock();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;remove(int index)的作用就是将”volatile数组“中第index个元素删除。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;它的实现方式是，如果被删除的是最后一个元素，则直接通过Arrays.copyOf()进行处理，而不需要新建数组。&lt;/em&gt;&lt;/strong&gt;否则，新建数组，然后将”volatile数组中被删除元素之外的其它元素“拷贝到新数组中。最后，将新数组赋值给”volatile数组“。
+和add(E e)一样，remove(int index)也是”在操作之前，获取独占锁；操作完成之后，释放独占是“；并且”在操作完成时，会通过将数据更新到volatile数组中“。&lt;/p&gt;
+
+&lt;p&gt;remove操作没有检查index的合法性，有可能会抛出IndexOutOfBoundsExceptions&lt;/p&gt;
+
+&lt;h4 id=&#34;遍历&#34;&gt;遍历&lt;/h4&gt;
+
+&lt;p&gt;以&lt;code&gt;iterator()&lt;/code&gt;为例，来说明&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的遍历操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public Iterator&amp;lt;E&amp;gt; iterator() {
+  return new COWIterator&amp;lt;E&amp;gt; (getArray(), 0);
+}
+
+private static class COWIterator&amp;lt;E&amp;gt; implements ListIterator&amp;lt;E&amp;gt; {
+    private final Object[] snapshot;
+    private int cursor;
+
+    private COWIterator(Object[] elements, int initialCursor) {
+        cursor = initialCursor;
+        snapshot = elements;
+    }
+
+    public boolean hasNext() {
+        return cursor &amp;lt; snapshot.length;
+    }
+
+    public boolean hasPrevious() {
+        return cursor &amp;gt; 0;
+    }
+
+    // 获取下一个元素
+    @SuppressWarnings(&amp;quot;unchecked&amp;quot;)
+    public E next() {
+        if (!hasNext())
+            throw new NoSuchElementException();
+        return (E) snapshot[cursor++];
+    }
+
+    // 获取上一个元素
+    @SuppressWarnings(&amp;quot;unchecked&amp;quot;)
+    public E previous() {
+        if (!hasPrevious())
+            throw new NoSuchElementException();
+        return (E) snapshot[--cursor];
+    }
+
+    public int nextIndex() {
+        return cursor;
+    }
+
+    public int previousIndex() {
+        return cursor-1;
+    }
+
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
+    public void set(E e) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void add(E e) {
+        throw new UnsupportedOperationException();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;COWIterator不支持修改元素的操作。例如，对于&lt;code&gt;remove()&lt;/code&gt;,&lt;code&gt;set()&lt;/code&gt;,&lt;code&gt;add()&lt;/code&gt;等操作，&lt;code&gt;COWIterator&lt;/code&gt;都会抛出异常！
+另外，需要提到的一点是，CopyOnWriteArrayList返回迭代器不会抛出&lt;code&gt;ConcurrentModificationException&lt;/code&gt;异常，即它不是fail-fast机制的！&lt;/p&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/skywang12345/p/3498483.html&#34;&gt;Java多线程系列之CopyOnWriteArrayList&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Linux网络I/O模型整理</title>
       <link>http://nituchao.com/post/2017/linux-io-mode/</link>
       <pubDate>Wed, 22 Feb 2017 18:25:27 +0800</pubDate>
@@ -928,101 +1269,6 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
       
       <guid>http://nituchao.com/post/2016/jvm-xing-neng-xiang-guan-de-pei-zhi-can-shu/</guid>
       <description>&lt;p&gt;本问将介绍JVM性能相关的配置参数。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>JVM配置参数-X与-XX的区别</title>
-      <link>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</link>
-      <pubDate>Wed, 28 Dec 2016 13:14:12 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</guid>
-      <description>
-
-&lt;p&gt;启动JVM时通过指定配置参数来指导虚拟机按照我们的要求提供服务，这一点对大多数的Java程序员来说已经是司空见惯。&lt;/p&gt;
-
-&lt;p&gt;在指定配置参数时，会有-X和-XX两种形式，那么它们两者有什么区别呢，今天我想借这篇文章总结一下。&lt;/p&gt;
-
-&lt;p&gt;下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;java -Xmx15G \
--Xms10G \
--Xmn3G \
--Xss512k \
--XX:MaxPermSize=512M \
--XX:PermSize=512M \
--XX:+PrintFlagsFinal \
--XX:MaxTenuringThreshold=1 \
--XX:SurvivorRatio=23 \
--XX:TargetSurvivorRatio=80 \
--Xnoclassgc \
--XX:+UseParNewGC \
--XX:+UseConcMarkSweepGC \
--XX:CMSInitiatingOccupancyFraction=80 \
--XX:ParallelGCThreads=24 \
--XX:ConcGCThreads=24 \
--XX:+CMSParallelRemarkEnabled \
--XX:+CMSScavengeBeforeRemark \
--XX:+ExplicitGCInvokesConcurrent \
--XX:+UseTLAB \
--XX:TLABSize=64K, -verbose:gc \
--XX:+PrintGCDetails \
--XX:+PrintGCDateStamps \
--XX:+PrintGCTimeStamps \
--XX:+PrintGCApplicationStoppedTime \
--Xloggc:./gc.log
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Java HotSpot VM的官方文档中将启动参数分为如下两类：&lt;/p&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;center&#34;&gt;配置 参数&lt;/th&gt;
-&lt;th align=&#34;center&#34;&gt;类型&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;说明&lt;/th&gt;
-&lt;th align=&#34;center&#34;&gt;举例&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;center&#34;&gt;-X&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;non-standard&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;非标准参数。&lt;br/&gt;&lt;br/&gt;这些参数不是虚拟机规范规定的。因此，不是所有VM的实现(如:HotSpot,JRockit,J9等)都支持这些配置参数。&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;-Xmx、-Xms、-Xmn、-Xss&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;center&#34;&gt;-XX&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;not-stable&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;不稳定参数。&lt;br/&gt;&lt;br/&gt;这些参数是虚拟机规范中规定的。这些参数指定虚拟机实例在运行时的各种行为，从而对虚拟机的运行时性能有很大影响。&lt;/td&gt;
-&lt;td align=&#34;center&#34;&gt;-XX:SurvivorRatio、-XX:+UseParNewGc&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;补充: -X和-XX两种参数都可能随着JDK版本的变更而发生变化，有些参数可以能会被废弃掉，有些参数的功能会发生改变，但是JDK官方不会通知开发者这些变化，需要使用者注意。&lt;/p&gt;
-
-&lt;p&gt;-XX参数被称为不稳定参数，是因为这类参数的设置会引起JVM运行时性能上的差异，配置得当可以提高JVM性能，配置不当则会使JVM出现各种问题, 甚至造成JVM崩溃。&lt;/p&gt;
-
-&lt;p&gt;国外有个哥们从HotSpot VM的源码里发现了934个此类型的配置参数，因此能对JVM做出很多组合配置，对JVM的调优也没有统一的标准，需要我们在实践中不断总结经验，并结合实际业务来进行操作，最终找到最适合当前业务的那些配置。&lt;/p&gt;
-
-&lt;h2 id=&#34;一些有用的-xx配置&#34;&gt;一些有用的-XX配置&lt;/h2&gt;
-
-&lt;p&gt;对于-XX类型的配置选项，虚拟机规范有一些惯例，针对不同的平台虚拟机也会提供不同的默认值。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;对于布尔(Boolean)类型的配置选项，通过&lt;code&gt;-XX:+&amp;lt;option&amp;gt;&lt;/code&gt;来开启，通过&lt;code&gt;-XX:-&amp;lt;option&amp;gt;&lt;/code&gt;来关闭。&lt;/li&gt;
-&lt;li&gt;对于数字(Numberic)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;number&amp;gt;&lt;/code&gt;来配置。&lt;code&gt;&amp;lt;number&amp;gt;&lt;/code&gt;后面可以携带单位字母，比如: &amp;lsquo;k&amp;rsquo;或者&amp;rsquo;K&amp;rsquo;代表千字节，&amp;rsquo;m&amp;rsquo;或者&amp;rsquo;M&amp;rsquo;代表兆字节，&amp;rsquo;g&amp;rsquo;或者&amp;rsquo;G&amp;rsquo;代表千兆字节。&lt;/li&gt;
-&lt;li&gt;对于字符串(String)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;string&amp;gt;&lt;/code&gt;来配置。这种配置通过用来指定文件，路径或者命令列表。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&#34;参考文献&#34;&gt;参考文献&lt;/h2&gt;
-
-&lt;p&gt;1, &lt;a href=&#34;http://jvm-options.tech.xebia.fr/&#34;&gt;JVM Options - The complete reference&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;2, &lt;a href=&#34;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&#34;&gt;Java HotSpot VM Options&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     
