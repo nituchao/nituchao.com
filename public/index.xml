@@ -679,7 +679,7 @@ Object[] toArray()
 String toString()
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h2 id=&#34;copyonwritearraylist重点函数分析&#34;&gt;CopyOnWriteArrayList重点函数分析&lt;/h2&gt;
+&lt;h2 id=&#34;copyonwritearraylist重点函数&#34;&gt;CopyOnWriteArrayList重点函数&lt;/h2&gt;
 
 &lt;h3 id=&#34;构造函数&#34;&gt;构造函数&lt;/h3&gt;
 

@@ -136,7 +136,7 @@ String toString()
 
 
 
-## CopyOnWriteArrayList重点函数分析
+## CopyOnWriteArrayList重点函数
 
 ### 构造函数
 
