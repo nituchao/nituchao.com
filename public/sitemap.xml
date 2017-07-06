@@ -27,14 +27,11 @@
   </url>
   
   <url>
-<<<<<<< HEAD
-=======
     <loc>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</loc>
     <lastmod>2017-02-23T18:25:27+08:00</lastmod>
   </url>
   
   <url>
->>>>>>> add post juc
     <loc>http://nituchao.com/post/2017/linux-io-mode/</loc>
     <lastmod>2017-02-22T18:25:27+08:00</lastmod>
   </url>
