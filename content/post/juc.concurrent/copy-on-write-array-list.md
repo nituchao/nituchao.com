@@ -270,7 +270,7 @@ get(int index)的实现非常简单，就是返回"volatile数组"中的第index
 
 
 
-#### 删除
+### 删除
 
 以remove(int index)为例，来说明`CopyOnWriteArrayList`的删除操作。
 

@@ -683,7 +683,7 @@ private E get(Object[] a, int index) {
 
 &lt;p&gt;get(int index)的实现非常简单，就是返回&amp;rdquo;volatile数组&amp;rdquo;中的第index个元素。读取元素的过程不需要加锁，是读取时array的镜像。&lt;/p&gt;
 
-&lt;h4 id=&#34;删除&#34;&gt;删除&lt;/h4&gt;
+&lt;h3 id=&#34;删除&#34;&gt;删除&lt;/h3&gt;
 
 &lt;p&gt;以remove(int index)为例，来说明&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的删除操作。&lt;/p&gt;
 

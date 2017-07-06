@@ -354,7 +354,7 @@ private E get(Object[] a, int index) {
 
 <p>get(int index)的实现非常简单，就是返回&rdquo;volatile数组&rdquo;中的第index个元素。读取元素的过程不需要加锁，是读取时array的镜像。</p>
 
-<h4 id="删除">删除</h4>
+<h3 id="删除">删除</h3>
 
 <p>以remove(int index)为例，来说明<code>CopyOnWriteArrayList</code>的删除操作。</p>
 
@@ -501,10 +501,8 @@ private static class COWIterator&lt;E&gt; implements ListIterator&lt;E&gt; {
 <li><a href="#直接添加">直接添加</a></li>
 <li><a href="#不重复添加">不重复添加</a></li>
 </ul></li>
-<li><a href="#获取">获取</a>
-<ul>
+<li><a href="#获取">获取</a></li>
 <li><a href="#删除">删除</a></li>
-</ul></li>
 <li><a href="#遍历">遍历</a></li>
 </ul></li>
 </ul></li>
