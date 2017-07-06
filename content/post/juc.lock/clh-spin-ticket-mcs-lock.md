@@ -1,5 +1,5 @@
 ---
-title: "Java锁之自旋锁原理"
+title: "Java锁之自旋锁的原理"
 date: "2017-02-23T18:29:27+08:00"
 categories: ["Lock"]
 tags: ["Java", "Lock"]

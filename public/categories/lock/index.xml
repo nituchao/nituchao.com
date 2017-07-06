@@ -10,7 +10,43 @@
     <atom:link href="http://nituchao.com/categories/lock/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Java锁之自旋锁原理</title>
+      <title>Java锁之CAS的原理</title>
+      <link>http://nituchao.com/post/juc.lock/java-cas/</link>
+      <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/java-cas/</guid>
+      <description>&lt;p&gt;参考:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;http://zl198751.iteye.com/blog/1848575&#34;&gt;JAVA CAS原理深度分析&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Java锁之Unsafe类的理解</title>
+      <link>http://nituchao.com/post/juc.lock/java-unsafe/</link>
+      <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/java-unsafe/</guid>
+      <description>&lt;p&gt;参考:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/chenpi/p/5389254.html&#34;&gt;sun.misc.Unsafe的理解&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://ifeve.com/sun-misc-unsafe/&#34;&gt;Java Magic. Part 4: sun.misc.Unsafe&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://howtodoinjava.com/tag/java-hidden-features/&#34;&gt;java-hidden-features&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/fenglibing/article/details/17138079&#34;&gt;sun.misc.unsafe类的使用&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.blogjava.net/xylz/archive/2010/07/04/325206.html&#34;&gt;深入浅出 Java Concurrency (5): 原子操作 part 4&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Java锁之自旋锁的原理</title>
       <link>http://nituchao.com/post/juc.lock/clh-spin-ticket-mcs-lock/</link>
       <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
       
