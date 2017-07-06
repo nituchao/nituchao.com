@@ -132,7 +132,11 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
       <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</guid>
       <description>
 
+<<<<<<< HEAD
 &lt;p&gt;##概述&lt;/p&gt;
+=======
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+>>>>>>> add post juc
 
 &lt;p&gt;CopyOnWriteArrayList相当于线程安全的ArrayList。和ArrayList一样，它是个可变数组；但是和ArrayList不同的是，它具有以下特性：
 1. 它最适合于具有以下特征的应用程序：List大小通常保持很小，只读操作远多于可变操作，需要在遍历期间防止线程间的冲突。
@@ -466,6 +470,23 @@ private static class COWIterator&amp;lt;E&amp;gt; implements ListIterator&amp;lt
     </item>
     
     <item>
+<<<<<<< HEAD
+=======
+      <title>CopyOnWriteArraySet源码分析</title>
+      <link>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</link>
+      <pubDate>Thu, 23 Feb 2017 18:25:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</guid>
+      <description>
+
+&lt;h2 id=&#34;概要&#34;&gt;概要&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;是线程安全的无序集合，可以将它理解成线程安全的HashSet。有意思的是，&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;和HashSet虽然都继承于共同的父类AbstractSet；但是，HashSet是通过&amp;rdquo;散列表(HashSet)&amp;ldquo;实现的，而CopyConWriteArraySet则是通过&amp;rdquo;动态数组(CopyOnWriteArrayList)&amp;ldquo;实现的，并不是散列表。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+>>>>>>> add post juc
       <title>JVM行为相关的配置参数</title>
       <link>http://nituchao.com/post/2016/jvm-xing-wei-xiang-guan-de-pei-zhi-can-shu/</link>
       <pubDate>Thu, 29 Dec 2016 13:53:12 +0800</pubDate>
