@@ -10,7 +10,7 @@
     <atom:link href="http://nituchao.com/categories/lock/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>SPIN锁、TICKET锁、MCS锁、CLH锁原理</title>
+      <title>Java锁之SPIN锁、TICKET锁、MCS锁、CLH锁原理</title>
       <link>http://nituchao.com/post/juc.lock/clh-spin-ticket-mcs-lock/</link>
       <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
       
@@ -287,7 +287,7 @@ void spin_lock_bh(spinlock_t *lock);
     </item>
     
     <item>
-      <title>Java锁框架概述</title>
+      <title>Java锁之Lock框架概述</title>
       <link>http://nituchao.com/post/juc.lock/lock-summary/</link>
       <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
       
