@@ -369,7 +369,8 @@ int size()
 List&amp;lt;E&amp;gt; subList(int fromIndex, int toIndex)
 // 返回一个按恰当顺序（从第一个元素到最后一个元素）包含此列表中所有元素的数组。
 Object[] toArray()
-// 返回以恰当顺序（从第一个元素到最后一个元素）包含列表所有元素的数组；返回数组的运行时类型是指定数组的运行时类型。
+// 返回以恰当顺序（从第一个元素到最后一个元素）包含列表所有元素的数组；
+// 返回数组的运行时类型是指定数组的运行时类型。
 &amp;lt;T&amp;gt; T[] toArray(T[] a)
 // 返回此列表的字符串表示形式。
 String toString()
