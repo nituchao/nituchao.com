@@ -6,12 +6,8 @@ tags: ["Java", "Concurrent"]
 draft: false
 ---
 
-<<<<<<< HEAD
-##概述
-=======
-## 概述
->>>>>>> add post juc
 
+## 概述
 CopyOnWriteArrayList相当于线程安全的ArrayList。和ArrayList一样，它是个可变数组；但是和ArrayList不同的是，它具有以下特性：
 1. 它最适合于具有以下特征的应用程序：List大小通常保持很小，只读操作远多于可变操作，需要在遍历期间防止线程间的冲突。
 2. 它是线程安全的。它的线程安全表现在两个方面，修改时使用锁进行同步，读取时使用数据快照。
