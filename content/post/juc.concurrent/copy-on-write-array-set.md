@@ -45,6 +45,23 @@ CopyOnWriteArraySet的数据结构，如下图所示：
 
 
 
+
+## CopyOnWriteArraySet成员变量
+
+CopyOnWriteArraySet只有下面一个成员变量
+
+```java
+private final CopyOnWriteArrayList<E> al;
+```
+
+**说明:**
+
+1. 成员变量al是`final`类型的，通过构造函数进行初始化后将不能再修改。
+2. 成员变量al里的`添加/修改/删除`操作都是通过互斥锁和volatile变量来保证现场安全的，因此，成员变量al不再用`volatile`修饰，也不再额外声明可重入锁lock。
+
+
+
+
 ## CopyOnWriteArraySet函数列表
 
 ```java
@@ -83,20 +100,6 @@ Object[] toArray()
 <T> T[] toArray(T[] a)
 ```
 
-
-
-## CopyOnWriteArraySet成员变量
-
-CopyOnWriteArraySet只有下面一个成员变量
-
-```java
-private final CopyOnWriteArrayList<E> al;
-```
-
-**说明:**
-
-1. 成员变量al是`final`类型的，通过构造函数进行初始化后将不能再修改。
-2. 成员变量al里的`添加/修改/删除`操作都是通过互斥锁和volatile变量来保证现场安全的，因此，成员变量al不再用`volatile`修饰，也不再额外声明可重入锁lock。
 
 
 

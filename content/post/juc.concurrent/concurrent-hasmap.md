@@ -10,6 +10,8 @@ draft: false
 
 ConcurrentHashMap是线程安全的、高效的哈希表。默认支持16个并发级别，并发级别在初始化后不能扩展。
 
+
+
 ## 概述
 
 **HashMap**是非线程安全的哈希表，常用于单线程程序中。
@@ -56,7 +58,6 @@ static final int MAX_SEGMENTS = 1 << 16; // slightly conservative
 // 在计算size时，先尝试不获取段锁计算，最多尝试RETRIES_BEFORE_LOCK次。
 // 如果重试超过RETRIES_BEFORE_LOCK次，则获取段锁后进行计算。
 static final int RETRIES_BEFORE_LOCK = 2;
-
 ```
 
 
@@ -237,7 +238,17 @@ static final class Segment<K,V> extends ReentrantLock implements Serializable {
 
 ### HashIterator
 
+ConcurrentHashMap使用了不同于传统集合的快速失败迭代器的另一种迭代方式，我们称为**弱一致迭代器**。在这种迭代方式中，当iterator被创建后集合再发生改变就不再是抛出 ConcurrentModificationException，取而代之的是在改变时new新的数据从而不影响原有的数 据，iterator完成后再将头指针替换为新的数据，这样iterator线程可以使用原来老的数据，而写线程也可以并发的完成改变，更重要的，这保证了多个线程并发执行的连续性和扩展性，是性能提升的关键。
+
+HashIterator通过调用advance()遍历底层数组。在遍历过程中，如果已经遍历的数组上的内容变化了，迭代器不会抛出ConcurrentModificationException异常。如果未遍历的数组上的内容发生了变化，则有可能反映到迭代过程中。这就是ConcurrentHashMap迭代器若一致性的表现。
+
+
+
 `HashIterator`是个抽象类，它的子类有`EntryIterator`，`KeyIterator`和`ValueIterator`。从名字上可以看出来，HashIterator为ConcurrentHashMap的遍历提供了键、值、HashEntry等不同维度的迭代器。
+
+
+
+`EntryIterator`、`KeyIterator`、`ValueIterator`事实上是为`EntrySet`、`KeySet`、`Values`提供迭代服务。而所有的迭代操作在本质上都是调用HashIterator里的相关实现（如：nextEntry()，hasNext()，remove()等）。
 
 ```java
 abstract class HashIterator {
@@ -255,8 +266,12 @@ abstract class HashIterator {
   }
 
   /**
-  * Set nextEntry to first node of next non-empty table
-  * (in backwards order, to simplify checks).
+  * Segment数组从后往前，找到第一个table数组不为null的Segment
+  * 将nextSegmentIndex指向该Segment
+  * 将nextTableIndex指向该table
+  * 将currentTable指向该table
+  * 将nextEntry指向该table中的第一个HashEntry元素
+  * lastReturned在这里还没有初始化，只有在遍历(调用nextEntry())是才赋值
   */
   final void advance() {
     for (;;) {
@@ -274,6 +289,11 @@ abstract class HashIterator {
     }
   }
 
+  /**
+  * 获取当前nextEntry指向的HashEntry。
+  * 修改lastReturned为nextEntry当前指向的HashEntry。
+  * 调用advance()，向前寻找第一个table数组不为null的Segment
+  */
   final HashEntry<K,V> nextEntry() {
     HashEntry<K,V> e = nextEntry;
     if (e == null)
@@ -284,9 +304,17 @@ abstract class HashIterator {
     return e;
   }
 
+  // 根据nextEntry是否为空，判断是否还有下一个元素供遍历
   public final boolean hasNext() { return nextEntry != null; }
+  
+  // 根据nextEntry是否为空，判断是否还有下一个元素供遍历
   public final boolean hasMoreElements() { return nextEntry != null; }
 
+  /**
+  * 调用ConcurrentHashMap的remove方法，按key移除元素。
+  * 将lastReturned置为空。
+  * 此时nextEntry
+  */
   public final void remove() {
     if (lastReturned == null)
       throw new IllegalStateException();
@@ -300,9 +328,14 @@ abstract class HashIterator {
 
 ### EntryIterator
 
+继承自`HashIterator`，并实现了Iterator接口，用于HashEntry的迭代遍历。EntryIterator重写了next方法，返回了一个WriteThroughEntry对象，该对象继承自AbstractMap.SimpleEntry，本质上是个Map.Entry。
+
+EntryIterator将在ConcurrentHashMap.EntrySet中起作用，为EntrySet类型提供迭代能力。
+
 ```java
-final class EntryIterator extends HashIterator implements Iterator<Entry<K,V>>
-{
+final class EntryIterator 
+  		extends HashIterator 
+  		implements Iterator<Entry<K,V>> {
   	public Map.Entry<K,V> next() {
       HashEntry<K,V> e = super.nextEntry();
       return new WriteThroughEntry(e.key, e.value);
@@ -314,11 +347,14 @@ final class EntryIterator extends HashIterator implements Iterator<Entry<K,V>>
 
 ### KeyIterator
 
+继承自`HashIterator`，并实现了Iterator接口，用于HashEntry的key的迭代遍历。KeyIterator重写了next方法，返回了当前HashEntry的key值。
+
+KeyIterator将在ConcurrentHashMap.KeySet中起作用，为KeySet类型提供迭代能力。
+
 ```java
 final class KeyIterator 
   		extends HashIterator
-        implements Iterator<K>, Enumeration<K>
-{
+        implements Iterator<K>, Enumeration<K> {
   public final K next()        { return super.nextEntry().key; }
   public final K nextElement() { return super.nextEntry().key; }
 }
@@ -328,11 +364,14 @@ final class KeyIterator
 
 ### ValueIterator
 
+继承自HashIterator，并实现了Iterator接口，用于HashEntry的值的迭代遍历。ValueIterator重写了next方法，返回了当前HashEntry的值。
+
+ValueIterator将在ConcurrentHashMap.Values中起作用，为Values类型提供迭代能力。
+
 ```java
 final class ValueIterator
   extends HashIterator
-  implements Iterator<V>, Enumeration<V>
-{
+  implements Iterator<V>, Enumeration<V> {
   public final V next()        { return super.nextEntry().value; }
   public final V nextElement() { return super.nextEntry().value; }
 }
@@ -344,7 +383,7 @@ final class ValueIterator
 
 `WriteThroughEntry`里只有一个public方法setValue，将值写入map中。注意由于并发情况，可能不会是实时修改数据，故不能用于跟踪数据。该方法可以用于遍历时修改数据。
 
-```
+```java
 final class WriteThroughEntry extends AbstractMap.SimpleEntry<K,V> {
   
   WriteThroughEntry(K k, V v) {
@@ -363,6 +402,8 @@ final class WriteThroughEntry extends AbstractMap.SimpleEntry<K,V> {
 
 
 ### KeySet
+
+ConcurrentHashMap的KeySet类型用于定义按Key进行遍历的相关操作。其中，iterator()会实例化一个KeyIterator()，进而提供相关的迭代操作。其他的方法，则是通过ConcurrentHashMap的原生方法实现。
 
 ```java
 final class KeySet extends AbstractSet<K> {
@@ -390,6 +431,8 @@ final class KeySet extends AbstractSet<K> {
 
 
 ### EntrySet
+
+ConcurrentHashMap的EntrySet类型用于定义按Entry进行遍历的相关操作。其中，iterator()会实例化一个EntryIterator()，进而提供相关的迭代操作。其他的方法，则是通过ConcurrentHashMap的原生方法实现。
 
 ```java
 final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
@@ -425,6 +468,10 @@ final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
 
 ### Values
 
+ConcurrentHashMap的Values类型用于定义按Value进行遍历的相关操作。其中，iterator()会实例化一个ValueIterator()，进而提供相关的迭代操作。其他的方法，则是通过ConcurrentHashMap的原生方法实现。
+
+由于ConcurrentHashMap的值可以重复，因此Values类型继承自AbstractCollection，而不是集合Set。
+
 ```java
 final class Values extends AbstractCollection<V> {
   public Iterator<V> iterator() {
@@ -444,8 +491,6 @@ final class Values extends AbstractCollection<V> {
   }
 }
 ```
-
-
 
 
 
@@ -503,3 +548,238 @@ int size()
 Collection<V> values()
 ```
 
+
+
+## ConcurrentHashMap重点函数
+
+### 构造函数
+
+ConcurrentHashMap有五个构造函数，重点分析下面这个构造函数。
+
+ConcurrentHashMap初始化是通过initialCapacity，loadFactor，concurrentLevel等参数来初始化Segment数组，段偏移量segmentShift，段掩码segmentMask和每个segment里的HashEntry数组。
+
+```java
+public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
+  // 参数检查
+  if (!(loadFactor > 0) || initialCapacity < 0 || concurrencyLevel <= 0)
+    throw new IllegalArgumentException();
+  // 并发级别不能超过段的最大数量
+  if (concurrencyLevel > MAX_SEGMENTS)
+    concurrencyLevel = MAX_SEGMENTS;
+  // Find power-of-two sizes best matching arguments
+  int sshift = 0;
+  int ssize = 1;
+  while (ssize < concurrencyLevel) {
+    ++sshift;
+    ssize <<= 1;
+  }
+  this.segmentShift = 32 - sshift;
+  this.segmentMask = ssize - 1;
+  if (initialCapacity > MAXIMUM_CAPACITY)
+    initialCapacity = MAXIMUM_CAPACITY;
+  int c = initialCapacity / ssize;
+  if (c * ssize < initialCapacity)
+    ++c;
+  int cap = MIN_SEGMENT_TABLE_CAPACITY;
+  while (cap < c)
+    cap <<= 1;
+  // create segments and segments[0]
+  Segment<K,V> s0 =
+    new Segment<K,V>(loadFactor, (int)(cap * loadFactor),
+                     (HashEntry<K,V>[])new HashEntry[cap]);
+  Segment<K,V>[] ss = (Segment<K,V>[])new Segment[ssize];
+  UNSAFE.putOrderedObject(ss, SBASE, s0); // ordered write of segments[0]
+  this.segments = ss;
+}
+```
+
+**segments数组的长度ssize通过concurrencyLevel计算得出。**为了能通过按位与的哈希算法来定位segments数组的索引，必须保证segments数组的长度是2的N次方（power-of-two size），所以必须计算出一个是大于或等于concurrencyLevel的最小的2的N次方值来作为segments数组的长度。假如concurrencyLevel等于14，15或16，ssize都会等于16，即容器里锁的个数也是16。注意concurrencyLevel的最大大小是65535，意味着segments数组的长度最大为65536，对应的二进制是16位，对应全局常量MAX_SEGMENTS = 1 << 16。
+
+**初始化segmentShift和segmentMask。** 这两个全局变量在定位segment时的哈希算法里需要使用，sshift等于ssize从1向左移位的次数，在默认情况下concurrencyLevel等于16，1需要向左移位移动4次，所以sshift等于4。segmentShift用于定位参与hash运算的位数，segmentShift等于32减sshift，所以等于28，这里之所以用32是因为ConcurrentHashMap里的hash()方法输出的最大数是32位的，后面的测试中我们可以看到这点。segmentMask是哈希运算的掩码，等于ssize减1，即15，掩码的二进制各个位的值都是1。因为ssize的最大长度是65536，所以segmentShift最大值是16，segmentMask最大值是65535，对应的二进制是16位，每个位都是1。
+
+**初始化每个Segment。**输入参数initialCapacity是ConcurrentHashMap的初始化容量，loadfactor是每个segment的负载因子，在构造方法里需要通过这两个参数来初始化数组中的每个segment。
+
+**初始化每个segment里HashEntry数组的长度cap**。cap等于initialCapacity除以ssize的倍数c，如果c大于1，就会取大于等于c的2的N次方值，所以cap不是1，就是2的N次方。segment的容量threshold＝(int)cap*loadFactor，默认情况下initialCapacity等于16，loadfactor等于0.75，通过运算cap等于1，threshold等于零。
+
+
+
+### put(K key, V value)
+
+```java
+public V put(K key, V value) {
+  Segment<K,V> s;
+  if (value == null)
+  	throw new NullPointerException();
+  int hash = hash(key);
+  int j = (hash >>> segmentShift) & segmentMask;
+  if ((s = (Segment<K,V>)UNSAFE.getObject          // nonvolatile; recheck
+  	(segments, (j << SSHIFT) + SBASE)) == null) //  in ensureSegment
+  s = ensureSegment(j);
+  return s.put(key, hash, value, false);
+}
+```
+
+Segment内部类中的put方法：
+
+```
+final V put(K key, int hash, V value, boolean onlyIfAbsent) {
+	// tryLock(): 如果锁可用，则获取锁，并立即返回true，否则返回false。
+	// scanAndLockForPut扫描指定key的节点，并获取锁，如果不存在就新建一个HashEntry。
+	// 在scanAndLockForPut方法里，会循环执行MAX_SCAN_RETRIES次tryLock。
+	// 如果还是没有获取到锁，则调用lock()方法使用CAS获取锁。
+	// 总之，在node返回时，当前线程一定已经取到了当前segment的锁。
+	HashEntry<K,V> node = tryLock() ? null : 
+		scanAndLockForPut(key, hash, value);
+	V oldValue;
+	try {
+        HashEntry<K,V>[] tab = table;
+        int index = (tab.length - 1) & hash;
+        HashEntry<K,V> first = entryAt(tab, index);
+        for (HashEntry<K,V> e = first;;) {
+        	if (e != null) {
+        		K k;
+        		if ((k = e.key) == key ||
+        			(e.hash == hash && key.equals(k))) {
+        			oldValue = e.value;
+        			if (!onlyIfAbsent) {
+        				e.value = value;
+        				++modCount;
+                  }
+                  break;
+              }
+              e = e.next;
+            }
+            else {
+                if (node != null)
+                    node.setNext(first);
+                else
+                    node = new HashEntry<K,V>(hash, key, value, first);
+                int c = count + 1;
+                if (c > threshold && tab.length < MAXIMUM_CAPACITY)
+                    rehash(node);
+                else
+                    setEntryAt(tab, index, node);
+                ++modCount;
+                count = c;
+                oldValue = null;
+                break;
+            }
+		}
+    } finally {
+    unlock();
+    }
+    return oldValue;
+}
+```
+
+put操作开始，首先定位到Segment，为了线程安全，锁定当前Segment；然后在Segment里进行插入操作，首先判断是否需要扩容，然后在定位添加元素的位置放在HashEntry数组里。
+
+扩容：在插入元素前会先判断Segment里的HashEntry数组是否超过容量（threshold），如果超过阀值，数组进行扩容。值得一提的是，Segment的扩容判断比HashMap更恰当，因为HashMap是在插入元素后判断元素是否已经到达容量的，如果到达了就进行扩容，但是很有可能扩容之后没有新元素插入，这时HashMap就进行了一次无效的扩容。
+
+扩容的时候首先会创建一个两倍于原容量的数组，然后将原数组里的元素进行再hash后插入到新的数组里。为了高效ConcurrentHashMap不会对整个容器进行扩容，而只对某个segment进行扩容。
+
+
+
+### get(K key)
+
+在ConcurrentHashMap中get(K key)方法没有加锁，因此可能会读到其他线程put的新数据。这也是ConcurrentHashMap弱一致性的体现。
+
+```java
+public V get(Object key) {
+    Segment<K,V> s; // manually integrate access methods to reduce overhead
+    HashEntry<K,V>[] tab;
+    int h = hash(key);
+    long u = (((h >>> segmentShift) & segmentMask) << SSHIFT) + SBASE;
+    if ((s = (Segment<K,V>)UNSAFE.getObjectVolatile(segments, u)) != null &&
+        (tab = s.table) != null) {
+        for (HashEntry<K,V> e = (HashEntry<K,V>) UNSAFE.getObjectVolatile
+                 (tab, ((long)(((tab.length - 1) & h)) << TSHIFT) + TBASE);
+             e != null; e = e.next) {
+            K k;
+            if ((k = e.key) == key || (e.hash == h && key.equals(k)))
+                return e.value;
+        }
+    }
+    return null;
+}
+```
+
+
+
+### size()方法
+
+要统计整个ConcurrentHashMap里元素的大小，就必须统计所有Segment里元素的大小后求和。Segment里的全局变量count是一个volatile变量，那么在多线程场景下，我们是不是直接把所有Segment的count相加就可以得到整个ConcurrentHashMap大小了呢？不是的，虽然相加时可以获取每个Segment的count的最新值，但是拿到之后可能累加前使用的count发生了变化，那么统计结果就不准了。所以最安全的做法，是在统计size的时候把所有Segment的put，remove和clean方法全部锁住，但是这种做法显然非常低效。
+
+因为在累加count操作过程中，之前累加过的count发生变化的几率非常小，所以ConcurrentHashMap的做法是先尝试2次通过不锁住Segment的方式来统计各个Segment大小，如果统计的过程中，容器的count发生了变化，则再采用加锁的方式来统计所有Segment的大小。
+
+```java
+public int size() {
+  // Try a few times to get accurate count. On failure due to
+  // continuous async changes in table, resort to locking.
+  final Segment<K,V>[] segments = this.segments;
+  int size;
+  boolean overflow; // true if size overflows 32 bits
+  long sum;         // sum of modCounts
+  long last = 0L;   // previous sum
+  int retries = -1; // first iteration isn't retry
+  try {
+    for (;;) {
+        if (retries++ == RETRIES_BEFORE_LOCK) {
+            for (int j = 0; j < segments.length; ++j)
+                ensureSegment(j).lock(); // force creation
+        }
+        sum = 0L;
+        size = 0;
+        overflow = false;
+        for (int j = 0; j < segments.length; ++j) {
+            Segment<K,V> seg = segmentAt(segments, j);
+            if (seg != null) {
+            sum += seg.modCount;
+            int c = seg.count;
+            if (c < 0 || (size += c) < 0)
+            overflow = true;
+            }
+        }
+        if (sum == last)
+          break;
+      	last = sum;
+    }
+  } finally {
+      if (retries > RETRIES_BEFORE_LOCK) {
+          for (int j = 0; j < segments.length; ++j)
+              segmentAt(segments, j).unlock();
+      }
+  }
+  return overflow ? Integer.MAX_VALUE : size;
+}
+```
+
+
+
+### putIfAbsent(K key, V value)
+
+```java
+// 如果key在容器中不存在则将其放入其中，否则donothing.
+// 返回 null,表示确实不存在，并且value被成功放入
+// 返回非 null, 表示 key 存在，返回值是key在容器中的当前值 。
+public V putIfAbsent(K key, V value) {
+  Segment<K,V> s;
+  if (value == null)
+    throw new NullPointerException();
+  int hash = hash(key);
+  int j = (hash >>> segmentShift) & segmentMask;
+  if ((s = (Segment<K,V>)UNSAFE.getObject
+       (segments, (j << SSHIFT) + SBASE)) == null)
+    s = ensureSegment(j);
+  return s.put(key, hash, value, true);
+}
+```
+
+
+
+参考：
+
+1. [为什么ConcurrentHashMap是弱一致的](http://ifeve.com/concurrenthashmap-weakly-consistent/)
+2. [JUC集合之ConcurrentHashMap](http://www.cnblogs.com/skywang12345/p/3498537.html)
+3. [并发容器-ConcurrentMap](http://a-ray-of-sunshine.github.io/2016/08/01/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8-ConcurrentMap/)
+4. [ConcurrentHashMap简介](http://cxis.me/2016/05/26/ConcurrentHashMap%E7%AE%80%E4%BB%8B/)

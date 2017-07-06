@@ -140,6 +140,20 @@
 <li>CopyOnWriteArraySet的&rdquo;线程安全&rdquo;机制是通过volatile和互斥锁来实现的。而它本身没有volatile变量和互斥锁，都是借由CopyOnWriteArrayList实现。</li>
 </ol>
 
+<h2 id="copyonwritearrayset成员变量">CopyOnWriteArraySet成员变量</h2>
+
+<p>CopyOnWriteArraySet只有下面一个成员变量</p>
+
+<pre><code class="language-java">private final CopyOnWriteArrayList&lt;E&gt; al;
+</code></pre>
+
+<p><strong>说明:</strong></p>
+
+<ol>
+<li>成员变量al是<code>final</code>类型的，通过构造函数进行初始化后将不能再修改。</li>
+<li>成员变量al里的<code>添加/修改/删除</code>操作都是通过互斥锁和volatile变量来保证现场安全的，因此，成员变量al不再用<code>volatile</code>修饰，也不再额外声明可重入锁lock。</li>
+</ol>
+
 <h2 id="copyonwritearrayset函数列表">CopyOnWriteArraySet函数列表</h2>
 
 <pre><code class="language-java">// 创建一个空 set。
@@ -176,20 +190,6 @@ Object[] toArray()
 // 返回一个包含此 set 所有元素的数组；返回数组的运行时类型是指定数组的类型。
 &lt;T&gt; T[] toArray(T[] a)
 </code></pre>
-
-<h2 id="copyonwritearrayset成员变量">CopyOnWriteArraySet成员变量</h2>
-
-<p>CopyOnWriteArraySet只有下面一个成员变量</p>
-
-<pre><code class="language-java">private final CopyOnWriteArrayList&lt;E&gt; al;
-</code></pre>
-
-<p><strong>说明:</strong></p>
-
-<ol>
-<li>成员变量al是<code>final</code>类型的，通过构造函数进行初始化后将不能再修改。</li>
-<li>成员变量al里的<code>添加/修改/删除</code>操作都是通过互斥锁和volatile变量来保证现场安全的，因此，成员变量al不再用<code>volatile</code>修饰，也不再额外声明可重入锁lock。</li>
-</ol>
 
 <h2 id="copyonwritearrayset重点函数">CopyOnWriteArraySet重点函数</h2>
 
@@ -241,8 +241,8 @@ public boolean addAll(Collection&lt;? extends E&gt; c) {
 <li><a href="#一句话">一句话</a></li>
 <li><a href="#概要">概要</a></li>
 <li><a href="#copyonwritearrayset原理">CopyOnWriteArraySet原理</a></li>
-<li><a href="#copyonwritearrayset函数列表">CopyOnWriteArraySet函数列表</a></li>
 <li><a href="#copyonwritearrayset成员变量">CopyOnWriteArraySet成员变量</a></li>
+<li><a href="#copyonwritearrayset函数列表">CopyOnWriteArraySet函数列表</a></li>
 <li><a href="#copyonwritearrayset重点函数">CopyOnWriteArraySet重点函数</a>
 <ul>
 <li><a href="#构造函数">构造函数</a></li>
