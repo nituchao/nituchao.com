@@ -448,7 +448,184 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
       <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.lock/java-unsafe/</guid>
-      <description>&lt;p&gt;参考:&lt;/p&gt;
+      <description>
+
+&lt;h2 id=&#34;一言&#34;&gt;一言&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类是超越Java的存在，它违反了Java的设计初衷，却又是Java很多重要特性与功能得以实现的基础，是魔鬼与天使的混合体。&lt;/p&gt;
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;Java是一个安全的开发工具，它阻止开发人员犯很低级的错误，而大部分的错误都是基于内存管理的。Unsafe类突破了Java原生的内存管理体制，使用Unsafe类可以在系统内存的任意地址进行读写数据，而这些操作对于普通用户来说是非常危险的，Unsafe的操作粒度不是类，而是数据和地址。&lt;/p&gt;
+
+&lt;p&gt;从另一方讲，Java正被广泛应用于游戏服务器和高频率的交易应用。这些之所以能够实现主要归功于Java提供的这个非常便利的类&lt;code&gt;sun.mics.Unsafe&lt;/code&gt;。Unsafe类为了速度，在Java严格的安全标准方法做了一些妥协。&lt;/p&gt;
+
+&lt;p&gt;Java在JUC包中提供了对&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类的封装实现，这就是&lt;code&gt;java.util.concurrent.LockSupport&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h2 id=&#34;重要函数&#34;&gt;重要函数&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;sun.mics.Unsafe&lt;/code&gt;一共提供了106个函数，这些函数涵盖了以下五个方面的功能：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;对变量和数组内容的原子访问，自定义内存屏障&lt;/li&gt;
+&lt;li&gt;对序列化的支持&lt;/li&gt;
+&lt;li&gt;自定义内存管理/高效的内存布局&lt;/li&gt;
+&lt;li&gt;与原生代码和其他JVM进行互操作&lt;/li&gt;
+&lt;li&gt;对高级锁的支持&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;获取实例&#34;&gt;获取实例&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;只有一个无参的私有构造函数，要想实例化&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;可以调用&lt;code&gt;getUnsafe()&lt;/code&gt;方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@CallerSensitive
+public static Unsafe getUnsafe() {
+  Class var0 = Reflection.getCallerClass();
+  if(var0.getClassLoader() != null) {
+    throw new SecurityException(&amp;quot;Unsafe&amp;quot;);
+  } else {
+    return theUnsafe;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;出于安全考虑，Unsafe类只能被系统类加载器实例化，否则会抛出&lt;code&gt;SecurityException&lt;/code&gt;异常。&lt;/p&gt;
+
+&lt;h3 id=&#34;内存操作&#34;&gt;内存操作&lt;/h3&gt;
+
+&lt;h4 id=&#34;获取成员变量偏移量&#34;&gt;获取成员变量偏移量&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public native long objectFieldOffset(Field field); 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的操作对象是内存数据，获取指定成员变量的内存地址是对其进行操作的第一步。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;objectFieldOffset&lt;/code&gt;是一个本地函数，返回指定静态field的内存地址偏移量，&lt;code&gt;Unsafe&lt;/code&gt;类的其他方法中这个值是被用作一个访问特定field的一个方式。这个值对于给定的field是唯一的，并且后续对该方法的调用都返回相同的值。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;objectFieldOffset&lt;/code&gt;获取到的是内存偏移量，并不是真正的内存指针地址，Unsafe类提供了&lt;code&gt;getAddress&lt;/code&gt;函数将该偏移量转换为真正的内存指针地址，有了该内存指针地址，就可以直接操作内存数据的读写了。&lt;/p&gt;
+
+&lt;h4 id=&#34;操作成员变量数据&#34;&gt;操作成员变量数据&lt;/h4&gt;
+
+&lt;p&gt;有了&lt;code&gt;objectFieldOffset&lt;/code&gt;获取到的内存偏移量，就可以使用Unsafe类对该内存位置的数据进行读写。Unsafe类提供了对所有Java基本数据类型（byte, short, int, long, float, double）和对象类型的读写，这些方法都是本地函数（另外有一些对本地函数进行封装的读写函数，已经被标识为弃用）。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// var1: 对象引用
+// var2: 内存偏移量，通过objectFieldOffset获取
+public native int getInt(Object var1, long var2);
+// var1: 对象引用
+// var2: 内存偏移量，通过objectFieldOffset获取
+// var4: 新的数据值
+public native void putInt(Object var1, long var2, int var4);
+public native Object getObject(Object var1, long var2);
+public native void putObject(Object var1, long var2, Object var4);
+public native boolean getBoolean(Object var1, long var2);
+public native void putBoolean(Object var1, long var2, boolean var4);
+public native byte getByte(Object var1, long var2);
+public native void putByte(Object var1, long var2, byte var4);
+public native short getShort(Object var1, long var2);
+public native void putShort(Object var1, long var2, short var4);
+public native char getChar(Object var1, long var2);
+public native void putChar(Object var1, long var2, char var4);
+public native long getLong(Object var1, long var2);
+public native void putLong(Object var1, long var2, long var4);
+public native float getFloat(Object var1, long var2);
+public native void putFloat(Object var1, long var2, float var4);
+public native double getDouble(Object var1, long var2);
+public native void putDouble(Object var1, long var2, double var4);
+
+public native byte getByte(long var1);
+public native void putByte(long var1, byte var3);
+public native short getShort(long var1);
+public native void putShort(long var1, short var3);
+public native char getChar(long var1);
+public native void putChar(long var1, char var3);
+public native int getInt(long var1);
+public native void putInt(long var1, int var3);
+public native long getLong(long var1);
+public native void putLong(long var1, long var3);
+public native float getFloat(long var1);
+public native void putFloat(long var1, float var3);
+public native double getDouble(long var1);
+public native void putDouble(long var1, double var3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;获取内存指针地址&#34;&gt;获取内存指针地址&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;objectFieldOffset&lt;/code&gt;获取到的是内存偏移量，并不是真正的内存指针地址，Unsafe类提供了&lt;code&gt;getAddress&lt;/code&gt;函数将该偏移量转换为真正的内存指针地址，有了该内存指针地址，就可以直接操作内存数据的读写了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 根据给定的内存偏移量(objectFieldOffset的返回值)，获取真正的内存指针地址。
+// 如果给定的内存偏移量为0或者并没有指向一个内存块，返回undefined。
+// 如果返回的内存指针地址位宽小于64，用无符号整数进行扩展转换为Java long型。
+public native long getAddress(long var1);
+// 保存一个内存指针地址到给定的内存偏移量。
+// 如过给定的内存偏移量为0或者并没有指向一个内存块，返回undefined。
+public native void putAddress(long var1, long var3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;直接分配内存空间&#34;&gt;直接分配内存空间&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;sun.mics.Unsafe&lt;/code&gt;类允许Java程序使用JVM堆外内存，即操作系统内存。&lt;code&gt;BufferBytes&lt;/code&gt;类也可以分配JVM堆外内存，但是只能使用最大2GB的JVM堆外内存空间，而&lt;code&gt;sun.mics.Unsafe&lt;/code&gt;类没有这个限制。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 分配一块大小为var1字节的JVM堆外内存。
+// 新分配的内存空间中的内容处于未初始化状态。
+// 新分配的内存空间的指针地址不为0，并对所有的值类型做内存对齐。
+public native long allocateMemory(long var1);
+// 调整JVM堆外内存空间大小。
+// 参数var1是待调整的JVM堆外内存空间的指针地址。
+// 参数var3是新的JVM堆外内存空间字节大小。
+// 如果新空间大小var1=0，则返回指针地址为0.
+public native long reallocateMemory(long var1, long var3);
+// 释放指定内存指针地址的内存空间。
+public native void freeMemory(long var1);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;直接操作内存类型数据&#34;&gt;直接操作内存类型数据&lt;/h4&gt;
+
+&lt;p&gt;有了&lt;code&gt;addAddress&lt;/code&gt;函数获取到的内存指针地址，就可以直接操作该内存指针地址处的数据了。Unsafe类提供了对所有Java基础数据类型和对象类型的直接内存操作函数。&lt;/p&gt;
+
+&lt;p&gt;下面提供的这些函数，都是按照数据类型对内存数据进行读写。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// var1: 内存指针地址
+public native byte getByte(long var1);
+// var1: 内存指针地址
+// var3: 新的数据值
+public native void putByte(long var1, byte var3);
+public native short getShort(long var1);
+public native void putShort(long var1, short var3);
+public native char getChar(long var1);
+public native void putChar(long var1, char var3);
+public native int getInt(long var1);
+public native void putInt(long var1, int var3);
+public native long getLong(long var1);
+public native void putLong(long var1, long var3);
+public native float getFloat(long var1);
+public native void putFloat(long var1, float var3);
+public native double getDouble(long var1);
+public native void putDouble(long var1, double var3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;直接操作内存字节数据&#34;&gt;直接操作内存字节数据&lt;/h4&gt;
+
+&lt;p&gt;有了&lt;code&gt;addAddress&lt;/code&gt;函数获取到的内存指针地址，就可以直接操作该内存指针地址处的数据了。Unsafe类提供了直接按照字节为单位对指定的内存指针地址进行数据操作的函数。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public native void setMemory(Object o, long offset, long bytes, byte value);
+public void setMemory(long address, long bytes, byte value) {
+  	setMemory(null, address, bytes, value);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;直接复制内存数据&#34;&gt;直接复制内存数据&lt;/h4&gt;
+
+&lt;p&gt;有了&lt;code&gt;addAddress&lt;/code&gt;函数获取到的内存指针地址，还可以直接将一个内存指针地址对应的数据块拷贝到另一个内存指针地址对应的位置。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public native void copyMemory(Object srcBase, long srcOffset,
+                              Object destBase, long destOffset,
+                              long bytes);
+public void copyMemory(long srcAddress, long destAddress, long bytes) {
+  	copyMemory(null, srcAddress, null, destAddress, bytes);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;参考:&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/chenpi/p/5389254.html&#34;&gt;sun.misc.Unsafe的理解&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
@@ -460,6 +637,8 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/fenglibing/article/details/17138079&#34;&gt;sun.misc.unsafe类的使用&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.blogjava.net/xylz/archive/2010/07/04/325206.html&#34;&gt;深入浅出 Java Concurrency (5): 原子操作 part 4&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.infoq.com/cn/articles/A-Post-Apocalyptic-sun.misc.Unsafe-World&#34;&gt;sun.misc.Unsafe的后启示录&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
     </item>
