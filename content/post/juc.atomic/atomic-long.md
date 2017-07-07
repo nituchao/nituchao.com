@@ -1,7 +1,7 @@
 ---
 title: "AtomicLong源码分析"
 date: "2017-02-23T18:30:28+08:00"
-categories: ["ABC_Lock"]
+categories: ["ABC_Atomic"]
 tags: ["Java", "Lock"]
 draft: false
 ---
