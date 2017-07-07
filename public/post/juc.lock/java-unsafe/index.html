@@ -154,7 +154,14 @@ public static Unsafe getUnsafe() {
 
 <h4 id="获取成员变量偏移量">获取成员变量偏移量</h4>
 
-<pre><code class="language-java">public native long objectFieldOffset(Field field); 
+<pre><code class="language-java">// 返回对象中指定静态成员变量的内存偏移量(相对于类存储)
+public native long staticFieldOffset(Field f);
+
+// 返回对象中指定成员变量的内存偏移量(相对于对象实例)
+public native long objectFieldOffset(Field f);
+
+// 返回对象中指定成员变量
+public native Object staticFieldBase(Field f);
 </code></pre>
 
 <p><code>sun.misc.Unsafe</code>的操作对象是内存数据，获取指定成员变量的内存地址是对其进行操作的第一步。</p>
@@ -166,6 +173,8 @@ public static Unsafe getUnsafe() {
 <h4 id="操作成员变量数据">操作成员变量数据</h4>
 
 <p>有了<code>objectFieldOffset</code>获取到的内存偏移量，就可以使用Unsafe类对该内存位置的数据进行读写。Unsafe类提供了对所有Java基本数据类型（byte, short, int, long, float, double）和对象类型的读写，这些方法都是本地函数（另外有一些对本地函数进行封装的读写函数，已经被标识为弃用）。</p>
+
+<p>这些操作可以从另一个层面理解为<code>sun.misc.Unsafe</code>对序列化和反序列化的支持。</p>
 
 <pre><code class="language-java">// var1: 对象引用
 // var2: 内存偏移量，通过objectFieldOffset获取
@@ -191,6 +200,37 @@ public native void putFloat(Object var1, long var2, float var4);
 public native double getDouble(Object var1, long var2);
 public native void putDouble(Object var1, long var2, double var4);
 
+// 获取obj对象中offset地址对应的object型field的值为指定值。
+// getObject(Object, long)的volatile版
+public native Object getObjectVolatile(Object o, long offset);
+// 设置obj对象中offset偏移地址对应的object型field的值为指定值。
+// putObject(Object, long, Object)的volatile版
+public native void    putObjectVolatile(Object o, long offset, Object x);
+public native int     getIntVolatile(Object o, long offset);
+public native void    putIntVolatile(Object o, long offset, int x);
+public native boolean getBooleanVolatile(Object o, long offset);
+public native void    putBooleanVolatile(Object o, long offset, boolean x);
+public native byte    getByteVolatile(Object o, long offset);
+public native void    putByteVolatile(Object o, long offset, byte x);
+public native short   getShortVolatile(Object o, long offset);
+public native void    putShortVolatile(Object o, long offset, short x);
+public native char    getCharVolatile(Object o, long offset);
+public native void    putCharVolatile(Object o, long offset, char x);
+public native long    getLongVolatile(Object o, long offset);
+public native void    putLongVolatile(Object o, long offset, long x);
+public native float   getFloatVolatile(Object o, long offset);
+public native void    putFloatVolatile(Object o, long offset, float x);
+public native double  getDoubleVolatile(Object o, long offset);
+public native void    putDoubleVolatile(Object o, long offset, double x);
+
+// 设置obj对象中offset偏移地址对应的object型field的值为指定值。这是一个有序或者 
+// 有延迟的&lt;code&gt;putObjectVolatile&lt;/cdoe&gt;方法，并且不保证值的改变被其他线程立 
+// 即看到。只有在field被&lt;code&gt;volatile&lt;/code&gt;修饰并且期望被意外修改的时候 
+// 使用才有用。 
+public native void    putOrderedObject(Object o, long offset, Object x);
+public native void    putOrderedInt(Object o, long offset, int x);
+public native void    putOrderedLong(Object o, long offset, long x);
+
 </code></pre>
 
 <h4 id="获取内存指针地址">获取内存指针地址</h4>
@@ -204,6 +244,12 @@ public native long getAddress(long var1);
 // 保存一个内存指针地址到给定的内存偏移量。
 // 如过给定的内存偏移量为0或者并没有指向一个内存块，返回undefined。
 public native void putAddress(long var1, long var3);
+
+// 返回一个内存指针占用的字节数(bytes)
+public native int addressSize();
+// 返回一个内存页占用的字节数(bytes)
+public native int pageSize();
+
 </code></pre>
 
 <h4 id="直接分配内存空间">直接分配内存空间</h4>
@@ -270,6 +316,20 @@ public void copyMemory(long srcAddress, long destAddress, long bytes) {
 }
 </code></pre>
 
+<h3 id="数组操作">数组操作</h3>
+
+<p>Unsafe类中有很多以BASE_OFFSET结尾的常量，比如ARRAY_INT_BASE_OFFSET，ARRAY_BYTE_BASE_OFFSET等，这些常量值是通过arrayBaseOffset方法得到的。arrayBaseOffset方法是一个本地方法，可以获取数组第一个元素的偏移地址。</p>
+
+<p>Unsafe类中还有很多以INDEX_SCALE结尾的常量，比如 ARRAY_INT_INDEX_SCALE ， ARRAY_BYTE_INDEX_SCALE等，这些常量值是通过arrayIndexScale方法得到的。arrayIndexScale方法也是一个本地方法，可以获取数组的转换因子，也就是数组中元素的增量地址。</p>
+
+<p>将arrayBaseOffset与arrayIndexScale配合使用，可以定位数组中每个元素在内存中的位置。</p>
+
+<pre><code class="language-java">// 返回给定数组的第一个元素的内存偏移量
+public native int arrayBaseOffset(Class arrayClass);
+// 返回给定数组的转换因子，也就是数组中元素的增量地址
+public native int arrayIndexScale(Class arrayClass);
+</code></pre>
+
 <h3 id="原子操作">原子操作</h3>
 
 <p><code>sun.misc.Unsafe</code>类提供了CAS原子操作，能够实现高性能的线程安全的无锁数据结构。<code>sun.misc.Unsafe</code>类的CAS操作是<code>java.util.concurrent</code>包的基础，<code>LockSupport</code>，<code>AbstractQueuedSynchronized</code>，<code>AtomicInteger</code>等原子变量和锁框架都基于CAS操作实现的。</p>
@@ -302,6 +362,8 @@ public final native boolean compareAndSwapLong(Object o, long offset,
 
 <pre><code class="language-java">// 锁住对象
 public native void monitorEnter(Object o);
+// 尝试锁住对象
+public native boolean tryMonitorEnter(Object o);
 // 解锁对象
 public native void monitorExit(Object o);
 </code></pre>
@@ -317,13 +379,46 @@ public native void park(boolean isAbsolute, long time);
 public native void unpark(Object thread);
 </code></pre>
 
-<h3 id="序列化支持">序列化支持</h3>
+<h3 id="异常处理">异常处理</h3>
 
-<h2 id="实战">实战</h2>
+<p><code>sun.misc.Unsafe</code>类还提供了抛出异常的能力。</p>
+
+<pre><code class="language-java">// 在不通知验证器(verifier)的情况下，抛出异常。
+public native void throwException(Throwable ee);
+</code></pre>
+
+<h3 id="对象增强">对象增强</h3>
+
+<p><code>sun.misc.Unsafe</code>类</p>
+
+<pre><code class="language-java">/**
+     * Tell the VM to define a class, without security checks.  By default, the
+     * class loader and protection domain come from the caller's class.
+     */
+// 让虚拟机在不进行安全检查的情况下定义一个类。
+// 默认情况下，该类的类加载器和保护域来自调用类。
+public native Class defineClass(String name, byte[] b, int off, int len,
+                                ClassLoader loader,
+                                ProtectionDomain protectionDomain);
+public native Class defineClass(String name, byte[] b, int off, int len);
+
+// 在不调用构造函数的情况下，实例化类Class的一个对象
+// 如果累Class还没有加载到JVM，则进行加载
+public native Object allocateInstance(Class cls)
+        throws InstantiationException;
+
+// 定义一个匿名类，该类将不被classloader，或系统目录感知
+public native Class defineAnonymousClass(Class hostClass, byte[] data, Object[] cpPatches);
+
+// 确保指定的类已经被初始化(加载到JVM)
+public native void ensureClassInitialized(Class c);
+</code></pre>
 
 <p>参考:</p>
 
 <ol>
+<li><p><a href="http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/9b8c96f96a0f/src/share/classes/sun/misc/Unsafe.java">sun.misc.Unsafe基于JDK7的源码</a></p></li>
+
 <li><p><a href="http://www.cnblogs.com/chenpi/p/5389254.html">sun.misc.Unsafe的理解</a></p></li>
 
 <li><p><a href="http://ifeve.com/sun-misc-unsafe/">Java Magic. Part 4: sun.misc.Unsafe</a></p></li>
@@ -335,6 +430,12 @@ public native void unpark(Object thread);
 <li><p><a href="http://www.blogjava.net/xylz/archive/2010/07/04/325206.html">深入浅出 Java Concurrency (5): 原子操作 part 4</a></p></li>
 
 <li><p><a href="http://www.infoq.com/cn/articles/A-Post-Apocalyptic-sun.misc.Unsafe-World">sun.misc.Unsafe的后启示录</a></p></li>
+
+<li><p><a href="http://blog.csdn.net/aesop_wubo/article/details/7537278">JAVA并发编程学习笔记之Unsafe类</a></p></li>
+
+<li><p><a href="http://blog.csdn.net/dfdsggdgg/article/details/51538601">sun.misc.Unsafe源码解析</a></p></li>
+
+<li><p><a href="http://blog.csdn.net/dfdsggdgg/article/details/51543545">sun.misc.Unsafe的各种神技</a></p></li>
 </ol>
 
 				</section>
@@ -371,12 +472,13 @@ public native void unpark(Object thread);
 <li><a href="#直接操作内存字节数据">直接操作内存字节数据</a></li>
 <li><a href="#直接复制内存数据">直接复制内存数据</a></li>
 </ul></li>
+<li><a href="#数组操作">数组操作</a></li>
 <li><a href="#原子操作">原子操作</a></li>
 <li><a href="#监视器锁">监视器锁</a></li>
 <li><a href="#线程控制">线程控制</a></li>
-<li><a href="#序列化支持">序列化支持</a></li>
+<li><a href="#异常处理">异常处理</a></li>
+<li><a href="#对象增强">对象增强</a></li>
 </ul></li>
-<li><a href="#实战">实战</a></li>
 </ul></li>
 </ul>
 </nav>
