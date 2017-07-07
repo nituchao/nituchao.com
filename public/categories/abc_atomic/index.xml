@@ -11,10 +11,10 @@
     
     <item>
       <title>Atomic变量</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-boolean/</link>
+      <link>http://nituchao.com/post/juc.atomic/atomic-summary/</link>
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
       
-      <guid>http://nituchao.com/post/juc.atomic/atomic-boolean/</guid>
+      <guid>http://nituchao.com/post/juc.atomic/atomic-summary/</guid>
       <description>&lt;p&gt;Java原子变量的诞生源自一个简单的需求 —— 多个线程共享某个变量或者对象时，需要对修改和读取操作进行同步。&lt;/p&gt;
 
 &lt;p&gt;同步包含两层含义：&lt;/p&gt;
