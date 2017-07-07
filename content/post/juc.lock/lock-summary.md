@@ -1,7 +1,7 @@
 ---
 title: "Java锁之Lock框架概述"
 date: "2017-02-23T18:28:27+08:00"
-categories: ["Acorn_Lock"]
+categories: ["ABC_Lock"]
 tags: ["Java", "Lock"]
 draft: false
 ---

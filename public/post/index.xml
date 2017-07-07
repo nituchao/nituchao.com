@@ -429,23 +429,9 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
     </item>
     
     <item>
-      <title>Java锁之CAS的原理</title>
-      <link>http://nituchao.com/post/juc.lock/java-cas/</link>
-      <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.lock/java-cas/</guid>
-      <description>&lt;p&gt;参考:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;a href=&#34;http://zl198751.iteye.com/blog/1848575&#34;&gt;JAVA CAS原理深度分析&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-</description>
-    </item>
-    
-    <item>
       <title>Java锁之Unsafe类的理解</title>
       <link>http://nituchao.com/post/juc.lock/java-unsafe/</link>
-      <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
+      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.lock/java-unsafe/</guid>
       <description>
@@ -489,7 +475,7 @@ public static Unsafe getUnsafe() {
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;出于安全考虑，Unsafe类只能被系统类加载器实例化，否则会抛出&lt;code&gt;SecurityException&lt;/code&gt;异常。&lt;/p&gt;
+&lt;p&gt;出于安全考虑，Unsafe类只能被系统类加载器实例化，否则会抛出&lt;code&gt;SecurityException&lt;/code&gt;异常。普通用户如果想实例化&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类的对象，需要通过类反射机制或者修改Java的安全策略。&lt;/p&gt;
 
 &lt;h3 id=&#34;内存操作&#34;&gt;内存操作&lt;/h3&gt;
 
@@ -715,9 +701,42 @@ public native void monitorExit(Object o);
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 阻塞当前线程。
 // 直到通过unpark方法解除阻塞，或者线程被中断，或者指定的超时时间到期
+// isAbsolute参数是指明时间是绝对的，还是相对的
+// time单位是纳秒，如果为0则表示长期阻塞
 public native void park(boolean isAbsolute, long time);
 // 解除指定线程的阻塞状态。
 public native void unpark(Object thread);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;park方法的两个参数里并没有指定要阻塞的线程引用，JVM怎么知道要将哪个线程阻塞？而unpark方法又是如何将一个线程的阻塞状态解除的呢？要真正理解park和unpark的工作原理，需要深入到HotSpot的源码。&lt;/p&gt;
+
+&lt;p&gt;简单的讲，park和unpark本质上是通过HotSpot里的一个volatile共享变量(volatile int _counter)来通信的，当park时，这个变量设置为0，当unpark时，这个变量设置为1。&lt;/p&gt;
+
+&lt;p&gt;由此，我们发现使用park和unpark来对线程进行同步控制非常灵活，unpark甚至可以在park之前调用。park/unpark模型真正实现了线程之间的同步，Java线程之间不再需要一个Object(synchronized代表的对象锁，用对象头存储锁信息)或者其他变量来存储状态(AQS中的state变量)来存储状态，不再需要关心对方的状态。&lt;/p&gt;
+
+&lt;p&gt;对比Java5中提供的wait/notify/notifyAll同步体系。wait/notify机制有个很蛋疼的地方是，比如线程B要用notify通知线程A，那么线程B要确保线程A已经在wait调用上等待了，否则线程A可能永远都在等待。编程的时候就会很蛋疼。&lt;/p&gt;
+
+&lt;p&gt;unpark函数为线程提供“许可(permit)”，线程调用park函数则等待“许可”。这个有点像信号量，但是这个“许可”是不能叠加的，“许可”是一次性的。&lt;/p&gt;
+
+&lt;p&gt;比如线程B连续调用了三次unpark函数，当线程A调用park函数就使用掉这个“许可”，如果线程A再次调用park，则进入等待状态。&lt;/p&gt;
+
+&lt;p&gt;在HotSpot的实现里，每个Java线程都有一个Parker实例，Parker类的定义如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;class Parker : public os::PlatformParker {  
+private:  
+  volatile int _counter ;  
+  ...  
+public:  
+  void park(bool isAbsolute, jlong time);  
+  void unpark();  
+  ...  
+}  
+class PlatformParker : public CHeapObj&amp;lt;mtInternal&amp;gt; {  
+  protected:  
+    pthread_mutex_t _mutex [1] ;  
+    pthread_cond_t  _cond  [1] ;  
+    ...  
+}  
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;异常处理&#34;&gt;异常处理&lt;/h3&gt;
@@ -884,48 +903,93 @@ unsafe address :4754382848
 
 &lt;h3 id=&#34;线程挂起与恢复&#34;&gt;线程挂起与恢复&lt;/h3&gt;
 
-&lt;p&gt;将一个线程进行挂起是通过park方法实现的，调用 park后，线程将一直阻塞直到超时或者中断等条件出现。unpark可以终止一个挂起的线程，使其恢复正常。整个并发框架中对线程的挂起操作被封装在 LockSupport类中，LockSupport类中有各种版本pack方法，但最终都调用了Unsafe.park()方法。&lt;/p&gt;
+&lt;p&gt;将一个线程进行挂起是通过park方法实现的，调用 park后，线程将一直阻塞直到超时或者中断等条件出现。unpark可以终止一个挂起的线程，使其恢复正常。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class Lock {  
-     
-    public static void main(String[] args) throws InterruptedException {
-        ThreadPark threadPark = new ThreadPark();  
-        threadPark.start();  
-        ThreadUnPark threadUnPark = new ThreadUnPark(threadPark);  
-        threadUnPark.start();  
-        //等待threadUnPark执行成功  
-        threadUnPark.join();  
-        System.out.println(&amp;quot;运行成功....&amp;quot;);  
-    }  
-      
-      
-  static  class ThreadPark extends Thread{  
-       public void run(){  
-            System.out.println(Thread.currentThread() +&amp;quot;我将被阻塞在这了60s....&amp;quot;);  
-            //阻塞60s，单位纳秒  1s = 1000000000  
-            LockSupport.parkNanos(1000000000l*60);  
-            System.out.println(Thread.currentThread() +&amp;quot;我被恢复正常了....&amp;quot;);  
-       }  
-   }  
-     
-  static  class ThreadUnPark extends Thread{
-       public Thread thread = null;  
-       public ThreadUnPark(Thread thread){  
-           this.thread = thread;  
-       }  
-       public void run(){  
-            System.out.println(&amp;quot;提前恢复阻塞线程ThreadPark&amp;quot;);  
-            //恢复阻塞线程  
-            LockSupport.unpark(thread);
-       }  
-   }  
-}  
+&lt;p&gt;整个并发框架中对线程的挂起操作被封装在 LockSupport类中，LockSupport类中有各种版本pack方法，但最终都调用了Unsafe.park()方法。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+
+public class Lock {
+    public static void main(String[] args) throws Exception {
+
+        // 由于安全限制，只有系统classloader才能使用getUnsafe()方法
+        // 普通用户只能通过反射实例化Unsafe
+        Field field = Unsafe.class.getDeclaredField(&amp;quot;theUnsafe&amp;quot;);
+        field.setAccessible(true);
+        Unsafe unsafe = (Unsafe) field.get(null);
+
+        WaitThread waitThread = new WaitThread(unsafe);
+        waitThread.start();
+        WorkThread workThread = new WorkThread(unsafe, waitThread);
+        workThread.start();
+
+        workThread.join();
+
+        System.out.println(&amp;quot;the end.&amp;quot;);
+    }
+}
+
+/**
+ * 工作线程
+ */
+class WorkThread extends Thread {
+    private Thread waitThread;
+    private Unsafe unsafe;
+
+    public WorkThread(Unsafe unsafe, Thread waitThread) {
+        this.waitThread = waitThread;
+        this.unsafe = unsafe;
+    }
+
+    public void run() {
+        int i = 0;
+        while (true) {
+            if (i == 5) {
+                System.out.println(&amp;quot;WorkThread is now to wake WaitThread&amp;quot;);
+                unsafe.unpark(waitThread);
+
+                break;
+            }
+
+            System.out.println(&amp;quot;WorkThread is now working for &amp;quot; + (++i) + &amp;quot; s&amp;quot;);
+
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+class WaitThread extends Thread {
+    private Unsafe unsafe;
+
+    public WaitThread(Unsafe unsafe) {
+        this.unsafe = unsafe;
+    }
+  
+    public void run() {
+        System.out.println(&amp;quot;Wait Thread is now going to block!&amp;quot;);
+        unsafe.park(false, 0);
+        System.out.println(&amp;quot;WaitThread is now awake&amp;quot;);
+    }
+}
 
 // 执行结果
-Thread[Thread-0,5,main]我将被阻塞在这了60s....
-提前恢复阻塞线程ThreadPark
-Thread[Thread-0,5,main]我被恢复正常了....
-运行成功....
+Wait Thread is now going to block!
+WorkThread is now working for 1 s
+WorkThread is now working for 2 s
+WorkThread is now working for 3 s
+WorkThread is now working for 4 s
+WorkThread is now working for 5 s
+WorkThread is now to wake WaitThread
+WaitThread is now awake
+the end.
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;参考:&lt;/p&gt;
@@ -950,6 +1014,22 @@ Thread[Thread-0,5,main]我被恢复正常了....
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/dfdsggdgg/article/details/51538601&#34;&gt;sun.misc.Unsafe源码解析&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/dfdsggdgg/article/details/51543545&#34;&gt;sun.misc.Unsafe的各种神技&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/hengyunabc/article/details/28126139&#34;&gt;Java的LockSupport.park()实现分析&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Java锁之CAS的原理</title>
+      <link>http://nituchao.com/post/juc.lock/java-cas/</link>
+      <pubDate>Thu, 23 Feb 2017 18:29:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/java-cas/</guid>
+      <description>&lt;p&gt;参考:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;http://zl198751.iteye.com/blog/1848575&#34;&gt;JAVA CAS原理深度分析&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
     </item>

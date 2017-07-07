@@ -1,7 +1,7 @@
 ---
 title: "CopyOnWriteArrayList源码分析"
 date: "2017-02-23T18:25:27+08:00"
-categories: ["Acorn_Concurrent"]
+categories: ["ABC_Concurrent"]
 tags: ["Java", "Concurrent"]
 draft: false
 ---

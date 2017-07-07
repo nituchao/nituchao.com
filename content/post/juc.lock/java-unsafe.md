@@ -1,7 +1,7 @@
 ---
 title: "Java锁之Unsafe类的理解"
-date: "2017-02-23T18:29:27+08:00"
-categories: ["Acorn_Lock"]
+date: "2017-02-23T18:39:27+08:00"
+categories: ["ABC_Lock"]
 tags: ["Java", "Lock"]
 draft: false
 ---
@@ -54,7 +54,7 @@ public static Unsafe getUnsafe() {
 }
 ```
 
-出于安全考虑，Unsafe类只能被系统类加载器实例化，否则会抛出`SecurityException`异常。
+出于安全考虑，Unsafe类只能被系统类加载器实例化，否则会抛出`SecurityException`异常。普通用户如果想实例化`sun.misc.Unsafe`类的对象，需要通过类反射机制或者修改Java的安全策略。
 
 
 
@@ -322,12 +322,60 @@ public native void monitorExit(Object o);
 
 在实现`java.util.concurrent.AbstractQueued`类，并基于AQS实现整个JUC锁框架的过程中，一方面需要使用`sun.misc.Unsafe`类的CAS操作进行锁的获取(标记位state的修改)，另一方在获取锁失败时要把当前线程放入等待队列，并阻塞当前线程。阻塞当前的线程的方法也是`sun.misc.Unsafe`类提供的。
 
+
+
 ```java
 // 阻塞当前线程。
 // 直到通过unpark方法解除阻塞，或者线程被中断，或者指定的超时时间到期
+// isAbsolute参数是指明时间是绝对的，还是相对的
+// time单位是纳秒，如果为0则表示长期阻塞
 public native void park(boolean isAbsolute, long time);
 // 解除指定线程的阻塞状态。
 public native void unpark(Object thread);
+```
+
+park方法的两个参数里并没有指定要阻塞的线程引用，JVM怎么知道要将哪个线程阻塞？而unpark方法又是如何将一个线程的阻塞状态解除的呢？要真正理解park和unpark的工作原理，需要深入到HotSpot的源码。
+
+
+
+简单的讲，park和unpark本质上是通过HotSpot里的一个volatile共享变量(volatile int _counter)来通信的，当park时，这个变量设置为0，当unpark时，这个变量设置为1。
+
+
+
+由此，我们发现使用park和unpark来对线程进行同步控制非常灵活，unpark甚至可以在park之前调用。park/unpark模型真正实现了线程之间的同步，Java线程之间不再需要一个Object(synchronized代表的对象锁，用对象头存储锁信息)或者其他变量来存储状态(AQS中的state变量)来存储状态，不再需要关心对方的状态。
+
+
+
+对比Java5中提供的wait/notify/notifyAll同步体系。wait/notify机制有个很蛋疼的地方是，比如线程B要用notify通知线程A，那么线程B要确保线程A已经在wait调用上等待了，否则线程A可能永远都在等待。编程的时候就会很蛋疼。
+
+
+
+unpark函数为线程提供“许可(permit)”，线程调用park函数则等待“许可”。这个有点像信号量，但是这个“许可”是不能叠加的，“许可”是一次性的。
+
+
+
+比如线程B连续调用了三次unpark函数，当线程A调用park函数就使用掉这个“许可”，如果线程A再次调用park，则进入等待状态。
+
+
+
+在HotSpot的实现里，每个Java线程都有一个Parker实例，Parker类的定义如下：
+
+```c++
+class Parker : public os::PlatformParker {  
+private:  
+  volatile int _counter ;  
+  ...  
+public:  
+  void park(bool isAbsolute, jlong time);  
+  void unpark();  
+  ...  
+}  
+class PlatformParker : public CHeapObj<mtInternal> {  
+  protected:  
+    pthread_mutex_t _mutex [1] ;  
+    pthread_cond_t  _cond  [1] ;  
+    ...  
+}  
 ```
 
 
@@ -513,49 +561,96 @@ unsafe address :4754382848
 
 ### 线程挂起与恢复
 
-将一个线程进行挂起是通过park方法实现的，调用 park后，线程将一直阻塞直到超时或者中断等条件出现。unpark可以终止一个挂起的线程，使其恢复正常。整个并发框架中对线程的挂起操作被封装在 LockSupport类中，LockSupport类中有各种版本pack方法，但最终都调用了Unsafe.park()方法。
+将一个线程进行挂起是通过park方法实现的，调用 park后，线程将一直阻塞直到超时或者中断等条件出现。unpark可以终止一个挂起的线程，使其恢复正常。
+
+
+
+整个并发框架中对线程的挂起操作被封装在 LockSupport类中，LockSupport类中有各种版本pack方法，但最终都调用了Unsafe.park()方法。
 
 ```java
-public class Lock {  
-     
-    public static void main(String[] args) throws InterruptedException {
-        ThreadPark threadPark = new ThreadPark();  
-        threadPark.start();  
-        ThreadUnPark threadUnPark = new ThreadUnPark(threadPark);  
-        threadUnPark.start();  
-        //等待threadUnPark执行成功  
-        threadUnPark.join();  
-        System.out.println("运行成功....");  
-    }  
-      
-      
-  static  class ThreadPark extends Thread{  
-       public void run(){  
-            System.out.println(Thread.currentThread() +"我将被阻塞在这了60s....");  
-            //阻塞60s，单位纳秒  1s = 1000000000  
-            LockSupport.parkNanos(1000000000l*60);  
-            System.out.println(Thread.currentThread() +"我被恢复正常了....");  
-       }  
-   }  
-     
-  static  class ThreadUnPark extends Thread{
-       public Thread thread = null;  
-       public ThreadUnPark(Thread thread){  
-           this.thread = thread;  
-       }  
-       public void run(){  
-            System.out.println("提前恢复阻塞线程ThreadPark");  
-            //恢复阻塞线程  
-            LockSupport.unpark(thread);
-       }  
-   }  
-}  
+import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+
+public class Lock {
+    public static void main(String[] args) throws Exception {
+
+        // 由于安全限制，只有系统classloader才能使用getUnsafe()方法
+        // 普通用户只能通过反射实例化Unsafe
+        Field field = Unsafe.class.getDeclaredField("theUnsafe");
+        field.setAccessible(true);
+        Unsafe unsafe = (Unsafe) field.get(null);
+
+        WaitThread waitThread = new WaitThread(unsafe);
+        waitThread.start();
+        WorkThread workThread = new WorkThread(unsafe, waitThread);
+        workThread.start();
+
+        workThread.join();
+
+        System.out.println("the end.");
+    }
+}
+
+/**
+ * 工作线程
+ */
+class WorkThread extends Thread {
+    private Thread waitThread;
+    private Unsafe unsafe;
+
+    public WorkThread(Unsafe unsafe, Thread waitThread) {
+        this.waitThread = waitThread;
+        this.unsafe = unsafe;
+    }
+
+    public void run() {
+        int i = 0;
+        while (true) {
+            if (i == 5) {
+                System.out.println("WorkThread is now to wake WaitThread");
+                unsafe.unpark(waitThread);
+
+                break;
+            }
+
+            System.out.println("WorkThread is now working for " + (++i) + " s");
+
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+class WaitThread extends Thread {
+    private Unsafe unsafe;
+
+    public WaitThread(Unsafe unsafe) {
+        this.unsafe = unsafe;
+    }
+  
+    public void run() {
+        System.out.println("Wait Thread is now going to block!");
+        unsafe.park(false, 0);
+        System.out.println("WaitThread is now awake");
+    }
+}
 
 // 执行结果
-Thread[Thread-0,5,main]我将被阻塞在这了60s....
-提前恢复阻塞线程ThreadPark
-Thread[Thread-0,5,main]我被恢复正常了....
-运行成功....
+Wait Thread is now going to block!
+WorkThread is now working for 1 s
+WorkThread is now working for 2 s
+WorkThread is now working for 3 s
+WorkThread is now working for 4 s
+WorkThread is now working for 5 s
+WorkThread is now to wake WaitThread
+WaitThread is now awake
+the end.
 ```
 
 
@@ -566,7 +661,7 @@ Thread[Thread-0,5,main]我被恢复正常了....
 
 1. [sun.misc.Unsafe基于JDK7的源码](http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/9b8c96f96a0f/src/share/classes/sun/misc/Unsafe.java)
 
-1. [sun.misc.Unsafe的理解](http://www.cnblogs.com/chenpi/p/5389254.html)
+2. [sun.misc.Unsafe的理解](http://www.cnblogs.com/chenpi/p/5389254.html)
 
 
 2. [Java Magic. Part 4: sun.misc.Unsafe](http://ifeve.com/sun-misc-unsafe/)
@@ -577,3 +672,4 @@ Thread[Thread-0,5,main]我被恢复正常了....
 7. [JAVA并发编程学习笔记之Unsafe类](http://blog.csdn.net/aesop_wubo/article/details/7537278)
 8. [sun.misc.Unsafe源码解析](http://blog.csdn.net/dfdsggdgg/article/details/51538601)
 9. [sun.misc.Unsafe的各种神技](http://blog.csdn.net/dfdsggdgg/article/details/51543545)
+10. [Java的LockSupport.park()实现分析](http://blog.csdn.net/hengyunabc/article/details/28126139)
