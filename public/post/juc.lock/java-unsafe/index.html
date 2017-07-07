@@ -476,9 +476,11 @@ public class UnsafeUser {
         System.out.println(&quot;---------------------&quot;);
 
       	// 获取age内存偏移量
-        long ageOffset = unsafe.objectFieldOffset(user.getClass().getDeclaredField(&quot;age&quot;));
+        long ageOffset = 
+          unsafe.objectFieldOffset(user.getClass().getDeclaredField(&quot;age&quot;));
        	// // 获取name内存偏移量
-        long nameOffset = unsafe.objectFieldOffset(user.getClass().getDeclaredField(&quot;name&quot;));
+        long nameOffset = 
+          unsafe.objectFieldOffset(user.getClass().getDeclaredField(&quot;name&quot;));
 
         // 修改age值
         unsafe.putInt(user, ageOffset, 29);
@@ -540,6 +542,8 @@ unsafe address :4754382848
 </code></pre>
 
 <h3 id="线程挂起与恢复">线程挂起与恢复</h3>
+
+<p>将一个线程进行挂起是通过park方法实现的，调用 park后，线程将一直阻塞直到超时或者中断等条件出现。unpark可以终止一个挂起的线程，使其恢复正常。整个并发框架中对线程的挂起操作被封装在 LockSupport类中，LockSupport类中有各种版本pack方法，但最终都调用了Unsafe.park()方法。</p>
 
 <pre><code class="language-java">public class Lock {  
      
