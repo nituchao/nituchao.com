@@ -162,7 +162,7 @@ public final long get()
 public final void set(long newValue)
 // 最后设置为给定值。延时设置变量值，这个等价于set()方法，
 // 但是由于字段是volatile类型的，因此此字段的修改会比普通字段
-//（非volatile字段）有稍微的性能延时（尽管可以忽略），所以如果
+//（非volatile字段）有稍微的时间延时（尽管可以忽略），所以如果
 // 不是想立即读取设置的新值，允许在“后台”修改值，那么此方法就很
 // 有用。如果还是难以理解，这里就类似于启动一个后台线程如执行修
 // 改新值的任务，原线程就不等待修改结果立即返回。
@@ -174,7 +174,11 @@ public final long getAndSet(long newValue)
 // 如果当前值不等于expect，则设置失败，返回false
 // 该过程不阻塞
 public final boolean compareAndSet(long expect, long update)
-// 同compareAndSet
+// 以原子方式设置当前值为update。
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// 该过程不阻塞
+// 该过程不保证volatile成员的happens-before语义顺序
 public final boolean weakCompareAndSet(long expect, long update)
 // 以原子的方式将当前值加1
 // 该过程以自旋锁的形似循环执行，直到操作成功
@@ -192,12 +196,12 @@ public final long getAndDecrement()
 // 返回更新前的值
 public final long getAndAdd(long delta)
 // 以原子方式将原值加1
-// 该过程会议自旋的形式循环执行，直到操作成功
+// 该过程以自旋的形式循环执行，直到操作成功
 // 该过程不会阻塞
 // 返回更新后的值
 public final long incrementAndGet()
 // 以原子方式将原值减1
-// 该过程会议自旋的形式循环执行，直到操作成功
+// 该过程以自旋的形式循环执行，直到操作成功
 // 该过程不会阻塞
 // 返回更新后的值
 public final long decrementAndGet()

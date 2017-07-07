@@ -1074,6 +1074,206 @@ the end.
     </item>
     
     <item>
+      <title>AtomicLongArray源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-long-array/</link>
+      <pubDate>Thu, 23 Feb 2017 18:30:28 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-long-array/</guid>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;在原子变量相关类中，AtomicIntegerArray, AtomicLongArray, AtomicReferenceArray三个类是对数组类型的原子类操作，其原理和用法类似，本文重点研究AtomicLongArray。&lt;/p&gt;
+
+&lt;p&gt;Java原子变量的实现依赖于&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作和volatile的内存可见性语义。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;成员变量&#34;&gt;成员变量&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 成员变量unsafe是原子变量相关操作的基础
+// 原子变量的修改操作最终有sun.misc.Unsafe类的CAS操作实现
+private static final Unsafe unsafe = Unsafe.getUnsafe();
+// arrayBaseOffset获取数组首个元素地址偏移
+private static final int base = unsafe.arrayBaseOffset(long[].class);
+// shift就是数组元素的偏移量
+private static final int shift;
+// 保存数据的数组，在构造函数中初始化
+private final long[] array;
+
+static {
+  	// scale数组元素的增量偏移 
+    int scale = unsafe.arrayIndexScale(long[].class);
+  	// 用二进制&amp;amp;操作判断是否是2的倍数，很精彩
+    // 对于int型数组，scale是4
+  	// 对于lang型数组，scale是8
+    // 对于Reference型数组，scale是4
+    if ((scale &amp;amp; (scale - 1)) != 0)
+          throw new Error(&amp;quot;data type scale not a power of two&amp;quot;);
+    // 这里是处理long型的偏移量
+    // 对于int型的偏移量，shift是2
+    // 对于lang型的偏移量，shift是3
+  	// 对于Reference型的偏移量，shift是2
+    shift = 31 - Integer.numberOfLeadingZeros(scale);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 构造函数，初始化一个长度为length的空数组
+public AtomicLongArray(int length)
+// 构造函数，通过拷贝给定数组的值进行初始化
+// 通过构造函数中final域的内存语义，保证数据可见性
+public AtomicLongArray(long[] array)
+// 检查索引值是否越界，并计算数组中元素的地址
+private long checkedByteOffset(int i)
+// 计算数组中元素的地址，首地址偏移+每个元素的偏移
+// 采用了移位操作
+private static long byteOffset(int i)
+// 返回数组长度
+public final int length()
+// 以原子方式获取数组元素
+public final long get(int i)
+// 以原子方式获取数组元素，私有函数
+private long getRaw(long offset)
+// 以原子方式设置数组指定位置为新的值newValue
+public final void set(int i, long newValue)
+// 以原子方式设置数组指定位置为新的值newValue
+// 该函数优先保证对数据的更新，而不保证数据可见性
+// 该函数的性能比set函数好很多
+public final void lazySet(int i, long newValue)
+// 以原子方式设置数组指定位置为新的值newValue
+// 该过程会以自旋的形式循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新前的值
+public final long getAndSet(int i, long newValue)
+// 以原子方式设置数组指定位置为新的值update
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// 该过程不阻塞
+public final boolean compareAndSet(int i, long expect, long update)
+// 以原子方式设置数组指定位置为新的值update
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// 该过程不阻塞
+// 私有函数
+private boolean compareAndSetRaw(long offset, long expect, long update)
+// 以原子方式设置数组指定位置为新的值update
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// 该过程不阻塞
+// 该过程不保证volatile成员的happens-before语义顺序
+public final boolean weakCompareAndSet(int i, long expect, long update)
+// 以原子方式设置数组指定位置为当前值加1
+// 该过程不阻塞
+// 返回更新前的值
+public final long getAndIncrement(int i)
+// 以原子方式设置数组指定位置为当前值减1
+// 该过程不阻塞
+// 返回更新前的值
+public final long getAndDecrement(int i)
+// 以原子方式设置数组指定位置为当前值+delta
+// 该过程不阻塞
+// 返回更新前的值
+public final long getAndAdd(int i, long delta)
+// 以原子方式设置数组指定位置为当前值加1
+// 该过程不阻塞
+// 返回更新前的值
+public final long incrementAndGet(int i)
+// 以原子方式设置数组指定位置为当前值减1
+// 该过程不阻塞
+// 返回更新前的值
+public final long decrementAndGet(int i)
+// 以原子方式设置数组指定位置为当前值+delta
+// 该过程不阻塞
+// 返回更新后的值
+public long addAndGet(int i, long delta)
+// 遍历数组中的每一个值，构造字符串
+// 返回构造的字符串
+public String toString()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重要函数分析&#34;&gt;重要函数分析&lt;/h2&gt;
+
+&lt;h3 id=&#34;checkedbyoffset-int-i&#34;&gt;checkedByOffset(int i)&lt;/h3&gt;
+
+&lt;p&gt;首先判断索引值&lt;code&gt;i&lt;/code&gt;是否越界，如果越界，则抛出越界异常。否则，调用byteOffset(int i)函数计算该索引值&lt;code&gt;i&lt;/code&gt;对应在数组中的内存偏移值，该偏移值被&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类的函数使用。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;private long checkedByteOffset(int i) {
+    if (i &amp;lt; 0 || i &amp;gt;= array.length)
+        throw new IndexOutOfBoundsException(&amp;quot;index &amp;quot; + i);
+
+    return byteOffset(i);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;byteoffset-int-i&#34;&gt;byteOffset(int i)&lt;/h3&gt;
+
+&lt;p&gt;根据索引值&lt;code&gt;i&lt;/code&gt;，计算数组中元素的地址，首地址偏移+每个元素的偏移&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;private static long byteOffset(int i) {
+    return ((long) i &amp;lt;&amp;lt; shift) + base;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;lazyset-int-i-long-newvalue&#34;&gt;lazySet(int i, long newValue)&lt;/h3&gt;
+
+&lt;p&gt;简单点说，lazySet优先保证数据的修改操作，而降低对可见性的要求。&lt;/p&gt;
+
+&lt;p&gt;lazySet是使用Unsafe.putOrderedLong方法，这个方法在对低延迟代码是很有用的，它能够实现非堵塞的写入，这些写入不会被Java的JIT重新排序指令(&lt;a href=&#34;http://stackoverflow.com/questions/14321212/java-instruction-reordering-cache-in-threads&#34;&gt;instruction reordering&lt;/a&gt;)，这样它使用快速的存储-存储(store-store) barrier, 而不是较慢的存储-加载(store-load) barrier, 后者总是用在volatile的写操作上，这种性能提升是有代价的，虽然便宜，也就是写后结果并不会被其他线程看到，甚至是自己的线程，通常是几纳秒后被其他线程看到，这个时间比较短，所以代价可以忍受。&lt;/p&gt;
+
+&lt;p&gt;类似Unsafe.putOrderedLong还有unsafe.putOrderedObject等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public final void lazySet(int i, long newValue) {
+    unsafe.putOrderedLong(array, checkedByteOffset(i), newValue);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;getandset-int-i-long-newvalue&#34;&gt;getAndSet(int i, long newValue)&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置数组指定位置为新的值newValue，该过程会以自旋的形式循环执行，直到操作成功。该过程不会阻塞。因为该函数包含两个操作(get和set)，因此需要使用自旋方式通过&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作保证原子性。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public final long getAndSet(int i, long newValue) {
+    long offset = checkedByteOffset(i);
+    while (true) {
+        long current = getRaw(offset);
+        if (compareAndSetRaw(offset, current, newValue))
+            return current;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;tostring&#34;&gt;toString()&lt;/h3&gt;
+
+&lt;p&gt;通过遍历数组中元素来构造字符串，并返回。该函数是线程不安全的，在操作过程中内容可能会发生变化，使得AtomicLongArray具有若一致性。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public String toString() {
+    int iMax = array.length - 1;
+    if (iMax == -1)
+        return &amp;quot;[]&amp;quot;;
+
+    StringBuilder b = new StringBuilder();
+    b.append(&#39;[&#39;);
+    for (int i = 0; ; i++) {
+        b.append(getRaw(byteOffset(i)));
+        if (i == iMax)
+            return b.append(&#39;]&#39;).toString();
+        b.append(&#39;,&#39;).append(&#39; &#39;);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>AtomicLong源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-long/</link>
       <pubDate>Thu, 23 Feb 2017 18:30:28 +0800</pubDate>
@@ -1132,7 +1332,7 @@ public final long get()
 public final void set(long newValue)
 // 最后设置为给定值。延时设置变量值，这个等价于set()方法，
 // 但是由于字段是volatile类型的，因此此字段的修改会比普通字段
-//（非volatile字段）有稍微的性能延时（尽管可以忽略），所以如果
+//（非volatile字段）有稍微的时间延时（尽管可以忽略），所以如果
 // 不是想立即读取设置的新值，允许在“后台”修改值，那么此方法就很
 // 有用。如果还是难以理解，这里就类似于启动一个后台线程如执行修
 // 改新值的任务，原线程就不等待修改结果立即返回。
@@ -1144,7 +1344,11 @@ public final long getAndSet(long newValue)
 // 如果当前值不等于expect，则设置失败，返回false
 // 该过程不阻塞
 public final boolean compareAndSet(long expect, long update)
-// 同compareAndSet
+// 以原子方式设置当前值为update。
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// 该过程不阻塞
+// 该过程不保证volatile成员的happens-before语义顺序
 public final boolean weakCompareAndSet(long expect, long update)
 // 以原子的方式将当前值加1
 // 该过程以自旋锁的形似循环执行，直到操作成功
@@ -1162,12 +1366,12 @@ public final long getAndDecrement()
 // 返回更新前的值
 public final long getAndAdd(long delta)
 // 以原子方式将原值加1
-// 该过程会议自旋的形式循环执行，直到操作成功
+// 该过程以自旋的形式循环执行，直到操作成功
 // 该过程不会阻塞
 // 返回更新后的值
 public final long incrementAndGet()
 // 以原子方式将原值减1
-// 该过程会议自旋的形式循环执行，直到操作成功
+// 该过程以自旋的形式循环执行，直到操作成功
 // 该过程不会阻塞
 // 返回更新后的值
 public final long decrementAndGet()
@@ -2935,58 +3139,6 @@ private static class COWIterator&amp;lt;E&amp;gt; implements ListIterator&amp;lt
 &lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
 
 &lt;p&gt;1, 《Netty权威指南 第二版》，李林峰&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>经济学人</title>
-      <link>http://nituchao.com/te/</link>
-      <pubDate>Mon, 20 Feb 2017 12:34:23 +0800</pubDate>
-      
-      <guid>http://nituchao.com/te/</guid>
-      <description>
-
-&lt;h2 id=&#34;2017年2月&#34;&gt;2017年2月&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/02/TE_2017.02.04.pdf&#34;&gt;TE_2017.02.04.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/02/TE_2017.02.04.epub&#34;&gt;TE_2017.02.04.epub&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/02/TE_2017.02.04.mobi&#34;&gt;TE_2017.02.04.mobi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;2017年1月&#34;&gt;2017年1月&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.07.pdf&#34;&gt;TE_2017.01.07.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.07.epub&#34;&gt;TE_2017.01.07.epub&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.07.mobi&#34;&gt;TE_2017.01.07.mobi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.14.pdf&#34;&gt;TE_2017.01.14.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.14.epub&#34;&gt;TE_2017.01.14.epub&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.14.mobi&#34;&gt;TE_2017.01.14.mobi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.21.pdf&#34;&gt;TE_2017.01.21.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.21.epub&#34;&gt;TE_2017.01.21.epub&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.21.mobi&#34;&gt;TE_2017.01.21.mobi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;br/&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.28.pdf&#34;&gt;TE_2017.01.28.pdf&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.28.epub&#34;&gt;TE_2017.01.28.epub&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://olno3yiqc.bkt.clouddn.com/blog/economist/2017/01/TE_2017.01.28.mobi&#34;&gt;TE_2017.01.28.mobi&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
 </description>
     </item>
     
