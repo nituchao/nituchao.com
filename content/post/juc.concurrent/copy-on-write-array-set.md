@@ -29,7 +29,13 @@ draft: false
 
 
 
-本文基于JDK1.7.0_67。
+本文基于JDK1.7.0_67
+
+> java version "1.7.0_67"_
+>
+> _Java(TM) SE Runtime Environment (build 1.7.0_67-b01)
+>
+> Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
 
 
 

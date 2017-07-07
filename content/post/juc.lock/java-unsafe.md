@@ -26,6 +26,16 @@ Java在JUC包中提供了对`sun.misc.Unsafe`类的封装实现，这就是`java
 
 
 
+本文基于JDK1.7.0_67
+
+> java version "1.7.0_67"_
+>
+> _Java(TM) SE Runtime Environment (build 1.7.0_67-b01)
+>
+> Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
+
+
+
 ## 重要函数
 
 `sun.mics.Unsafe`一共提供了106个函数，这些函数涵盖了以下五个方面的功能：

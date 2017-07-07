@@ -12,7 +12,11 @@ draft: false
 
 
 
-Boolean类型数据长度为8位，Integer类型数据是32位，在当前32位操作系统或者64位操作中都能够直接对其进行原子修改和读取。而Long类型数据是64位，会被JVM当做两个分离的32位来进行操作，所以本身不具备原子性。AtomicLong的目的就是实现Long类型数据的原子操作。
+Boolean类型数据长度为8位，Integer类型数据是32位，在当前32位操作系统或者64位操作中都能够直接对其进行原子修改和读取。而Long类型数据是64位，在32位JVM上会当做两个分离的32位来进行操作，所以本身不具备原子性。
+
+
+
+还好我们现在的JDK基本都已经更新到64位，对long型数据的直接修改不存在原子性问题，但是当出现运算操作(比如++, —等)时还是会出现性问题，AtomicLong的目的是实现Long类型数据的各种原子操作。
 
 
 
@@ -20,7 +24,13 @@ Java原子变量的实现依赖于`sun.misc.Unsafe`的CAS操作和volatile的内
 
 
 
-本文基于JDK1.7.0_67。
+本文基于JDK1.7.0_67
+
+>java version "1.7.0_67"_
+>
+>_Java(TM) SE Runtime Environment (build 1.7.0_67-b01)
+>
+>Java HotSpot(TM) 64-Bit Server VM (build 24.65-b04, mixed mode)
 
 
 
