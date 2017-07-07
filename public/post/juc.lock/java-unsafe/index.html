@@ -176,29 +176,29 @@ public native Object staticFieldBase(Field f);
 
 <p>这些操作可以从另一个层面理解为<code>sun.misc.Unsafe</code>对序列化和反序列化的支持。</p>
 
-<pre><code class="language-java">// var1: 对象引用
-// var2: 内存偏移量，通过objectFieldOffset获取
-public native int getInt(Object var1, long var2);
-// var1: 对象引用
-// var2: 内存偏移量，通过objectFieldOffset获取
-// var4: 新的数据值
-public native void putInt(Object var1, long var2, int var4);
-public native Object getObject(Object var1, long var2);
-public native void putObject(Object var1, long var2, Object var4);
-public native boolean getBoolean(Object var1, long var2);
-public native void putBoolean(Object var1, long var2, boolean var4);
-public native byte getByte(Object var1, long var2);
-public native void putByte(Object var1, long var2, byte var4);
-public native short getShort(Object var1, long var2);
-public native void putShort(Object var1, long var2, short var4);
-public native char getChar(Object var1, long var2);
-public native void putChar(Object var1, long var2, char var4);
-public native long getLong(Object var1, long var2);
-public native void putLong(Object var1, long var2, long var4);
-public native float getFloat(Object var1, long var2);
-public native void putFloat(Object var1, long var2, float var4);
-public native double getDouble(Object var1, long var2);
-public native void putDouble(Object var1, long var2, double var4);
+<pre><code class="language-java">// o: 对象引用
+// offset: 内存偏移量，通过objectFieldOffset获取
+public native int getInt(Object o, long offset);
+// o: 对象引用
+// offset: 内存偏移量，通过objectFieldOffset获取
+// x: 新的数据值
+public native void putInt(Object o, long offset, int x);
+public native Object getObject(Object o, long offset);
+public native void putObject(Object o, long offset, Object x);
+public native boolean getBoolean(Object o, long offset);
+public native void    putBoolean(Object o, long offset, boolean x);
+public native byte    getByte(Object o, long offset);
+public native void    putByte(Object o, long offset, byte x);
+public native short   getShort(Object o, long offset);
+public native void    putShort(Object o, long offset, short x);
+public native char    getChar(Object o, long offset);
+public native void    putChar(Object o, long offset, char x);
+public native long    getLong(Object o, long offset);
+public native void    putLong(Object o, long offset, long x);
+public native float   getFloat(Object o, long offset);
+public native void    putFloat(Object o, long offset, float x);
+public native double  getDouble(Object o, long offset);
+public native void    putDouble(Object o, long offset, double x);
 
 // 获取obj对象中offset地址对应的object型field的值为指定值。
 // getObject(Object, long)的volatile版
@@ -389,13 +389,9 @@ public native void throwException(Throwable ee);
 
 <h3 id="对象增强">对象增强</h3>
 
-<p><code>sun.misc.Unsafe</code>类</p>
+<p><code>sun.misc.Unsafe</code>类还提供了一些对类和对象进行操作的函数。通过这些函数，用户可以在绕过虚拟机的情况下进行类的加载、初始化，或者对对象进行实例化。</p>
 
-<pre><code class="language-java">/**
-     * Tell the VM to define a class, without security checks.  By default, the
-     * class loader and protection domain come from the caller's class.
-     */
-// 让虚拟机在不进行安全检查的情况下定义一个类。
+<pre><code class="language-java">// 让虚拟机在不进行安全检查的情况下定义一个类。
 // 默认情况下，该类的类加载器和保护域来自调用类。
 public native Class defineClass(String name, byte[] b, int off, int len,
                                 ClassLoader loader,
@@ -413,6 +409,8 @@ public native Class defineAnonymousClass(Class hostClass, byte[] data, Object[] 
 // 确保指定的类已经被初始化(加载到JVM)
 public native void ensureClassInitialized(Class c);
 </code></pre>
+
+<h2 id="实例">实例</h2>
 
 <p>参考:</p>
 
@@ -479,6 +477,7 @@ public native void ensureClassInitialized(Class c);
 <li><a href="#异常处理">异常处理</a></li>
 <li><a href="#对象增强">对象增强</a></li>
 </ul></li>
+<li><a href="#实例">实例</a></li>
 </ul></li>
 </ul>
 </nav>
