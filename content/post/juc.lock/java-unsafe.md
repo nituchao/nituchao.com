@@ -143,10 +143,15 @@ public native void    putDoubleVolatile(Object o, long offset, double x);
 // 有延迟的<code>putObjectVolatile</cdoe>方法，并且不保证值的改变被其他线程立 
 // 即看到。只有在field被<code>volatile</code>修饰并且期望被意外修改的时候 
 // 使用才有用。 
+// 这个方法在对低延迟代码是很有用的，它能够实现非堵塞的写入，这些写入不会被Java的JIT重新排序指令
+// (instruction reordering)，这样它使用快速的存储-存储(store-store) barrier, 而不是较慢
+// 的存储-加载(store-load) barrier, 后者总是用在volatile的写操作上，这种性能提升是有代价的，
+// 虽然便宜，也就是写后结果并不会被其他线程看到，甚至是自己的线程，通常是几纳秒后被其他线程看到，
+// 这个时间比较短，所以代价可以忍受。类似Unsafe.putOrderedObject还有unsafe.putOrderedLong
+// 等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。.
 public native void    putOrderedObject(Object o, long offset, Object x);
 public native void    putOrderedInt(Object o, long offset, int x);
 public native void    putOrderedLong(Object o, long offset, long x);
-
 ```
 
 

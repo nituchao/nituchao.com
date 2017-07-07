@@ -592,10 +592,15 @@ public native void    putDoubleVolatile(Object o, long offset, double x);
 // 有延迟的&amp;lt;code&amp;gt;putObjectVolatile&amp;lt;/cdoe&amp;gt;方法，并且不保证值的改变被其他线程立 
 // 即看到。只有在field被&amp;lt;code&amp;gt;volatile&amp;lt;/code&amp;gt;修饰并且期望被意外修改的时候 
 // 使用才有用。 
+// 这个方法在对低延迟代码是很有用的，它能够实现非堵塞的写入，这些写入不会被Java的JIT重新排序指令
+// (instruction reordering)，这样它使用快速的存储-存储(store-store) barrier, 而不是较慢
+// 的存储-加载(store-load) barrier, 后者总是用在volatile的写操作上，这种性能提升是有代价的，
+// 虽然便宜，也就是写后结果并不会被其他线程看到，甚至是自己的线程，通常是几纳秒后被其他线程看到，
+// 这个时间比较短，所以代价可以忍受。类似Unsafe.putOrderedObject还有unsafe.putOrderedLong
+// 等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。.
 public native void    putOrderedObject(Object o, long offset, Object x);
 public native void    putOrderedInt(Object o, long offset, int x);
 public native void    putOrderedLong(Object o, long offset, long x);
-
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h4 id=&#34;获取内存指针地址&#34;&gt;获取内存指针地址&lt;/h4&gt;
@@ -1054,6 +1059,147 @@ the end.
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/dfdsggdgg/article/details/51543545&#34;&gt;sun.misc.Unsafe的各种神技&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/hengyunabc/article/details/28126139&#34;&gt;Java的LockSupport.park()实现分析&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>AtomicLong源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-integer/</link>
+      <pubDate>Thu, 23 Feb 2017 18:30:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-integer/</guid>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;在原子变量相关类中，AtomicBoolean, AtomicInteger, AtomicLong三个类是对于基本数据类型的操作，其原理和用法类似，区别在于Boolean, Integer, Long分别是8位，32位，64位的类型，本文重点研究AtomicLong。&lt;/p&gt;
+
+&lt;p&gt;Boolean类型数据长度为8位，Integer类型数据是32位，在当前32位操作系统或者64位操作中都能够直接对其进行原子修改和读取。而Long类型数据是64位，会被JVM当做两个分离的32位来进行操作，所以本身不具备原子性。AtomicLong的目的就是实现Long类型数据的原子操作。&lt;/p&gt;
+
+&lt;p&gt;Java原子变量的实现依赖于&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作和volatile的内存可见性语义。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67。&lt;/p&gt;
+
+&lt;h2 id=&#34;成员变量&#34;&gt;成员变量&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 成员变量unsafe是原子变量相关操作的基础
+// 原子变量的修改操作最终有sun.misc.Unsafe类的CAS操作实现
+private static final Unsafe unsafe = Unsafe.getUnsafe();
+// 成员变量value的内存偏移值，在静态代码块中初始化
+private static final long valueOffset;
+// 通过volatile关键字保证可见性，用于保存值
+private volatile long value;
+
+static {
+  try {
+    valueOffset = unsafe.objectFieldOffset
+      	(AtomicLong.class.getDeclaredField(&amp;quot;value&amp;quot;));
+  } catch (Exception ex) { throw new Error(ex); }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 构造函数，初始化值为0
+public AtomicLong()
+// 构造函数，指定初始化值
+public AtomicLong(long initialValue)
+// 以原子方式获取当前值
+public final long get()
+// 以原子方式设置当前值为newValue
+// 赋值语句是单操作，所以本身具有原子性
+public final void set(long newValue)
+// 最后设置为给定值。延时设置变量值，这个等价于set()方法，
+// 但是由于字段是volatile类型的，因此此字段的修改会比普通字段
+//（非volatile字段）有稍微的性能延时（尽管可以忽略），所以如果
+// 不是想立即读取设置的新值，允许在“后台”修改值，那么此方法就很
+// 有用。如果还是难以理解，这里就类似于启动一个后台线程如执行修
+// 改新值的任务，原线程就不等待修改结果立即返回。
+public final void lazySet(long newValue)
+// 以原子方式设置当前值为newValue，并返回旧值
+public final long getAndSet(long newValue)
+// 以原子方式设置当前值为update。
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// 该过程不阻塞
+public final boolean compareAndSet(long expect, long update)
+// 同compareAndSet
+public final boolean weakCompareAndSet(long expect, long update)
+// 以原子的方式将当前值加1
+// 该过程以自旋锁的形似循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新前的值
+public final long getAndIncrement()
+// 以原子的方式将当前值减1
+// 该过程以自旋的形式循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新前的值
+public final long getAndDecrement()
+// 以原子方式将原值加上给定的delta
+// 该过程以自旋的形式循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新前的值
+public final long getAndAdd(long delta)
+// 以原子方式将原值加1
+// 该过程会议自旋的形式循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新后的值
+public final long incrementAndGet()
+// 以原子方式将原值减1
+// 该过程会议自旋的形式循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新后的值
+public final long decrementAndGet()
+// 以原子方式将原值加上给定的delta
+// 该过程以自旋的形式循环执行，直到操作成功
+// 该过程不会阻塞
+// 返回更新后的值
+public final long addAndGet(long delta)
+// 将当前值使用Long的静态方法转换成String类型，并返回
+public String toString()
+// 将当前值使用强制类型转换成int类型，并返回
+public int intValue()
+// 直接返回当前值
+public long longValue()
+// 将当前值使用强制类型转换成float类型，并返回
+public float floatValue()
+// 将当前值使用强制类型转换成double类型，并返回
+public double doubleValue()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;set(long newValue)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个但操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;lazySet(long newValue)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;简单点说，lazySet优先保证数据的修改操作，而降低对可见性的要求。&lt;/p&gt;
+
+&lt;p&gt;lazySet是使用Unsafe.putOrderedObject方法，这个方法在对低延迟代码是很有用的，它能够实现非堵塞的写入，这些写入不会被Java的JIT重新排序指令(&lt;a href=&#34;http://stackoverflow.com/questions/14321212/java-instruction-reordering-cache-in-threads&#34;&gt;instruction reordering&lt;/a&gt;)，这样它使用快速的存储-存储(store-store) barrier, 而不是较慢的存储-加载(store-load) barrier, 后者总是用在volatile的写操作上，这种性能提升是有代价的，虽然便宜，也就是写后结果并不会被其他线程看到，甚至是自己的线程，通常是几纳秒后被其他线程看到，这个时间比较短，所以代价可以忍受。&lt;/p&gt;
+
+&lt;p&gt;类似Unsafe.putOrderedObject还有unsafe.putOrderedLong等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;compareAndSet(long expect, long update)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。该过程不阻塞。由于是使用了&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作实现，它是原子操作无疑。&lt;/p&gt;
+
+&lt;p&gt;_&lt;em&gt;set和compareAndSet都是原子操作，只是他们的目的不同，set只是单纯想设置一个新的值。而compareAndSet则是希望在满足一定条件的情况下(当前值等于except)再设置新的值。&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;weakCompareAndSet(long expect, long update)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;以原子方式设置当前值为update。它的实现与compareAndSet完全一致。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何&lt;code&gt;happens-before&lt;/code&gt;顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证&lt;code&gt;happens-before&lt;/code&gt;顺序）。&lt;/p&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/timlearn/p/4127616.html&#34;&gt;Java并发——原子变量和原子操作&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://stackoverflow.com/questions/1468007/atomicinteger-lazyset-vs-set&#34;&gt;AtomicInteger lazySet vs set&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://stackoverflow.com/questions/19238594/java-atomic-variable-set-vs-compareandset&#34;&gt;Java Atomic Variable set() vs compareAndSet()&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
     </item>
@@ -2787,117 +2933,6 @@ private static class COWIterator&amp;lt;E&amp;gt; implements ListIterator&amp;lt
 &lt;p&gt;&lt;strong&gt;方案三&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;在讲解方案二的时候，我们提到，方案二最大的问题在于主Learner存在单点问题，即主Learner随时可能出现故障。因此，对方案二进行改进，可以将主Learner的范围扩大，即Acceptor可以将批准的提案发送给一个特定的Learner集合，该集合中的每个Learner都可以在一个提案被选定后通知所有其他的Learner。这个Learner集合中的Learner个数越多，可靠性就越好，但同时网络通信的复杂度也就越高。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>3PC协议整理</title>
-      <link>http://nituchao.com/post/2017/three-phase-commit-protocol/</link>
-      <pubDate>Wed, 15 Feb 2017 10:12:58 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2017/three-phase-commit-protocol/</guid>
-      <description>
-
-&lt;p&gt;3PC，是Three-Phase Commit的缩写，即三阶段提交，是2PC的改进版，其将二阶段提交协议的&amp;rdquo;提交事务请求&amp;rdquo;过程一分为二，形成了由CanCommit、PreCommit和doCommit三个阶段组成的事务处理协议。&lt;/p&gt;
-
-&lt;h2 id=&#34;阶段一-cancommit&#34;&gt;阶段一：CanCommit&lt;/h2&gt;
-
-&lt;p&gt;1，事务询问&lt;/p&gt;
-
-&lt;p&gt;协调者向所有的参与者发送一个包含事务内容的canCommit请求，询问是否可以执行事务提交操作，并开始等待个参与者的响应。&lt;/p&gt;
-
-&lt;p&gt;2，各参与者向协调者反馈事务询问的响应&lt;/p&gt;
-
-&lt;p&gt;参与者在接收到来自协调者的canCommit请求后，正常情况下，如果其自身认为可以顺利执行事务，那么会反馈Yes响应，并进入预备状态，否则反馈No响应。&lt;/p&gt;
-
-&lt;h2 id=&#34;阶段二-precommit&#34;&gt;阶段二：PreCommit&lt;/h2&gt;
-
-&lt;p&gt;在阶段二中，协调者会根据各参与者的反馈情况来决定是否可以进行事务的PreCommit操作，正常情况下，包含两种可能。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;执行事务预提交&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;假设协调者从所有的参与者获得的反馈都是Yes响应，那么就会执行事务预提交。&lt;/p&gt;
-
-&lt;p&gt;1，发送预提交请求&lt;/p&gt;
-
-&lt;p&gt;协调者向所有参与者节点发出preCommit的请求，并进入Prepared阶段。&lt;/p&gt;
-
-&lt;p&gt;2，事务预提交&lt;/p&gt;
-
-&lt;p&gt;参与者接收到preCommit请求后，会执行事务操作，并将Undo和Redo信息记录到事务日志中。&lt;/p&gt;
-
-&lt;p&gt;3，各参与者向协调者反馈事务执行的响应&lt;/p&gt;
-
-&lt;p&gt;如果参与者成功执行事务操作，那么就会反馈给协调者Ack响应，同时等待最终的指令：提交(commit)或终止(abort)。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;中断事务&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;假如任何一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。&lt;/p&gt;
-
-&lt;p&gt;1，发送中断请求&lt;/p&gt;
-
-&lt;p&gt;协调者向所有参与者节点发出abort请求。&lt;/p&gt;
-
-&lt;p&gt;2，中断事务&lt;/p&gt;
-
-&lt;p&gt;无论是收到来自协调者的abort请求，或者是在等待协调者过程中出现超时，参与者都会中断事务。&lt;/p&gt;
-
-&lt;h2 id=&#34;阶段三-docommit&#34;&gt;阶段三：doCommit&lt;/h2&gt;
-
-&lt;p&gt;该阶段将进行真正的事务提交，会存在以下两种可能的情况。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;执行提交&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;1，发送提交请求&lt;/p&gt;
-
-&lt;p&gt;进入这一阶段，假设协调者处于正常工作状态，并且它接收到了来自所有参与者的Ack响应，那么它将从&amp;rdquo;预提交&amp;rdquo;状态转换到&amp;rdquo;提交&amp;rdquo;状态，并向所有的参与者发送doCommit请求。&lt;/p&gt;
-
-&lt;p&gt;2，事务提交&lt;/p&gt;
-
-&lt;p&gt;参与者接收到doCommit请求后，会正式执行事务提交操作，并在完成提交之后释放在整个事务执行期间占用的事务资源。&lt;/p&gt;
-
-&lt;p&gt;3，反馈事务提交结果&lt;/p&gt;
-
-&lt;p&gt;参与者在完成事务提交之后，相协调者发送Ack消息。&lt;/p&gt;
-
-&lt;p&gt;4，完成事务&lt;/p&gt;
-
-&lt;p&gt;协调者接收到所有参与者反馈的Ack消息后，完成事务。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;中断事务&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;进入这一阶段，假设协调者处于正常工作状态，并且有任意一个参与者向协调者反馈了No响应，或者在等待超时之后，协调者尚无法接收到所有参与者的反馈响应，那么就会中断事务。&lt;/p&gt;
-
-&lt;p&gt;1，发送中断请求。&lt;/p&gt;
-
-&lt;p&gt;协调者向所有的参与者节点发送abort请求。&lt;/p&gt;
-
-&lt;p&gt;2，事务回滚。&lt;/p&gt;
-
-&lt;p&gt;参与者接收到abort请求后，会利用其在阶段二中记录的Undo信息来执行事务回滚操作，并在完成回滚之后释放在整个事务执行期间占用的资源。&lt;/p&gt;
-
-&lt;p&gt;3，反馈事务回滚结果。&lt;/p&gt;
-
-&lt;p&gt;参与者在完成事务回滚之后，向协调者发送Ack消息。&lt;/p&gt;
-
-&lt;p&gt;4，中断事务。&lt;/p&gt;
-
-&lt;p&gt;协调者接收到所有参与者反馈的Ack消息后，中断事务。&lt;/p&gt;
-
-&lt;p&gt;需要注意的是，一旦进入阶段三，可能会存在以下两种故障：&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;协调者出现问题&lt;/li&gt;
-&lt;li&gt;协调者和参与者之间的网络出现故障。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;无论出现哪种情况，最终都会导致参与者无法及时接收老子协调者的doCommit或者abort请求，针对这样的异常情况，&lt;code&gt;参与者都会在等待超时之后，继续进行事务提交。&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;优缺点&#34;&gt;优缺点&lt;/h2&gt;
-
-&lt;p&gt;三阶段提交协议的优点：相较于二阶段提交协议，三阶段提交协议最大的优点就是降低了参与者的阻塞范围，并且能够出现单点故障后继续达成一致。&lt;/p&gt;
-
-&lt;p&gt;三阶段提交协议的缺点：三阶段提交协议在去除阻塞的同时也引入了新的问题，那就是在参与者接收到preCommit消息后，如果网络出现分区，此时协调者所在的节点和参与者无法进行正常的网络通信，在这种情况下，该参与者依然会进行事务的提交，这必然出现数据不一致性。&lt;/p&gt;
 </description>
     </item>
     
