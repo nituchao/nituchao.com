@@ -118,6 +118,8 @@
 4. 迭代器支持hasNext()、next等不可变操作，但不支持可变remove()等操作。
 5. 使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。</p>
 
+<p>本文基于JDK1.7.0_67。</p>
+
 <h2 id="copyonwritearraylist原理和数据结构">CopyOnWriteArrayList原理和数据结构</h2>
 
 <p>CopyOnWriteArrayList的数据结构，如下图所示：</p>

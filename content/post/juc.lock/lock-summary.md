@@ -10,6 +10,12 @@ draft: false
 
 
 
+本文基于JDK1.7.0_67。
+
+
+
+
+
 ## AQS框架原理![AQS框架图](file:////Users/liang/Library/Group%20Containers/UBF8T346G9.Office/msoclip1/01/65CCEB69-4317-8645-9279-F8AA33DAD044.png)
 
 

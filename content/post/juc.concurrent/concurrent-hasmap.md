@@ -22,6 +22,10 @@ ConcurrentHashMap是线程安全的、高效的哈希表。默认支持16个并�
 
 
 
+本文基于JDK1.7.0_67。
+
+
+
 ## ConcurrentHashMap数据结构
 
 要想搞清ConcurrentHashMap，必须先弄清楚它的数据结构：

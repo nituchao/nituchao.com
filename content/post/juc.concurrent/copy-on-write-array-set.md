@@ -28,6 +28,12 @@ draft: false
 
 
 
+
+本文基于JDK1.7.0_67。
+
+
+
+
 ## CopyOnWriteArraySet原理
 
 CopyOnWriteArraySet的数据结构，如下图所示：

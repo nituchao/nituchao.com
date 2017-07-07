@@ -121,6 +121,8 @@
 
 <p><strong>ConcurrentHashMap</strong>是线程安全的哈希表，它是通过“锁分段”来保证线程安全的。ConcurrentHashMap将哈希表分成许多片段(Segment)，每一个片段除了保存哈希表之外，本质上也是一个“可重入的互斥锁”(ReentrantLock)。多线程对同一个片段的访问，是互斥的；但是，对于不同片段的访问，却是可以同步进行的。</p>
 
+<p>本文基于JDK1.7.0_67。</p>
+
 <h2 id="concurrenthashmap数据结构">ConcurrentHashMap数据结构</h2>
 
 <p>要想搞清ConcurrentHashMap，必须先弄清楚它的数据结构：</p>

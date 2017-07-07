@@ -29,6 +29,8 @@
 
 &lt;p&gt;&lt;strong&gt;ConcurrentHashMap&lt;/strong&gt;是线程安全的哈希表，它是通过“锁分段”来保证线程安全的。ConcurrentHashMap将哈希表分成许多片段(Segment)，每一个片段除了保存哈希表之外，本质上也是一个“可重入的互斥锁”(ReentrantLock)。多线程对同一个片段的访问，是互斥的；但是，对于不同片段的访问，却是可以同步进行的。&lt;/p&gt;
 
+&lt;p&gt;本文基于JDK1.7.0_67。&lt;/p&gt;
+
 &lt;h2 id=&#34;concurrenthashmap数据结构&#34;&gt;ConcurrentHashMap数据结构&lt;/h2&gt;
 
 &lt;p&gt;要想搞清ConcurrentHashMap，必须先弄清楚它的数据结构：&lt;/p&gt;
@@ -761,6 +763,8 @@ public V putIfAbsent(K key, V value) {
 &lt;li&gt;使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。&lt;/li&gt;
 &lt;/ol&gt;
 
+&lt;p&gt;本文基于JDK1.7.0_67。&lt;/p&gt;
+
 &lt;h2 id=&#34;copyonwritearrayset原理&#34;&gt;CopyOnWriteArraySet原理&lt;/h2&gt;
 
 &lt;p&gt;CopyOnWriteArraySet的数据结构，如下图所示：&lt;/p&gt;
@@ -873,6 +877,8 @@ public boolean addAll(Collection&amp;lt;? extends E&amp;gt; c) {
 3. 因为通常要复制整个基础数组，所以可变操作（add()、set()和remove()等操作）的开销很大。
 4. 迭代器支持hasNext()、next等不可变操作，但不支持可变remove()等操作。
 5. 使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67。&lt;/p&gt;
 
 &lt;h2 id=&#34;copyonwritearraylist原理和数据结构&#34;&gt;CopyOnWriteArrayList原理和数据结构&lt;/h2&gt;
 

@@ -17,6 +17,12 @@ CopyOnWriteArrayList相当于线程安全的ArrayList。和ArrayList一样，它
 
 
 
+
+本文基于JDK1.7.0_67。
+
+
+
+
 ## CopyOnWriteArrayList原理和数据结构
 
 CopyOnWriteArrayList的数据结构，如下图所示：
