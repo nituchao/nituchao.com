@@ -103,20 +103,6 @@ public native void putFloat(Object var1, long var2, float var4);
 public native double getDouble(Object var1, long var2);
 public native void putDouble(Object var1, long var2, double var4);
 
-public native byte getByte(long var1);
-public native void putByte(long var1, byte var3);
-public native short getShort(long var1);
-public native void putShort(long var1, short var3);
-public native char getChar(long var1);
-public native void putChar(long var1, char var3);
-public native int getInt(long var1);
-public native void putInt(long var1, int var3);
-public native long getLong(long var1);
-public native void putLong(long var1, long var3);
-public native float getFloat(long var1);
-public native void putFloat(long var1, float var3);
-public native double getDouble(long var1);
-public native void putDouble(long var1, double var3);
 ```
 
 
@@ -221,13 +207,59 @@ public void copyMemory(long srcAddress, long destAddress, long bytes) {
 
 ### 原子操作
 
+`sun.misc.Unsafe`类提供了CAS原子操作，能够实现高性能的线程安全的无锁数据结构。`sun.misc.Unsafe`类的CAS操作是`java.util.concurrent`包的基础，`LockSupport`，`AbstractQueuedSynchronized`，`AtomicInteger`等原子变量和锁框架都基于CAS操作实现的。
+
+
+
+由于CAS操作在执行时当前线程不会被阻塞，所以通常使用自旋锁循环执行，直到操作成功时，表示获取到锁。
+
+```java
+// 当Java对象o的域偏移offset上的值为excepted时，原子地修改为x。
+// 如果修改成功，返回true。否则，返回false。
+// 操作过程中线程不会阻塞。
+public final native boolean compareAndSwapObject(Object o, long offset,
+                                                 Object expected,
+                                                 Object x);
+// 当Java对象o的域偏移offset上的值为int型的excepted时，原子地修改为x。
+// 如果修改成功，返回true。否则，返回false。
+// 操作过程中线程不会阻塞。
+public final native boolean compareAndSwapInt(Object o, long offset,
+                                              int expected,
+                                              int x);
+// 当Java对象o的域偏移offset上的值为int型的excepted时，原子地修改为x。
+// 如果修改成功，返回true。否则，返回false。
+// 操作过程中线程不会阻塞。
+public final native boolean compareAndSwapLong(Object o, long offset,
+                                               long expected,
+                                               long x);
+```
+
 
 
 ### 监视器锁
 
+`synchronized`是JVM最早提供的锁，称为监视器锁，也称对象锁。获得锁的过程称为monitorEnter，释放锁的过程称为monitorExit，锁的信息保存在对象头里，同步语句会在编译成字节码后转换成监视器语法(monitorEnter和monitorExit)。`sun.misc.Unsafe`类提供了监视器的相关操作。
+
+```java
+// 锁住对象
+public native void monitorEnter(Object o);
+// 解锁对象
+public native void monitorExit(Object o);
+```
+
 
 
 ### 线程控制
+
+在实现`java.util.concurrent.AbstractQueued`类，并基于AQS实现整个JUC锁框架的过程中，一方面需要使用`sun.misc.Unsafe`类的CAS操作进行锁的获取(标记位state的修改)，另一方在获取锁失败时要把当前线程放入等待队列，并阻塞当前线程。阻塞当前的线程的方法也是`sun.misc.Unsafe`类提供的。
+
+```java
+// 阻塞当前线程。
+// 直到通过unpark方法解除阻塞，或者线程被中断，或者指定的超时时间到期
+public native void park(boolean isAbsolute, long time);
+// 解除指定线程的阻塞状态。
+public native void unpark(Object thread);
+```
 
 
 
