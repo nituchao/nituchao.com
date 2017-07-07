@@ -220,11 +220,11 @@ public double doubleValue()
 
 <h2 id="重点函数分析">重点函数分析</h2>
 
-<p><strong>set(long newValue)</strong></p>
+<h3 id="set-long-newvalue">set(long newValue)</h3>
 
 <p>以原子方式设置当前值为newValue，因为set方法只是一个但操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。</p>
 
-<p><strong>lazySet(long newValue)</strong></p>
+<h3 id="lazyset-long-newvalue">lazySet(long newValue)</h3>
 
 <p>简单点说，lazySet优先保证数据的修改操作，而降低对可见性的要求。</p>
 
@@ -232,13 +232,13 @@ public double doubleValue()
 
 <p>类似Unsafe.putOrderedObject还有unsafe.putOrderedLong等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。</p>
 
-<p><strong>compareAndSet(long expect, long update)</strong></p>
+<h2 id="compareandset-long-expect-long-update">compareAndSet(long expect, long update)</h2>
 
 <p>以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。该过程不阻塞。由于是使用了<code>sun.misc.Unsafe</code>的CAS操作实现，它是原子操作无疑。</p>
 
 <p>_<em>set和compareAndSet都是原子操作，只是他们的目的不同，set只是单纯想设置一个新的值。而compareAndSet则是希望在满足一定条件的情况下(当前值等于except)再设置新的值。</em></p>
 
-<p><strong>weakCompareAndSet(long expect, long update)</strong></p>
+<h2 id="weakcompareandset-long-expect-long-update">weakCompareAndSet(long expect, long update)</h2>
 
 <p>以原子方式设置当前值为update。它的实现与compareAndSet完全一致。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何<code>happens-before</code>顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证<code>happens-before</code>顺序）。</p>
 
@@ -274,7 +274,13 @@ public double doubleValue()
 <li><a href="#概述">概述</a></li>
 <li><a href="#成员变量">成员变量</a></li>
 <li><a href="#函数列表">函数列表</a></li>
-<li><a href="#重点函数分析">重点函数分析</a></li>
+<li><a href="#重点函数分析">重点函数分析</a>
+<ul>
+<li><a href="#set-long-newvalue">set(long newValue)</a></li>
+<li><a href="#lazyset-long-newvalue">lazySet(long newValue)</a></li>
+</ul></li>
+<li><a href="#compareandset-long-expect-long-update">compareAndSet(long expect, long update)</a></li>
+<li><a href="#weakcompareandset-long-expect-long-update">weakCompareAndSet(long expect, long update)</a></li>
 </ul></li>
 </ul>
 </nav>

@@ -129,13 +129,13 @@ public double doubleValue()
 
 ## 重点函数分析
 
-**set(long newValue)**
+### set(long newValue)
 
 以原子方式设置当前值为newValue，因为set方法只是一个但操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。
 
 
 
-**lazySet(long newValue)**
+### lazySet(long newValue)
 
 简单点说，lazySet优先保证数据的修改操作，而降低对可见性的要求。
 
@@ -145,7 +145,7 @@ lazySet是使用Unsafe.putOrderedObject方法，这个方法在对低延迟代�
 
 
 
-**compareAndSet(long expect, long update)**
+## compareAndSet(long expect, long update)
 
 以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。该过程不阻塞。由于是使用了`sun.misc.Unsafe`的CAS操作实现，它是原子操作无疑。
 
@@ -153,7 +153,7 @@ __set和compareAndSet都是原子操作，只是他们的目的不同，set只�
 
 
 
-**weakCompareAndSet(long expect, long update)**
+## weakCompareAndSet(long expect, long update)
 
 以原子方式设置当前值为update。它的实现与compareAndSet完全一致。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何`happens-before`顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证`happens-before`顺序）。
 
