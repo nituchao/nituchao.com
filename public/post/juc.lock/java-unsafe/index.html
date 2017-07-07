@@ -410,7 +410,178 @@ public native Class defineAnonymousClass(Class hostClass, byte[] data, Object[] 
 public native void ensureClassInitialized(Class c);
 </code></pre>
 
-<h2 id="实例">实例</h2>
+<h2 id="实例分析">实例分析</h2>
+
+<p>本节记录了一些使用<code>sun.misc.Unsafe</code>的实例，并对这些实例进行分析。</p>
+
+<h3 id="实例化私有类">实例化私有类</h3>
+
+<p>很多类为了封装的需要将构造函数声明成私有的，防止被实例化。在<code>sun.misc.Unsafe</code>类面前，这中做法不堪一击。<code>allocateInstance</code>方法可以在不调用构造函数的情况下，直接实例化类的一个对象。</p>
+
+<pre><code class="language-java">import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
+
+public class UnsafeUser {
+    public static void main(String[] args) throws Exception {
+        // 由于安全限制，只有系统class loader才能使用getUnsafe()方法
+        // 普通用户只能通过反射实例化Unsafe
+        Field field = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);
+        field.setAccessible(true);
+        Unsafe unsafe = (Unsafe) field.get(null);
+
+        // 实例化User，不调用构造函数
+        User user = (User) unsafe.allocateInstance(User.class);
+        user.setName(&quot;liang&quot;);
+        System.out.println(user.getName());
+    }
+}
+
+class User {
+    private String name;
+    private User() {}
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+
+// 执行后输出
+liang
+</code></pre>
+
+<h3 id="直接操作对象的内存数据">直接操作对象的内存数据</h3>
+
+<pre><code class="language-java">import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
+
+public class UnsafeUser {
+
+    public static void main(String[] args) throws Exception {
+        // 由于安全限制，只有系统classloader才能使用getUnsafe()方法
+        // 普通用户只能通过反射实例化Unsafe
+        Field field = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);
+        field.setAccessible(true);
+        Unsafe unsafe = (Unsafe) field.get(null);
+
+        // 实例化User，不调用构造函数
+        User user = (User) unsafe.allocateInstance(User.class);
+        user.setName(&quot;liang&quot;);
+        user.setAge(28);
+
+        // 输出user对象中各个成员遍历的内存偏移值
+        for (Field f : user.getClass().getDeclaredFields()) {
+            System.out.println(f.getName() + &quot; 对应的内存偏移地址: &quot; + unsafe.objectFieldOffset(f));
+        }
+
+        System.out.println(&quot;---------------------&quot;);
+
+      	// 获取age内存偏移量
+        long ageOffset = unsafe.objectFieldOffset(user.getClass().getDeclaredField(&quot;age&quot;));
+       	// // 获取name内存偏移量
+        long nameOffset = unsafe.objectFieldOffset(user.getClass().getDeclaredField(&quot;name&quot;));
+
+        // 修改age值
+        unsafe.putInt(user, ageOffset, 29);
+        // 修改name值
+        unsafe.putObject(user, nameOffset, &quot;zhang liang&quot;);
+
+        System.out.println(&quot;age: &quot; + user.getAge());
+        System.out.println(&quot;name: &quot; + user.getName());
+    }
+}
+
+class User {
+    private int age;
+    private String name;
+    private User() {}
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public int getAge() { return age; }
+    public void setAge(int age) { this.age = age; }
+}
+
+// 执行后输出：
+age 对应的内存偏移地址: 12
+name 对应的内存偏移地址: 16
+---------------------
+age: 29
+name: zhang liang
+</code></pre>
+
+<h3 id="创建超大数组">创建超大数组</h3>
+
+<p>Java中数组的最大长度为Integer.MAX_VALUE，正常情况下如果想创建一个大于Integer.MAX_VALUE的数组是做不到的，但是Unsafe可以，通过对内存进行直接分配实现。</p>
+
+<pre><code class="language-java">public class BigArray {
+    public static void main(String[] arg) throws Exception {
+
+        // 由于安全限制，只有系统classloader才能使用getUnsafe()方法
+        // 普通用户只能通过反射实例化Unsafe
+        Field field = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);
+        field.setAccessible(true);
+        Unsafe unsafe = (Unsafe) field.get(null);
+
+        //只要内存够大，可以把这个调大，大于Integer.MAX_VALUE
+        long size = (long) Integer.MAX_VALUE * 2;
+        long addr = unsafe.allocateMemory(size);
+        System.out.println(&quot;unsafe address :&quot; + addr);
+
+        for (int i = 0; i &lt; size; i++) {
+            unsafe.putByte(addr + i, (byte) 6);
+            if (unsafe.getByte(addr + i) != 6) {
+                System.out.println(&quot;failed at offset&quot;);
+            }
+        }
+    }
+}
+
+// 运行结果
+unsafe address :4754382848
+</code></pre>
+
+<h3 id="线程挂起与恢复">线程挂起与恢复</h3>
+
+<pre><code class="language-java">public class Lock {  
+     
+    public static void main(String[] args) throws InterruptedException {
+        ThreadPark threadPark = new ThreadPark();  
+        threadPark.start();  
+        ThreadUnPark threadUnPark = new ThreadUnPark(threadPark);  
+        threadUnPark.start();  
+        //等待threadUnPark执行成功  
+        threadUnPark.join();  
+        System.out.println(&quot;运行成功....&quot;);  
+    }  
+      
+      
+  static  class ThreadPark extends Thread{  
+       public void run(){  
+            System.out.println(Thread.currentThread() +&quot;我将被阻塞在这了60s....&quot;);  
+            //阻塞60s，单位纳秒  1s = 1000000000  
+            LockSupport.parkNanos(1000000000l*60);  
+            System.out.println(Thread.currentThread() +&quot;我被恢复正常了....&quot;);  
+       }  
+   }  
+     
+  static  class ThreadUnPark extends Thread{
+       public Thread thread = null;  
+       public ThreadUnPark(Thread thread){  
+           this.thread = thread;  
+       }  
+       public void run(){  
+            System.out.println(&quot;提前恢复阻塞线程ThreadPark&quot;);  
+            //恢复阻塞线程  
+            LockSupport.unpark(thread);
+       }  
+   }  
+}  
+
+// 执行结果
+Thread[Thread-0,5,main]我将被阻塞在这了60s....
+提前恢复阻塞线程ThreadPark
+Thread[Thread-0,5,main]我被恢复正常了....
+运行成功....
+</code></pre>
 
 <p>参考:</p>
 
@@ -477,7 +648,13 @@ public native void ensureClassInitialized(Class c);
 <li><a href="#异常处理">异常处理</a></li>
 <li><a href="#对象增强">对象增强</a></li>
 </ul></li>
-<li><a href="#实例">实例</a></li>
+<li><a href="#实例分析">实例分析</a>
+<ul>
+<li><a href="#实例化私有类">实例化私有类</a></li>
+<li><a href="#直接操作对象的内存数据">直接操作对象的内存数据</a></li>
+<li><a href="#创建超大数组">创建超大数组</a></li>
+<li><a href="#线程挂起与恢复">线程挂起与恢复</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav>
