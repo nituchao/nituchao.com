@@ -789,7 +789,7 @@ class User {
 liang
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h3 id=&#34;直接操作对象的内存数据&#34;&gt;直接操作对象的内存数据&lt;/h3&gt;
+&lt;h3 id=&#34;操作对象内存&#34;&gt;操作对象内存&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import sun.misc.Unsafe;
 
