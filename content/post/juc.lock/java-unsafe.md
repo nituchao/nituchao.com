@@ -1,7 +1,7 @@
 ---
 title: "Java锁之Unsafe类的理解"
 date: "2017-02-23T18:29:27+08:00"
-categories: ["Lock"]
+categories: ["Acorn_Lock"]
 tags: ["Java", "Lock"]
 draft: false
 ---

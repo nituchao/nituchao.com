@@ -59,9 +59,11 @@
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
 						<ul class="dropdown-menu" role="menu">
 						
-							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
+							<li><a href="http://nituchao.com/categories/acorn_concurrent">Acorn_concurrent</a></li>
 						
-							<li><a href="http://nituchao.com/categories/concurrent">Concurrent</a></li>
+							<li><a href="http://nituchao.com/categories/acorn_lock">Acorn_lock</a></li>
+						
+							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
 						
 							<li><a href="http://nituchao.com/categories/console">Console</a></li>
 						
@@ -72,8 +74,6 @@
 							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
 						
 							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
-						
-							<li><a href="http://nituchao.com/categories/lock">Lock</a></li>
 						
 							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
 						
@@ -146,18 +146,8 @@
 		<ul class="sidebar-category-list">
 		
 			<li>
-				<a href="http://nituchao.com/categories/amqp">
-					<span class="doc-list-category">Amqp</span>
-				</a>
-				<ul>
-					<li><a href="/post/2017/centos-an-zhuang-rabbit-cluster/">在CentOS上安装Rabbitmq集群</a></li>
-				
-				</ul>
-			</li>
-		
-			<li>
-				<a href="http://nituchao.com/categories/concurrent">
-					<span class="doc-list-category">Concurrent</span>
+				<a href="http://nituchao.com/categories/acorn_concurrent">
+					<span class="doc-list-category">Acorn_concurrent</span>
 				</a>
 				<ul>
 					<li><a href="/post/juc.concurrent/concurrent-hasmap/">ConcurrentHashMap源码分析</a></li>
@@ -165,6 +155,32 @@
 					<li><a href="/post/juc.concurrent/copy-on-write-array-set/">CopyOnWriteArraySet源码分析</a></li>
 				
 					<li><a href="/post/juc.concurrent/copy-on-write-array-list/">CopyOnWriteArrayList源码分析</a></li>
+				
+				</ul>
+			</li>
+		
+			<li>
+				<a href="http://nituchao.com/categories/acorn_lock">
+					<span class="doc-list-category">Acorn_lock</span>
+				</a>
+				<ul>
+					<li><a href="/post/juc.lock/java-cas/">Java锁之CAS的原理</a></li>
+				
+					<li><a href="/post/juc.lock/java-unsafe/">Java锁之Unsafe类的理解</a></li>
+				
+					<li><a href="/post/juc.lock/clh-spin-ticket-mcs-lock/">Java锁之自旋锁的原理</a></li>
+				
+					<li><a href="/post/juc.lock/lock-summary/">Java锁之Lock框架概述</a></li>
+				
+				</ul>
+			</li>
+		
+			<li>
+				<a href="http://nituchao.com/categories/amqp">
+					<span class="doc-list-category">Amqp</span>
+				</a>
+				<ul>
+					<li><a href="/post/2017/centos-an-zhuang-rabbit-cluster/">在CentOS上安装Rabbitmq集群</a></li>
 				
 				</ul>
 			</li>
@@ -231,22 +247,6 @@
 					<li><a href="/post/2017/linux-io-mode/">Linux网络I/O模型整理</a></li>
 				
 					<li><a href="/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/">编译自己的Linux系统</a></li>
-				
-				</ul>
-			</li>
-		
-			<li>
-				<a href="http://nituchao.com/categories/lock">
-					<span class="doc-list-category">Lock</span>
-				</a>
-				<ul>
-					<li><a href="/post/juc.lock/java-cas/">Java锁之CAS的原理</a></li>
-				
-					<li><a href="/post/juc.lock/java-unsafe/">Java锁之Unsafe类的理解</a></li>
-				
-					<li><a href="/post/juc.lock/clh-spin-ticket-mcs-lock/">Java锁之自旋锁的原理</a></li>
-				
-					<li><a href="/post/juc.lock/lock-summary/">Java锁之Lock框架概述</a></li>
 				
 				</ul>
 			</li>
