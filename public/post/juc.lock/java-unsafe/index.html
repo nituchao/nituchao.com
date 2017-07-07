@@ -111,7 +111,7 @@
 
 <h2 id="一言">一言</h2>
 
-<p><code>sun.misc.Unsafe</code>类是超越Java的存在，它违反了Java的设计初衷，却又是Java很多重要特性与功能得以实现的基础，是魔鬼与天使的混合体。</p>
+<p><code>sun.misc.Unsafe</code>类是超越Java的存在，它违反了Java在内存管理上的设计初衷，却又是Java很多重要特性与功能得以实现的基础，它使Java的安全性受到威胁，却有使Java在很多方面的性能得到提升，它是魔鬼与天使的混合体。</p>
 
 <h2 id="概述">概述</h2>
 
@@ -284,6 +284,16 @@ public void copyMemory(long srcAddress, long destAddress, long bytes) {
 }
 </code></pre>
 
+<h3 id="原子操作">原子操作</h3>
+
+<h3 id="监视器锁">监视器锁</h3>
+
+<h3 id="线程控制">线程控制</h3>
+
+<h3 id="序列化支持">序列化支持</h3>
+
+<h2 id="实战">实战</h2>
+
 <p>参考:</p>
 
 <ol>
@@ -334,7 +344,12 @@ public void copyMemory(long srcAddress, long destAddress, long bytes) {
 <li><a href="#直接操作内存字节数据">直接操作内存字节数据</a></li>
 <li><a href="#直接复制内存数据">直接复制内存数据</a></li>
 </ul></li>
+<li><a href="#原子操作">原子操作</a></li>
+<li><a href="#监视器锁">监视器锁</a></li>
+<li><a href="#线程控制">线程控制</a></li>
+<li><a href="#序列化支持">序列化支持</a></li>
 </ul></li>
+<li><a href="#实战">实战</a></li>
 </ul></li>
 </ul>
 </nav>

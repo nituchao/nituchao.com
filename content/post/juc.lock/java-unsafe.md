@@ -8,7 +8,7 @@ draft: false
 
 ## 一言
 
-`sun.misc.Unsafe`类是超越Java的存在，它违反了Java的设计初衷，却又是Java很多重要特性与功能得以实现的基础，是魔鬼与天使的混合体。
+`sun.misc.Unsafe`类是超越Java的存在，它违反了Java在内存管理上的设计初衷，却又是Java很多重要特性与功能得以实现的基础，它使Java的安全性受到威胁，却有使Java在很多方面的性能得到提升，它是魔鬼与天使的混合体。
 
 
 
@@ -219,7 +219,31 @@ public void copyMemory(long srcAddress, long destAddress, long bytes) {
 
 
 
+### 原子操作
 
+
+
+### 监视器锁
+
+
+
+### 线程控制
+
+
+
+### 序列化支持
+
+
+
+
+
+
+
+
+
+
+
+## 实战
 
 
 
