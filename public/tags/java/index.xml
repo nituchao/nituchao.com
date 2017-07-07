@@ -761,10 +761,10 @@ the end.
     
     <item>
       <title>AtomicLong源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-integer/</link>
-      <pubDate>Thu, 23 Feb 2017 18:30:27 +0800</pubDate>
+      <link>http://nituchao.com/post/juc.atomic/atomic-long/</link>
+      <pubDate>Thu, 23 Feb 2017 18:30:28 +0800</pubDate>
       
-      <guid>http://nituchao.com/post/juc.atomic/atomic-integer/</guid>
+      <guid>http://nituchao.com/post/juc.atomic/atomic-long/</guid>
       <description>
 
 &lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
