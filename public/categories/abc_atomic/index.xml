@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Abc_atomic on 泥土巢</title>
+    <link>http://nituchao.com/categories/abc_atomic/index.xml</link>
+    <description>Recent content in Abc_atomic on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/categories/abc_atomic/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Atomic变量</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-boolean/</link>
+      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-boolean/</guid>
+      <description>&lt;p&gt;Java原子变量的诞生源自一个简单的需求 —— 多个线程共享某个变量或者对象时，需要对修改和读取操作进行同步。&lt;/p&gt;
+
+&lt;p&gt;同步包含两层含义：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;互斥访问&lt;/li&gt;
+&lt;li&gt;可见性&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;通常，多线程对临界资源的互斥访问通过对象锁(synchronized关键字)保证。对象锁是一种独占锁（悲观锁），会导致其它所有需要锁的线程挂起。而可见性则由volatile的内存语义保证。&lt;/p&gt;
+
+&lt;p&gt;Java 1.5开始提供了原子变量和原子引用，这些类放置在&lt;code&gt;java.util.concurrent&lt;/code&gt;下。大概可以归为4类：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;基本类型：AtomicInteger, AtomicLong, AtomicBoolean;&lt;/li&gt;
+&lt;li&gt;数组类型：AtomicIntegerArray, AtomicLongArray, AtomicReferenceArray;&lt;/li&gt;
+&lt;li&gt;引用类型：AtomicReference, AtomicStampedReference, AtomicMarkableReference;&lt;/li&gt;
+&lt;li&gt;对象的属性修改类型：AtomicIntegerFieldUpdater, AtomicLongFieldUpdater, AtomicReferenceFieldUpdater;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Java原子变量的存在是为了对相应的数据进行原子操作。&lt;/p&gt;
+
+&lt;p&gt;所谓的原子操作包含下面几层含义：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;操作过程不会被中断。&lt;/li&gt;
+&lt;li&gt;操作过程不会被阻塞。&lt;/li&gt;
+&lt;li&gt;修改结果被其他线程可见。&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
