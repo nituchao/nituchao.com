@@ -24,6 +24,8 @@ Java原子变量的实现依赖于`sun.misc.Unsafe`的CAS操作和volatile的内
 
 
 
+
+
 本文基于JDK1.7.0_67
 
 >java version "1.7.0_67"_
