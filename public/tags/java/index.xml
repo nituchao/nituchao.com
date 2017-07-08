@@ -1398,6 +1398,17 @@ private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
 
 &lt;p&gt;真个函数很有意思，同时获取引用值和版本号。由于Java程序只能有一个返回值，该函数通过一个数组参数&lt;code&gt;int[] stampHolder&lt;/code&gt;来返回版本号，而通过&lt;code&gt;return&lt;/code&gt;语句返回引用值。&lt;/p&gt;
 
+&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void set(V newReference, int newStamp) {
+	Pair&amp;lt;V&amp;gt; current = pair;
+	if (newReference != current.reference || newStamp != current.stamp)
+		this.pair = Pair.of(newReference, newStamp);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;只要新的引用值和新的版本号，有一个与当前值不一样的，就同时修改引用值和版本号。&lt;/p&gt;
+
 &lt;h3 id=&#34;compareandset&#34;&gt;compareAndSet&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean compareAndSet(V   expectedReference,
@@ -1436,17 +1447,6 @@ private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;以原子的方式同时更新引用值和版本号。该是通过调用CompareAndSet实现的。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何&lt;code&gt;happens-before&lt;/code&gt;顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证&lt;code&gt;happens-before&lt;/code&gt;顺序）。&lt;/p&gt;
-
-&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void set(V newReference, int newStamp) {
-	Pair&amp;lt;V&amp;gt; current = pair;
-	if (newReference != current.reference || newStamp != current.stamp)
-		this.pair = Pair.of(newReference, newStamp);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;只要新的引用值和新的版本号，有一个与当前值不一样的，就同时修改引用值和版本号。&lt;/p&gt;
 
 &lt;h3 id=&#34;attemptstamp&#34;&gt;attemptStamp&lt;/h3&gt;
 

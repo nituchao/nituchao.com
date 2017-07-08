@@ -161,6 +161,20 @@ public V get(int[] stampHolder) {
 
 
 
+### set
+
+```java
+public void set(V newReference, int newStamp) {
+	Pair<V> current = pair;
+	if (newReference != current.reference || newStamp != current.stamp)
+		this.pair = Pair.of(newReference, newStamp);
+}
+```
+
+只要新的引用值和新的版本号，有一个与当前值不一样的，就同时修改引用值和版本号。
+
+
+
 ### compareAndSet
 
 ```java
@@ -203,20 +217,6 @@ public boolean weakCompareAndSet(V   expectedReference,
 ```
 
 以原子的方式同时更新引用值和版本号。该是通过调用CompareAndSet实现的。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何`happens-before`顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证`happens-before`顺序）。
-
-
-
-### set
-
-```java
-public void set(V newReference, int newStamp) {
-	Pair<V> current = pair;
-	if (newReference != current.reference || newStamp != current.stamp)
-		this.pair = Pair.of(newReference, newStamp);
-}
-```
-
-只要新的引用值和新的版本号，有一个与当前值不一样的，就同时修改引用值和版本号。
 
 
 
