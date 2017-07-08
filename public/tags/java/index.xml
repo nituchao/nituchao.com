@@ -125,15 +125,6 @@ Thread 1091: (state = BLOCKED)&lt;/p&gt;
     </item>
     
     <item>
-      <title>AtomicReferenceFieldUpdater源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
-      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Atomic变量</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-summary/</link>
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
@@ -776,6 +767,15 @@ the end.
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://blog.csdn.net/hengyunabc/article/details/28126139&#34;&gt;Java的LockSupport.park()实现分析&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
+    </item>
+    
+    <item>
+      <title>AtomicReferenceFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <pubDate>Thu, 23 Feb 2017 18:38:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <description></description>
     </item>
     
     <item>

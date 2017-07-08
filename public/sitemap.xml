@@ -22,11 +22,6 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
-    <lastmod>2017-02-23T18:39:27+08:00</lastmod>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/post/juc.atomic/atomic-summary/</loc>
     <lastmod>2017-02-23T18:39:27+08:00</lastmod>
   </url>
@@ -34,6 +29,11 @@
   <url>
     <loc>http://nituchao.com/post/juc.lock/java-unsafe/</loc>
     <lastmod>2017-02-23T18:39:27+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
+    <lastmod>2017-02-23T18:38:27+08:00</lastmod>
   </url>
   
   <url>
