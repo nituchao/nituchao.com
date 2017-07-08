@@ -77,6 +77,11 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-long-field-updater/</loc>
+    <lastmod>2017-02-23T18:27:27+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/juc.concurrent/concurrent-hasmap/</loc>
     <lastmod>2017-02-23T18:27:27+08:00</lastmod>
   </url>

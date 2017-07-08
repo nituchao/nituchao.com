@@ -606,5 +606,14 @@ private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
       <description></description>
     </item>
     
+    <item>
+      <title>AtomicLongFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-long-field-updater/</link>
+      <pubDate>Thu, 23 Feb 2017 18:27:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-long-field-updater/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>
