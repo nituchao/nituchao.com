@@ -1355,9 +1355,18 @@ public long addAndGet(T obj, long delta)
     </item>
     
     <item>
+      <title>AtomicIntegerFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</link>
+      <pubDate>Thu, 23 Feb 2017 18:27:26 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>AtomicReferenceFieldUpdater源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
-      <pubDate>Thu, 23 Feb 2017 18:27:26 +0800</pubDate>
+      <pubDate>Thu, 23 Feb 2017 18:27:25 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
       <description></description>

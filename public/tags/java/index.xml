@@ -3134,144 +3134,21 @@ public V putIfAbsent(K key, V value) {
     </item>
     
     <item>
-      <title>AtomicReferenceFieldUpdater源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <title>AtomicIntegerFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</link>
       <pubDate>Thu, 23 Feb 2017 18:27:26 +0800</pubDate>
       
-      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <guid>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>CopyOnWriteArraySet源码分析</title>
-      <link>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</link>
-      <pubDate>Thu, 23 Feb 2017 18:26:27 +0800</pubDate>
+      <title>AtomicReferenceFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <pubDate>Thu, 23 Feb 2017 18:27:25 +0800</pubDate>
       
-      <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</guid>
-      <description>
-
-&lt;h2 id=&#34;一言&#34;&gt;一言&lt;/h2&gt;
-
-&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;是线程安全的无序集合，它是通过聚合了一个&lt;code&gt;CopyOnWriteArray&lt;/code&gt;成员变量来实现的。&lt;/p&gt;
-
-&lt;h2 id=&#34;概要&#34;&gt;概要&lt;/h2&gt;
-
-&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;是线程安全的无序集合，可以将它理解成线程安全的HashSet。有意思的是，&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;和HashSet虽然都继承于共同的父类AbstractSet；但是，HashSet是通过&amp;rdquo;散列表(HashSet)&amp;ldquo;实现的，而CopyConWriteArraySet则是通过&amp;rdquo;动态数组(CopyOnWriteArrayList)&amp;ldquo;实现的，并不是散列表。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;具有以下特性：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;它最适合于具有以下特征的应用程序：Set 大小通常保持很小，只读操作远多于可变操作，需要在遍历期间防止线程间的冲突。&lt;/li&gt;
-&lt;li&gt;它是线程安全的。它的线程安全通过volatile、互斥锁来实现。&lt;/li&gt;
-&lt;li&gt;因为通常需要复制整个基础数组，所以可变操作（add()、set() 和 remove() 等等）的开销很大。&lt;/li&gt;
-&lt;li&gt;迭代器支持hasNext(), next()等不可变操作，但不支持可变 remove()等 操作。&lt;/li&gt;
-&lt;li&gt;使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
-
-&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset原理&#34;&gt;CopyOnWriteArraySet原理&lt;/h2&gt;
-
-&lt;p&gt;CopyOnWriteArraySet的数据结构，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;图&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;CopyOnWriteArraySet继承于AbstractSet，这就意味着它是一个集合。&lt;/li&gt;
-&lt;li&gt;CopyOnWriteArraySet聚合了一个CopyOnWriteArrayList对象，它是通过CopyOnWriteArrayList实现的。而CopyOnWriteArrayList本质是个动态数组队列，所以CopyOnWriteArraySet相当于通过动态数组实现的&amp;rdquo;集合&amp;rdquo;！&lt;/li&gt;
-&lt;li&gt;CopyOnWriteArraySet不允许有重复元素。因此，CopyOnWriteArrayList额外提供了addIfAbsent()和addAllAbsent()这两个添加元素的API，通过这些API来添加元素时，只有当元素不存在时才执行添加操作。&lt;/li&gt;
-&lt;li&gt;CopyOnWriteArraySet的&amp;rdquo;线程安全&amp;rdquo;机制是通过volatile和互斥锁来实现的。而它本身没有volatile变量和互斥锁，都是借由CopyOnWriteArrayList实现。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset成员变量&#34;&gt;CopyOnWriteArraySet成员变量&lt;/h2&gt;
-
-&lt;p&gt;CopyOnWriteArraySet只有下面一个成员变量&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private final CopyOnWriteArrayList&amp;lt;E&amp;gt; al;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;说明:&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;成员变量al是&lt;code&gt;final&lt;/code&gt;类型的，通过构造函数进行初始化后将不能再修改。&lt;/li&gt;
-&lt;li&gt;成员变量al里的&lt;code&gt;添加/修改/删除&lt;/code&gt;操作都是通过互斥锁和volatile变量来保证现场安全的，因此，成员变量al不再用&lt;code&gt;volatile&lt;/code&gt;修饰，也不再额外声明可重入锁lock。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset函数列表&#34;&gt;CopyOnWriteArraySet函数列表&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 创建一个空 set。
-CopyOnWriteArraySet()
-// 创建一个包含指定 collection 所有元素的 set。
-CopyOnWriteArraySet(Collection&amp;lt;? extends E&amp;gt; c)
-
-// 如果指定元素并不存在于此 set 中，则添加它。
-boolean add(E e)
-// 如果此 set 中没有指定 collection 中的所有元素，则将它们都添加到此 set 中。
-boolean addAll(Collection&amp;lt;? extends E&amp;gt; c)
-// 移除此 set 中的所有元素。
-void clear()
-// 如果此 set 包含指定元素，则返回 true。
-boolean contains(Object o)
-// 如果此 set 包含指定 collection 的所有元素，则返回 true。
-boolean containsAll(Collection&amp;lt;?&amp;gt; c)
-// 比较指定对象与此 set 的相等性。
-boolean equals(Object o)
-// 如果此 set 不包含任何元素，则返回 true。
-boolean isEmpty()
-// 返回按照元素添加顺序在此 set 中包含的元素上进行迭代的迭代器。
-Iterator&amp;lt;E&amp;gt; iterator()
-// 如果指定元素存在于此 set 中，则将其移除。
-boolean remove(Object o)
-// 移除此 set 中包含在指定 collection 中的所有元素。
-boolean removeAll(Collection&amp;lt;?&amp;gt; c)
-// 仅保留此 set 中那些包含在指定 collection 中的元素。
-boolean retainAll(Collection&amp;lt;?&amp;gt; c)
-// 返回此 set 中的元素数目。
-int size()
-// 返回一个包含此 set 所有元素的数组。
-Object[] toArray()
-// 返回一个包含此 set 所有元素的数组；返回数组的运行时类型是指定数组的类型。
-&amp;lt;T&amp;gt; T[] toArray(T[] a)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset重点函数&#34;&gt;CopyOnWriteArraySet重点函数&lt;/h2&gt;
-
-&lt;h3 id=&#34;构造函数&#34;&gt;构造函数&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public CopyOnWriteArraySet() {
-        al = new CopyOnWriteArrayList&amp;lt;E&amp;gt;();
-}
-public CopyOnWriteArraySet(Collection&amp;lt;? extends E&amp;gt; c) {
-        al = new CopyOnWriteArrayList&amp;lt;E&amp;gt;();
-        al.addAllAbsent(c);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;CopyOnWriteArraySet允许初始化一个空的集合，也允许通过复制一个集合里的元素来进行初始化。本质上将，CopyOnWriteArraySet的初始化是通过初始化成员变量CopyOnWriteArrayList al来实现的。&lt;/p&gt;
-
-&lt;h3 id=&#34;添加&#34;&gt;添加&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean add(E e) {
-        return al.addIfAbsent(e);
-}
-
-public boolean addAll(Collection&amp;lt;? extends E&amp;gt; c) {
-        return al.addAllAbsent(c) &amp;gt; 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;CopyOnWriteArraySet不允许重复元素。因此，添加操作都是调用CopyOnWriteArrayList的&lt;code&gt;addIfAbsent&lt;/code&gt;方法或者&lt;code&gt;addAllAbsent&lt;/code&gt;方法实现的。&lt;/p&gt;
-</description>
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <description></description>
     </item>
     
   </channel>
