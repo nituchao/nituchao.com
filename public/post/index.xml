@@ -1449,6 +1449,225 @@ public String toString()
     </item>
     
     <item>
+      <title>AtomicMarkableReference源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-markable-reference/</link>
+      <pubDate>Thu, 23 Feb 2017 18:30:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-markable-reference/</guid>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;在原子变量相关类中，AtomicReference, AtomicStampedReference, AtomicMarkableReference三个类是对于引用类型的操作，其原理和用法类似。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicStampedReference&lt;/code&gt;是带了整型标记值(int stamp)的引用型原子变量，每次执行CAS操作时需要对比版本，如果版本满足要求，则操作成功，否则操作失败，用于防止CAS操作的ABA问题。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicMarkableReference&lt;/code&gt;则是带了布尔型标记位(Boolean mark)的引用型原子量，每次执行CAS操作是需要对比该标记位，如果标记满足要求，则操作成功，否则操作失败。本文重点分析&lt;code&gt;AtomicMarkableReference&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;Java原子变量的实现依赖于&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作和volatile的内存可见性语义。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0_&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;内部类&#34;&gt;内部类&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicMarkableReference&lt;/code&gt;是带布尔型标记为的原子引用类型，为了同时兼顾引用值和标记位，它定义了一个静态内部类&lt;code&gt;Pair&lt;/code&gt;，&lt;code&gt;AtomicMarkableReference&lt;/code&gt;的相关操作都是对&lt;code&gt;Pair&lt;/code&gt;内成员的操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private static class Pair&amp;lt;T&amp;gt; {
+    final T reference;
+    final boolean mark;
+    private Pair(T reference, boolean mark) {
+        this.reference = reference;
+        this.mark = mark;
+    }
+    static &amp;lt;T&amp;gt; Pair&amp;lt;T&amp;gt; of(T reference, int mark) {
+      	return new Pair&amp;lt;T&amp;gt;(reference, mark);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;成员变量&#34;&gt;成员变量&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicMarkableReference&lt;/code&gt;除了常规的&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;实例和&lt;code&gt;pairOffset&lt;/code&gt;内存偏移量外，声明了一个&lt;code&gt;volatile&lt;/code&gt;的&lt;code&gt;Pair&amp;lt;T&amp;gt;&lt;/code&gt;成员，用于同时维护引用值和标记值。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 成员变量unsafe是原子变量相关操作的基础
+// 原子变量的修改操作最终有sun.misc.Unsafe类的CAS操作实现
+private static final sun.misc.Unsafe UNSAFE = Unsafe.getUnsafe();
+// 成员变量value的内存偏移值
+private static final long pairOffset = objectFieldOffset(UNSAFE, &amp;quot;pair&amp;quot;, AtomicMarkableReference.class);
+// 用volatile的内存语义保证可见性
+// 保存引用值和标记值
+private volatile Pair&amp;lt;V&amp;gt; pair;
+
+// 获取指定域的内存偏移量
+static long objectFieldOffset(sun.misc.Unsafe UNSAFE,
+                              String field, Class&amp;lt;?&amp;gt; klazz) {
+    try {
+        return UNSAFE.objectFieldOffset(klazz.getDeclaredField(field));
+    } catch (NoSuchFieldException e) {
+        // Convert Exception to corresponding Error
+        NoSuchFieldError error = new NoSuchFieldError(field);
+        error.initCause(e);
+        throw error;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;p&gt;由于&lt;code&gt;AtomicMarkableReference&lt;/code&gt;要同时维护引用值和标记值，因此很多操作变得复杂。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 构造函数，初始化引用和标记值
+public AtomicMarkableReference(V initialRef, boolean initialMark)
+// 以原子方式获取当前引用值
+public V getReference()
+// 以原子方式获取当前标记值
+public int isMarked()
+// 以原子方式获取当前引用值和标记值
+public V get(boolean[] markHolder)
+// 以原子的方式同时更新引用值和标记值
+// 当期望引用值不等于当前引用值时，操作失败，返回false
+// 当期望标记值不等于当前标记值时，操作失败，返回false
+// 在期望引用值和期望标记值同时等于当前值的前提下
+// 当新的引用值和新的标记值同时等于当前值时，不更新，直接返回true
+// 当新的引用值和新的标记值不同时等于当前值时，同时设置新的引用值和新的标记值，返回true
+// 该过程不保证volatile成员的happens-before语义顺序
+public boolean weakCompareAndSet(V  expectedReference,
+                                 V  newReference,
+                                 int expectedMark,
+                                 int newMark)
+// 以原子的方式同时更新引用值和标记值
+// 当期望引用值不等于当前引用值时，操作失败，返回false
+// 当期望标记值不等于当前标记值时，操作失败，返回false
+// 在期望引用值和期望标记值同时等于当前值的前提下
+// 当新的引用值和新的标记值同时等于当前值时，不更新，直接返回true
+// 当新的引用值和新的标记值不同时等于当前值时，同时设置新的引用值和新的标记值，返回true
+public boolean compareAndSet(V   expectedReference,
+                             V   newReference,
+                             int expectedMark,
+                             int newMark)
+// 以原子方式设置引用的当前值为新值newReference
+// 同时，以原子方式设置标记值的当前值为新值newMark
+// 新引用值和新标记值只要有一个跟当前值不一样，就进行更新
+public void set(V newReference, int newMark)
+// 以原子方式设置标记值为新的值
+// 前提：引用值保持不变
+// 当期望的引用值与当前引用值不相同时，操作失败，返回fasle
+// 当期望的引用值与当前引用值相同时，操作成功，返回true
+public boolean attemptMark(V expectedReference, int newMark)
+// 使用`sun.misc.Unsafe`类原子地交换两个对象
+private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
+
+&lt;h3 id=&#34;atomicmarkablereference&#34;&gt;AtomicMarkableReference&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public AtomicMarkableReference(V initialRef, int initialMark) {
+  	pair = Pair.of(initialRef, initialMark);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;构造函数，根据指定的引用值和标记值，构造一个Pair对象，并将该对象赋值给成员变量&lt;code&gt;pair&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;由于成员变量&lt;code&gt;pair&lt;/code&gt;被volatile修饰，并且这里只有一个单操作的赋值语句，因此是可以保证原子性的。&lt;/p&gt;
+
+&lt;h3 id=&#34;get&#34;&gt;get&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public V get(int[] markHolder) {
+    Pair&amp;lt;V&amp;gt; pair = this.pair;
+    markHolder[0] = pair.markz;
+    return pair.reference;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;真个函数很有意思，同时获取引用值和标记值。由于Java程序只能有一个返回值，该函数通过一个数组参数&lt;code&gt;int[] markHolder&lt;/code&gt;来返回标记值，而通过&lt;code&gt;return&lt;/code&gt;语句返回引用值。&lt;/p&gt;
+
+&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void set(V newReference, int newMark) {
+	Pair&amp;lt;V&amp;gt; current = pair;
+	if (newReference != current.reference || newMark != current.mark)
+		this.pair = Pair.of(newReference, newMark);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;只要新的引用值和新的标记值，有一个与当前值不一样的，就同时修改引用值和标记值。&lt;/p&gt;
+
+&lt;h3 id=&#34;compareandset&#34;&gt;compareAndSet&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean compareAndSet(V   expectedReference,
+                             V   newReference,
+                             int expectedMark,
+                             int newMark) {
+ 	Pair&amp;lt;V&amp;gt; current = pair;
+ 	return
+ 		expectedReference == current.reference &amp;amp;&amp;amp;
+ 		expectedMark == current.mark &amp;amp;&amp;amp;
+ 		((newReference == current.reference &amp;amp;&amp;amp;
+ 		  newMark == current.mark) ||
+ 		  casPair(current, Pair.of(newReference, newMark)));
+ }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以原子的方式同时更新引用值和标记值。&lt;/p&gt;
+
+&lt;p&gt;当期望引用值不等于当前引用值时，操作失败，返回false。&lt;/p&gt;
+
+&lt;p&gt;当期望标记值不等于当前标记值时，操作失败，返回false。&lt;/p&gt;
+
+&lt;p&gt;在期望引用值和期望标记值同时等于当前值的前提下，当新的引用值和新的标记值同时等于当前值时，不更新，直接返回true。由于要修改的内容与原内容完全一致，这种处理可以避免一次内存操作，效率较高。&lt;/p&gt;
+
+&lt;p&gt;当新的引用值和新的标记值不同时等于当前值时，同时设置新的引用值和新的标记值，返回true&lt;/p&gt;
+
+&lt;h3 id=&#34;weakcompareandset&#34;&gt;weakCompareAndSet&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean weakCompareAndSet(V   expectedReference,
+                                 V   newReference,
+                                 int expectedMark,
+                                 int newMark) {
+  	return compareAndSet(expectedReference, newReference,
+                       	 expectedMark, newMark);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以原子的方式同时更新引用值和标记值。该是通过调用CompareAndSet实现的。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何&lt;code&gt;happens-before&lt;/code&gt;顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证&lt;code&gt;happens-before&lt;/code&gt;顺序）。&lt;/p&gt;
+
+&lt;h3 id=&#34;attemptmark&#34;&gt;attemptMark&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean attemptMark(V expectedReference, int newMark) {
+  	Pair&amp;lt;V&amp;gt; current = pair;
+  	return
+    	expectedReference == current.reference &amp;amp;&amp;amp;
+    	(newMark == current.mark ||
+     	 casPair(current, Pair.of(expectedReference, newMark)));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;修改指定引用值的标记值。&lt;/p&gt;
+
+&lt;p&gt;当期望的引用值与当前引用值不相同时，操作失败，返回fasle。
+当期望的引用值与当前引用值相同时，操作成功，返回true。&lt;/p&gt;
+
+&lt;h3 id=&#34;caspair&#34;&gt;casPair&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val) {
+  	return UNSAFE.compareAndSwapObject(this, pairOffset, cmp, val);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类原子地交换两个对象。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>AtomicReference源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-reference/</link>
       <pubDate>Thu, 23 Feb 2017 18:30:27 +0800</pubDate>
@@ -2847,138 +3066,6 @@ public V putIfAbsent(K key, V value) {
 &lt;li&gt;&lt;a href=&#34;http://a-ray-of-sunshine.github.io/2016/08/01/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8-ConcurrentMap/&#34;&gt;并发容器-ConcurrentMap&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;http://cxis.me/2016/05/26/ConcurrentHashMap%E7%AE%80%E4%BB%8B/&#34;&gt;ConcurrentHashMap简介&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>CopyOnWriteArraySet源码分析</title>
-      <link>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</link>
-      <pubDate>Thu, 23 Feb 2017 18:26:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-set/</guid>
-      <description>
-
-&lt;h2 id=&#34;一言&#34;&gt;一言&lt;/h2&gt;
-
-&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;是线程安全的无序集合，它是通过聚合了一个&lt;code&gt;CopyOnWriteArray&lt;/code&gt;成员变量来实现的。&lt;/p&gt;
-
-&lt;h2 id=&#34;概要&#34;&gt;概要&lt;/h2&gt;
-
-&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;是线程安全的无序集合，可以将它理解成线程安全的HashSet。有意思的是，&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;和HashSet虽然都继承于共同的父类AbstractSet；但是，HashSet是通过&amp;rdquo;散列表(HashSet)&amp;ldquo;实现的，而CopyConWriteArraySet则是通过&amp;rdquo;动态数组(CopyOnWriteArrayList)&amp;ldquo;实现的，并不是散列表。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;CopyOnWriteArraySet&lt;/code&gt;具有以下特性：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;它最适合于具有以下特征的应用程序：Set 大小通常保持很小，只读操作远多于可变操作，需要在遍历期间防止线程间的冲突。&lt;/li&gt;
-&lt;li&gt;它是线程安全的。它的线程安全通过volatile、互斥锁来实现。&lt;/li&gt;
-&lt;li&gt;因为通常需要复制整个基础数组，所以可变操作（add()、set() 和 remove() 等等）的开销很大。&lt;/li&gt;
-&lt;li&gt;迭代器支持hasNext(), next()等不可变操作，但不支持可变 remove()等 操作。&lt;/li&gt;
-&lt;li&gt;使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
-
-&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset原理&#34;&gt;CopyOnWriteArraySet原理&lt;/h2&gt;
-
-&lt;p&gt;CopyOnWriteArraySet的数据结构，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;图&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;CopyOnWriteArraySet继承于AbstractSet，这就意味着它是一个集合。&lt;/li&gt;
-&lt;li&gt;CopyOnWriteArraySet聚合了一个CopyOnWriteArrayList对象，它是通过CopyOnWriteArrayList实现的。而CopyOnWriteArrayList本质是个动态数组队列，所以CopyOnWriteArraySet相当于通过动态数组实现的&amp;rdquo;集合&amp;rdquo;！&lt;/li&gt;
-&lt;li&gt;CopyOnWriteArraySet不允许有重复元素。因此，CopyOnWriteArrayList额外提供了addIfAbsent()和addAllAbsent()这两个添加元素的API，通过这些API来添加元素时，只有当元素不存在时才执行添加操作。&lt;/li&gt;
-&lt;li&gt;CopyOnWriteArraySet的&amp;rdquo;线程安全&amp;rdquo;机制是通过volatile和互斥锁来实现的。而它本身没有volatile变量和互斥锁，都是借由CopyOnWriteArrayList实现。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset成员变量&#34;&gt;CopyOnWriteArraySet成员变量&lt;/h2&gt;
-
-&lt;p&gt;CopyOnWriteArraySet只有下面一个成员变量&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private final CopyOnWriteArrayList&amp;lt;E&amp;gt; al;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;说明:&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;成员变量al是&lt;code&gt;final&lt;/code&gt;类型的，通过构造函数进行初始化后将不能再修改。&lt;/li&gt;
-&lt;li&gt;成员变量al里的&lt;code&gt;添加/修改/删除&lt;/code&gt;操作都是通过互斥锁和volatile变量来保证现场安全的，因此，成员变量al不再用&lt;code&gt;volatile&lt;/code&gt;修饰，也不再额外声明可重入锁lock。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset函数列表&#34;&gt;CopyOnWriteArraySet函数列表&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 创建一个空 set。
-CopyOnWriteArraySet()
-// 创建一个包含指定 collection 所有元素的 set。
-CopyOnWriteArraySet(Collection&amp;lt;? extends E&amp;gt; c)
-
-// 如果指定元素并不存在于此 set 中，则添加它。
-boolean add(E e)
-// 如果此 set 中没有指定 collection 中的所有元素，则将它们都添加到此 set 中。
-boolean addAll(Collection&amp;lt;? extends E&amp;gt; c)
-// 移除此 set 中的所有元素。
-void clear()
-// 如果此 set 包含指定元素，则返回 true。
-boolean contains(Object o)
-// 如果此 set 包含指定 collection 的所有元素，则返回 true。
-boolean containsAll(Collection&amp;lt;?&amp;gt; c)
-// 比较指定对象与此 set 的相等性。
-boolean equals(Object o)
-// 如果此 set 不包含任何元素，则返回 true。
-boolean isEmpty()
-// 返回按照元素添加顺序在此 set 中包含的元素上进行迭代的迭代器。
-Iterator&amp;lt;E&amp;gt; iterator()
-// 如果指定元素存在于此 set 中，则将其移除。
-boolean remove(Object o)
-// 移除此 set 中包含在指定 collection 中的所有元素。
-boolean removeAll(Collection&amp;lt;?&amp;gt; c)
-// 仅保留此 set 中那些包含在指定 collection 中的元素。
-boolean retainAll(Collection&amp;lt;?&amp;gt; c)
-// 返回此 set 中的元素数目。
-int size()
-// 返回一个包含此 set 所有元素的数组。
-Object[] toArray()
-// 返回一个包含此 set 所有元素的数组；返回数组的运行时类型是指定数组的类型。
-&amp;lt;T&amp;gt; T[] toArray(T[] a)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;copyonwritearrayset重点函数&#34;&gt;CopyOnWriteArraySet重点函数&lt;/h2&gt;
-
-&lt;h3 id=&#34;构造函数&#34;&gt;构造函数&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public CopyOnWriteArraySet() {
-        al = new CopyOnWriteArrayList&amp;lt;E&amp;gt;();
-}
-public CopyOnWriteArraySet(Collection&amp;lt;? extends E&amp;gt; c) {
-        al = new CopyOnWriteArrayList&amp;lt;E&amp;gt;();
-        al.addAllAbsent(c);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;CopyOnWriteArraySet允许初始化一个空的集合，也允许通过复制一个集合里的元素来进行初始化。本质上将，CopyOnWriteArraySet的初始化是通过初始化成员变量CopyOnWriteArrayList al来实现的。&lt;/p&gt;
-
-&lt;h3 id=&#34;添加&#34;&gt;添加&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean add(E e) {
-        return al.addIfAbsent(e);
-}
-
-public boolean addAll(Collection&amp;lt;? extends E&amp;gt; c) {
-        return al.addAllAbsent(c) &amp;gt; 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;CopyOnWriteArraySet不允许重复元素。因此，添加操作都是调用CopyOnWriteArrayList的&lt;code&gt;addIfAbsent&lt;/code&gt;方法或者&lt;code&gt;addAllAbsent&lt;/code&gt;方法实现的。&lt;/p&gt;
 </description>
     </item>
     

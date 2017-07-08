@@ -42,6 +42,11 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-markable-reference/</loc>
+    <lastmod>2017-02-23T18:30:27+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/juc.atomic/atomic-reference/</loc>
     <lastmod>2017-02-23T18:30:27+08:00</lastmod>
   </url>
