@@ -119,7 +119,7 @@
 
 <p>AtomicLongFieldUpdater有两个私有的静态内部类<code>CASUpdater</code>和<code>LockedUpdater</code>，它们都是<code>AtomicLongFieldUpdater</code>的子类。</p>
 
-<p>用户使用<code>AtomicLongFieldUpdater</code>公共静态方法<code>newUpdater</code>实例化<code>AtomicLongFieldUpdater</code>的对象，本质是上是根据条件实例化了子类<code>CASUpdater</code>或者<code>LockedUpdater</code>，然后通过子类来完成具体的工作。<code>CASUpdater</code>和<code>LockedUpdater</code>值的读取和更新最后都是使用<code>sun.misc.Unsafe</code>类的相关操作。</p>
+<p>用户使用<code>AtomicLongFieldUpdater</code>的静态方法<code>newUpdater</code>实例化<code>AtomicLongFieldUpdater</code>子类对象，本质是上是根据条件实例化了子类<code>CASUpdater</code>或者<code>LockedUpdater</code>，然后通过子类来完成具体的工作。<code>CASUpdater</code>和<code>LockedUpdater</code>值的读取和更新最后都是使用<code>sun.misc.Unsafe</code>类的相关操作。</p>
 
 <p><code>CASUpdater</code>使用下面的方法：</p>
 
