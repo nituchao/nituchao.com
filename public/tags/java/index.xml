@@ -2044,7 +2044,28 @@ void spin_lock_bh(spinlock_t *lock);
       <pubDate>Thu, 23 Feb 2017 18:27:27 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.atomic/atomic-long-field-updater/</guid>
-      <description></description>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;在原子变量相关类中，AtomicIntegerFieldUpdater, AtomicLongFieldUpdater, AtomicReferenceFieldUpdater三个类是用于原子地修改对象的成员属性，它们的原理和用法类似，区别在于对Integer，Long，Reference类型的成员属性进行修改。本文重点研究AtomicLongFieldUpdater。&lt;/p&gt;
+
+&lt;p&gt;AtomicLongFieldUpdater的设计非常有意思。AtomicLongFieldUpdater本身是一个抽象类，只有一个受保护的构造函数，它本身不能被实例化。&lt;/p&gt;
+
+&lt;p&gt;AtomicLongFieldUpdater有两个私有的静态内部类&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;，它们都是&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的子类。用户使用&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;公共静态方法&lt;code&gt;newUpdater&lt;/code&gt;实例化&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的对象，本质是上是根据条件实例化了子类&lt;code&gt;CASUpdater&lt;/code&gt;或者&lt;code&gt;LockedUpdater&lt;/code&gt;，然后通过子类来完成具体的工作。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0_67&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;_Java™ SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot™ 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;内部类&#34;&gt;内部类&lt;/h3&gt;
+</description>
     </item>
     
     <item>
