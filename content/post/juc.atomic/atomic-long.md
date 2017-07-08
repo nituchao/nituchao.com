@@ -163,7 +163,7 @@ lazySet是使用Unsafe.putOrderedObject方法，这个方法在对低延迟代�
 
 
 
-### compareAndSet(long expect, long update)
+### compareAndSet
 
 ```java
 public final boolean compareAndSet(long expect, long update) {
@@ -177,7 +177,7 @@ __set和compareAndSet都是原子操作，只是他们的目的不同，set只�
 
 
 
-### weakCompareAndSet(long expect, long update)
+### weakCompareAndSet
 
 ```java
 public final boolean weakCompareAndSet(long expect, long update) {

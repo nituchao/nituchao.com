@@ -1216,7 +1216,7 @@ public double doubleValue()
 
 &lt;p&gt;类似Unsafe.putOrderedObject还有unsafe.putOrderedLong等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。&lt;/p&gt;
 
-&lt;h3 id=&#34;compareandset-long-expect-long-update&#34;&gt;compareAndSet(long expect, long update)&lt;/h3&gt;
+&lt;h3 id=&#34;compareandset&#34;&gt;compareAndSet&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public final boolean compareAndSet(long expect, long update) {
 	return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
@@ -1227,7 +1227,7 @@ public double doubleValue()
 
 &lt;p&gt;_&lt;em&gt;set和compareAndSet都是原子操作，只是他们的目的不同，set只是单纯想设置一个新的值。而compareAndSet则是希望在满足一定条件的情况下(当前值等于except)再设置新的值。&lt;/em&gt;&lt;/p&gt;
 
-&lt;h3 id=&#34;weakcompareandset-long-expect-long-update&#34;&gt;weakCompareAndSet(long expect, long update)&lt;/h3&gt;
+&lt;h3 id=&#34;weakcompareandset&#34;&gt;weakCompareAndSet&lt;/h3&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public final boolean weakCompareAndSet(long expect, long update) {
 	return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
