@@ -613,9 +613,7 @@ private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
 
 &lt;p&gt;AtomicLongFieldUpdater有两个私有的静态内部类&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;，它们都是&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的子类。&lt;/p&gt;
 
-&lt;p&gt;用户使用&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;公共静态方法&lt;code&gt;newUpdater&lt;/code&gt;实例化&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的对象，本质是上是根据条件实例化了子类&lt;code&gt;CASUpdater&lt;/code&gt;或者&lt;code&gt;LockedUpdater&lt;/code&gt;，然后通过子类来完成具体的工作。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;值的读取和更新最后都是使用&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类的相关操作。&lt;/p&gt;
+&lt;p&gt;用户使用&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;公共静态方法&lt;code&gt;newUpdater&lt;/code&gt;实例化&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的对象，本质是上是根据条件实例化了子类&lt;code&gt;CASUpdater&lt;/code&gt;或者&lt;code&gt;LockedUpdater&lt;/code&gt;，然后通过子类来完成具体的工作。&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;值的读取和更新最后都是使用&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类的相关操作。&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;CASUpdater&lt;/code&gt;使用下面的方法：&lt;/p&gt;
 

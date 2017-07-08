@@ -18,11 +18,9 @@ AtomicLongFieldUpdater的设计非常有意思。AtomicLongFieldUpdater本身是
 
 AtomicLongFieldUpdater有两个私有的静态内部类`CASUpdater`和`LockedUpdater`，它们都是`AtomicLongFieldUpdater`的子类。
 
-用户使用`AtomicLongFieldUpdater`公共静态方法`newUpdater`实例化`AtomicLongFieldUpdater`的对象，本质是上是根据条件实例化了子类`CASUpdater`或者`LockedUpdater`，然后通过子类来完成具体的工作。
+用户使用`AtomicLongFieldUpdater`公共静态方法`newUpdater`实例化`AtomicLongFieldUpdater`的对象，本质是上是根据条件实例化了子类`CASUpdater`或者`LockedUpdater`，然后通过子类来完成具体的工作。`CASUpdater`和`LockedUpdater`值的读取和更新最后都是使用`sun.misc.Unsafe`类的相关操作。
 
 
-
-`CASUpdater`和`LockedUpdater`值的读取和更新最后都是使用`sun.misc.Unsafe`类的相关操作。
 
 `CASUpdater`使用下面的方法：
 
