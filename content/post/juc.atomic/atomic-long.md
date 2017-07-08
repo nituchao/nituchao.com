@@ -47,6 +47,10 @@ private static final long valueOffset;
 // 通过volatile关键字保证可见性，用于保存值
 private volatile long value;
 
+// 记录当前虚拟机是否支持long的原子化操作，如果支持，可以使用CAS进行更新
+// 这个问题主要是针对32位JVM对long的更新
+static final boolean VM_SUPPORTS_LONG_CAS = VMSupportsCS8();
+
 static {
   try {
     valueOffset = unsafe.objectFieldOffset

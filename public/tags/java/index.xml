@@ -807,6 +807,10 @@ private static final long valueOffset;
 // 通过volatile关键字保证可见性，用于保存值
 private volatile long value;
 
+// 记录当前虚拟机是否支持long的原子化操作，如果支持，可以使用CAS进行更新
+// 这个问题主要是针对32位JVM对long的更新
+static final boolean VM_SUPPORTS_LONG_CAS = VMSupportsCS8();
+
 static {
   try {
     valueOffset = unsafe.objectFieldOffset
@@ -2052,7 +2056,25 @@ void spin_lock_bh(spinlock_t *lock);
 
 &lt;p&gt;AtomicLongFieldUpdater的设计非常有意思。AtomicLongFieldUpdater本身是一个抽象类，只有一个受保护的构造函数，它本身不能被实例化。&lt;/p&gt;
 
-&lt;p&gt;AtomicLongFieldUpdater有两个私有的静态内部类&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;，它们都是&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的子类。用户使用&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;公共静态方法&lt;code&gt;newUpdater&lt;/code&gt;实例化&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的对象，本质是上是根据条件实例化了子类&lt;code&gt;CASUpdater&lt;/code&gt;或者&lt;code&gt;LockedUpdater&lt;/code&gt;，然后通过子类来完成具体的工作。&lt;/p&gt;
+&lt;p&gt;AtomicLongFieldUpdater有两个私有的静态内部类&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;，它们都是&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的子类。&lt;/p&gt;
+
+&lt;p&gt;用户使用&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;公共静态方法&lt;code&gt;newUpdater&lt;/code&gt;实例化&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;的对象，本质是上是根据条件实例化了子类&lt;code&gt;CASUpdater&lt;/code&gt;或者&lt;code&gt;LockedUpdater&lt;/code&gt;，然后通过子类来完成具体的工作。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;值的读取和更新最后都是使用&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类的相关操作。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;CASUpdater&lt;/code&gt;使用下面的方法：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public native Object getLongVolatile(Object o, long offset);
+public native void   putLongVolatile(Object o, long offset, long x);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;LockedUpdater使用下面的方法：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public native long    getLong(Object o, long offset);
+public native void    putLong(Object o, long offset, long x);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了防止操作过程中的指令重排，LockedUpdater使用synchronized进行同步。&lt;/p&gt;
 
 &lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
 
@@ -2065,6 +2087,338 @@ void spin_lock_bh(spinlock_t *lock);
 &lt;/blockquote&gt;
 
 &lt;h3 id=&#34;内部类&#34;&gt;内部类&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;本身是抽象类，通过两个私有的静态内部子类来完成具体的工作。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;CASUpdater&lt;/code&gt;：顾名思义，使用CAS操作对象的成员变量。&lt;/li&gt;
+&lt;li&gt;LockedUpdater：顾名思义，在更新和读取对象的成员变量时，使用对象锁来保证同步。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;成员变量&#34;&gt;成员变量&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;是个抽象类，具体的业务逻辑都是交给它的子类实现的，它本身没有包含任何成员变量。&lt;/p&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;采用模板方法，它本身定义了一些操作过程，而其中使用的具体的方法则由各个子类实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 受保护的无操作构造函数，供子类使用
+protected AtomicLongFieldUpdater()
+// 为对象创建并返回一个具有给定字段的更新器。
+public static &amp;lt;U&amp;gt; AtomicLongFieldUpdater&amp;lt;U&amp;gt; newUpdater(Class&amp;lt;U&amp;gt; tclass, String fieldName)
+// 以原子方式设置当前值为update。
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// CASUpdater的实现该不阻塞
+// LockedUpdater的实现通过synchronized进行同步，会阻塞
+public abstract boolean compareAndSet(T obj, long expect, long update)
+// 以原子方式设置当前值为update。
+// 如果当前值等于expect，并设置成功，返回true
+// 如果当前值不等于expect，则设置失败，返回false
+// CASUpdater的实现该不阻塞
+// LockedUpdater的实现通过synchronized进行同步，会阻塞
+// 该过程不保证volatile成员的happens-before语义顺序
+public abstract boolean weakCompareAndSet(T obj, long expect, long update)
+// 以原子方式设置当前值为newValue
+// CASUpdater的实现使用Unsafe类的putLongVolatile进行操作，具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+public abstract void set(T obj, long newValue)
+// 以原子方式设置当前值为newValue
+// CASUpdater的实现使用Unsafe类的putOrderedLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 优先保证对值的修改，而不保证可见性
+public abstract void lazySet(T obj, long newValue)
+// 以原子方式获取当前值
+// CASUpdater的实现使用Unsafe类的getLongVolatile进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的getLong进行操作，具有原子性
+public abstract long get(T obj)
+// 以原子方式设置当前值为newValue，并返回更新前的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long getAndSet(T obj, long newValue)
+// 以原子方式将当前值加1，并返回更新前的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long getAndIncrement(T obj)
+// 以原子方式将当前值减1，并返回更新前的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long getAndDecrement(T obj)
+// 以原子方式将当前值加上给定值delta，并返回更新前的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long getAndAdd(T obj, long delta)
+// 以原子方式将当前值加1，并返回更新后的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long incrementAndGet(T obj)
+// 以原子方式将当前值减1，并返回更新前的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long decrementAndGet(T obj)
+// 以原子方式将当前值加上给定值delta，并返回更新后的值
+// CASUpdater的实现使用Unsafe类的compareAndSwapLong进行操作，所以本身具有原子性
+// LockedUpdater的实现使用synchronizde和Unsafe类的putLong进行操作，具有原子性
+// 操作过程中使用自旋方式，直到操作成功
+public long addAndGet(T obj, long delta)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
+
+&lt;h3 id=&#34;newupdater&#34;&gt;newUpdater&lt;/h3&gt;
+
+&lt;p&gt;为对象创建并返回一个具有给定字段的更新器实例。由于要操作long型数据，因此要根据虚拟机是否支持原子化更新long来创建对于的子类。当虚拟机支持原子化更新long时，创建CASUpdater实例。否则，创LockedUpdater实例，32位虚拟机不支持对long的原子化更新，因此，只能使用对象锁来保证原子操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public static &amp;lt;U&amp;gt; AtomicLongFieldUpdater&amp;lt;U&amp;gt; newUpdater(Class&amp;lt;U&amp;gt; tclass, String fieldName) {
+    Class&amp;lt;?&amp;gt; caller = Reflection.getCallerClass();
+    if (AtomicLong.VM_SUPPORTS_LONG_CAS)
+      	return new CASUpdater&amp;lt;U&amp;gt;(tclass, fieldName, caller);
+    else
+      	return new LockedUpdater&amp;lt;U&amp;gt;(tclass, fieldName, caller);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;atomiclongfieldupdater&#34;&gt;AtomicLongFieldUpdater&lt;/h3&gt;
+
+&lt;p&gt;受保护的无操作构造函数，供子类实现。无论是&lt;code&gt;CASUpdater&lt;/code&gt;还是&lt;code&gt;LockedUpdater&lt;/code&gt;，都包含了下面四个成员变量，它们构造函数的实现也是一样的，我们只分析其中CASUpdater的实现。&lt;/p&gt;
+
+&lt;p&gt;在构造函数中，首先获取要更新的类的指定成员变量fieldName的访问策略(Modifier: public, private, default, protected)，然后检查调用类(caller)是否有权限访问该成员变量fieldName，如果没有权限则抛出异常。接下来，判断指定的成员变量fieldName的类型是否是long，如果不是，也抛出异常。接下来，判断当前指定的成员变量是否是volatile类型的，如果不是，也抛出异常。接下来，实例化调用者类cclass，和操作目标类tclass。最后，计算指定成员变量fieldName的内存偏移值。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 成员变量unsafe是原子变量相关操作的基础
+// 原子变量的修改操作最终有sun.misc.Unsafe类的CAS操作实现
+private static final Unsafe unsafe = Unsafe.getUnsafe();
+// 成员变量fieldName的内存偏移值，在构造函数中初始化
+private final long offset;
+// 操作目标类，对该类中的fieldName字段进行更新
+private final Class&amp;lt;T&amp;gt; tclass;
+// 调用者类，通过反射获取
+private final Class cclass;
+
+CASUpdater(Class&amp;lt;T&amp;gt; tclass, String fieldName, Class&amp;lt;?&amp;gt; caller) {
+    Field field = null;
+    int modifiers = 0;
+    try {
+      	// 获取要更新的类的指定成员变量fieldName的访问策略
+        field = tclass.getDeclaredField(fieldName);
+        modifiers = field.getModifiers();
+      	// 验证访问策略
+        sun.reflect.misc.ReflectUtil.ensureMemberAccess(
+          	caller, tclass, null, modifiers);
+        sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
+    } catch (Exception ex) {
+      	throw new RuntimeException(ex);
+    }
+
+  	// 当前成员变量的类型必须是long
+    Class fieldt = field.getType();
+    if (fieldt != long.class)
+      	throw new IllegalArgumentException(&amp;quot;Must be long type&amp;quot;);
+
+  	// 当前成员变量必须是volatile修饰
+    if (!Modifier.isVolatile(modifiers))
+      	throw new IllegalArgumentException(&amp;quot;Must be volatile type&amp;quot;);
+
+  	// 设置调用者类
+    this.cclass = (Modifier.isProtected(modifiers) &amp;amp;&amp;amp;
+                   caller != tclass) ? caller : null;
+  	// 设置操作目标类
+    this.tclass = tclass;
+  	// 设置成员变量的内存偏移值
+    offset = unsafe.objectFieldOffset(field);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;weakcompareandset&#34;&gt;weakCompareAndSet&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。&lt;/p&gt;
+
+&lt;p&gt;weakCompareAndSet是通过调用compareAndSet实现的，但是，在JDK文档中声明，weakCompareAndSet不保证volatile的happens-before内存顺序性语义，这是它们的区别。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;类中，这是一个抽象方法。&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;有各自的实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public abstract boolean weakCompareAndSet(T obj, long expect, long update);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;compareandset&#34;&gt;compareAndSet&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;类中，这是一个抽象方法。&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;有各自的实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public abstract boolean compareAndSet(T obj, long expect, long update);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;casupdater的实现&#34;&gt;CASUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM支持long的原子更新时，CASUpdater选择用Unsafe类的&lt;code&gt;compareAndSwapLong&lt;/code&gt;方法来直接原子地比较期望值并更新当前值。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean compareAndSet(T obj, long expect, long update) {
+    if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+    	return unsafe.compareAndSwapLong(obj, offset, expect, update);
+}
+
+// 类型检查&amp;amp;访问检查
+private void fullCheck(T obj) {
+	if (!tclass.isInstance(obj))
+    	throw new ClassCastException();
+  	if (cclass != null)
+    	ensureProtectedAccess(obj);
+}
+
+// 访问检查
+private void ensureProtectedAccess(T obj) {
+    if (cclass.isInstance(obj)) {
+      	return;
+    }
+    throw new RuntimeException(
+      	new IllegalAccessException(&amp;quot;Class &amp;quot; +
+            cclass.getName() +
+            &amp;quot; can not access a protected member of class &amp;quot; +
+            tclass.getName() +
+            &amp;quot; using an instance of &amp;quot; +
+            obj.getClass().getName()
+            )
+    );
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;lockedupdater的实现&#34;&gt;LockedUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM不支持long的原子更新时，LockedUpdater选择用synchronized对象锁来同步更新操作，其中涉及到当前值是否等于预期值expect，如果相等，则更新，并返回true，否则，不更新，返回false。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean compareAndSet(T obj, long expect, long update) {
+	if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+    synchronized (this) {
+        long v = unsafe.getLong(obj, offset);
+        if (v != expect)
+            return false;
+        unsafe.putLong(obj, offset, update);
+        return true;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;get&#34;&gt;get&lt;/h3&gt;
+
+&lt;p&gt;以原子方式获取当前值。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;类中，这是一个抽象方法。&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;有各自的实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public long get(T obj);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;casupdater的实现-1&#34;&gt;CASUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM支持long的原子更新时，CASUpdater选择用Unsafe类的getLongVolatile方法来直接原子地获取当前值。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public long get(T obj) {
+    if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+    return unsafe.getLongVolatile(obj, offset);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;lockedupdater的实现-1&#34;&gt;LockedUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM不支持long的原子更新时，LockedUpdater选择用synchronized对象锁来同步更新操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public long get(T obj) {
+    if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+    synchronized (this) {
+        return unsafe.getLong(obj, offset);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置当前值为newValue。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;类中，这是一个抽象方法。&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;有各自的实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public abstract void set(T obj, long newValue);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;casupdater的实现-2&#34;&gt;CASUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM支持long的原子更新时，CASUpdater选择用Unsafe类的putLongVolatile方法来直接原子地更新当前值。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void set(T obj, long newValue) {
+	if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+    unsafe.putLongVolatile(obj, offset, newValue);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;lockedupdater的实现-2&#34;&gt;LockedUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM不支持long的原子更新时，LockedUpdater选择用synchronized对象锁来同步更新操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void set(T obj, long newValue) {
+	if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+    synchronized (this) {
+	    unsafe.putLong(obj, offset, newValue);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;lazyset&#34;&gt;lazySet&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置当前值为newValue。与set方法不同之处在于，lazySet优先保证更新数据，而不保证可见性。因此，更新效率高于set。但是，这种保证只是JDK的设计声明，在子类的实现中，要具体情况具体分析。比如LockedUpdater的lazySet就是调用set方法实现的，本质上一样。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code&gt;AtomicLongFieldUpdater&lt;/code&gt;类中，这是一个抽象方法。&lt;code&gt;CASUpdater&lt;/code&gt;和&lt;code&gt;LockedUpdater&lt;/code&gt;有各自的实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public abstract void lazySet(T obj, long newValue);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;casupdater的实现-3&#34;&gt;CASUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM支持long的原子更新时，CASUpdater选择用Unsafe类的putOrderedLong方法来直接原子地更新当前值。并且，该方法优先保证更新数据，而不保证可见性。效率比putLong高3倍。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void lazySet(T obj, long newValue) {
+	if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
+	unsafe.putOrderedLong(obj, offset, newValue);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;lockedupdater的实现-3&#34;&gt;LockedUpdater的实现&lt;/h4&gt;
+
+&lt;p&gt;当JVM不支持long的原子更新时，LockedUpdater选择调用set方法进行更新，set方法则使用synchronized对象锁来同步更新操作。在LockedUpdater中set方法和lazySet方法没有区别。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void lazySet(T obj, long newValue) {
+	set(obj, newValue);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;getandset&#34;&gt;getAndSet&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置当前值为newValue，并返回更新前的值。&lt;/p&gt;
+
+&lt;p&gt;这是一个模板方法，通过在自旋循环中反复调用compareAndSet方法进行操作，而compareAndSet则在不同的子类中有不同的实现。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public long getAndSet(T obj, long newValue) {
+  for (;;) {
+    long current = get(obj);
+    if (compareAndSet(obj, current, newValue))
+    	return current;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;类似的方法还有：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public long getAndIncrement(T obj)
+public long getAndDecrement(T obj)
+public long getAndAdd(T obj, long delta)
+public long incrementAndGet(T obj)
+public long decrementAndGet(T obj)
+public long addAndGet(T obj, long delta)
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
