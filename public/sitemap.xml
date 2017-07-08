@@ -42,6 +42,16 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-reference/</loc>
+    <lastmod>2017-02-23T18:30:27+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-stamped-reference/</loc>
+    <lastmod>2017-02-23T18:30:27+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/post/juc.lock/java-cas/</loc>
     <lastmod>2017-02-23T18:29:27+08:00</lastmod>
   </url>

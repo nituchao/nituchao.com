@@ -739,7 +739,7 @@ public double doubleValue()
 
 &lt;h3 id=&#34;set-long-newvalue&#34;&gt;set(long newValue)&lt;/h3&gt;
 
-&lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个但操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
+&lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个单操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
 
 &lt;h3 id=&#34;lazyset-long-newvalue&#34;&gt;lazySet(long newValue)&lt;/h3&gt;
 

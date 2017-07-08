@@ -137,7 +137,7 @@ public double doubleValue()
 
 ### set(long newValue)
 
-以原子方式设置当前值为newValue，因为set方法只是一个但操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。
+以原子方式设置当前值为newValue，因为set方法只是一个单操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。
 
 
 

@@ -1196,7 +1196,7 @@ public double doubleValue()
 
 &lt;h3 id=&#34;set-long-newvalue&#34;&gt;set(long newValue)&lt;/h3&gt;
 
-&lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个但操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
+&lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个单操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
 
 &lt;h3 id=&#34;lazyset-long-newvalue&#34;&gt;lazySet(long newValue)&lt;/h3&gt;
 
@@ -1425,6 +1425,337 @@ public String toString()
     }
 }
 &lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>AtomicReference源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference/</link>
+      <pubDate>Thu, 23 Feb 2017 18:30:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference/</guid>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;在原子变量相关类中，AtomicReference, AtomicStampedReference, AtomicMarkableReference三个类是对于引用类型的操作，其原理和用法类似。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicStampedReference&lt;/code&gt;是带了整型版本号(int stamp)的引用型原子变量，每次执行CAS操作时需要对比版本，如果版本满足要求，则操作成功，否则操作失败，用于防止CAS操作的ABA问题。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicMarkableReference&lt;/code&gt;则是带了布尔型标记位(Boolean mark)的引用型原子量，每次执行CAS操作是需要对比该标记位，如果标记满足要求，则操作成功，否则操作失败。&lt;/p&gt;
+
+&lt;p&gt;Java原子变量的实现依赖于&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作和volatile的内存可见性语义。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;成员变量&#34;&gt;成员变量&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicReference&lt;/code&gt;通过泛型&lt;code&gt;T&lt;/code&gt;来声明成员值的类型，表示这是对引用类型的操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 成员变量unsafe是原子变量相关操作的基础
+// 原子变量的修改操作最终有sun.misc.Unsafe类的CAS操作实现
+private static final Unsafe unsafe = Unsafe.getUnsafe();
+// 成员变量value的内存偏移值，在静态代码块中初始化
+private static final long valueOffset;
+// 通过volatile关键字保证可见性，用于保存值
+private volatile V value;
+
+static {
+  try {
+    valueOffset = unsafe.objectFieldOffset
+      (AtomicReference.class.getDeclaredField(&amp;quot;value&amp;quot;));
+  } catch (Exception ex) { throw new Error(ex); }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 构造函数，初始化值为null
+public AtomicReference()
+// 构造函数，指定初始化值
+public AtomicReference(V initialValue)
+// 以原子方式获取当前值
+public final V get()
+// 以原子方式设置当前值为新的值newValue
+public final void set(V newValue)
+// 以原子方式设置当前值为新的值newValue
+// 优先保证修改操作，而不保证volatile的可见性语义
+// 效率较高
+public final void lazySet(V newValue)
+// 以原子方式设置当前值为update
+// 如果当前值等于except，则设置成功，返回true
+// 如果当前值不等于except，则设置失败，返回fase
+// 该过程不阻塞
+public final boolean compareAndSet(V expect, V update)
+// 以原子方式设置当前值为update
+// 如果当前值等于except，则设置成功，返回true
+// 如果当前值不等于except，则设置失败，返回fase
+// 该过程不阻塞
+// 该过程不保证volatile成员的happens-before语义顺序
+public final boolean weakCompareAndSet(V expect, V update)
+// 以原子方式设置当前值为update
+// 返回更新前的值
+public final V getAndSet(V newValue)
+// 返回当前值的string表达式
+public String toString()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
+
+&lt;h3 id=&#34;set-v-newvalue&#34;&gt;set(V newValue)&lt;/h3&gt;
+
+&lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个单操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
+
+&lt;h3 id=&#34;lazyset-v-newvalue&#34;&gt;lazySet(V newValue)&lt;/h3&gt;
+
+&lt;p&gt;简单点说，lazySet优先保证数据的修改操作，而降低对可见性的要求。&lt;/p&gt;
+
+&lt;p&gt;lazySet是使用Unsafe.putOrderedObject方法，这个方法在对低延迟代码是很有用的，它能够实现非堵塞的写入，这些写入不会被Java的JIT重新排序指令(&lt;a href=&#34;http://stackoverflow.com/questions/14321212/java-instruction-reordering-cache-in-threads&#34;&gt;instruction reordering&lt;/a&gt;)，这样它使用快速的存储-存储(store-store) barrier, 而不是较慢的存储-加载(store-load) barrier, 后者总是用在volatile的写操作上，这种性能提升是有代价的，虽然便宜，也就是写后结果并不会被其他线程看到，甚至是自己的线程，通常是几纳秒后被其他线程看到，这个时间比较短，所以代价可以忍受。&lt;/p&gt;
+
+&lt;p&gt;类似Unsafe.putOrderedObject还有unsafe.putOrderedLong等方法，unsafe.putOrderedLong比使用 volatile long要快3倍左右。&lt;/p&gt;
+
+&lt;h2 id=&#34;compareandset-v-expect-v-update&#34;&gt;compareAndSet(V expect,V update)&lt;/h2&gt;
+
+&lt;p&gt;以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。该过程不阻塞。由于是使用了&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作实现，它是原子操作无疑。&lt;/p&gt;
+
+&lt;p&gt;_&lt;em&gt;set和compareAndSet都是原子操作，只是他们的目的不同，set只是单纯想设置一个新的值。而compareAndSet则是希望在满足一定条件的情况下(当前值等于except)再设置新的值。&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;weakcompareandset-v-expect-v-update&#34;&gt;weakCompareAndSet(V expect,V update)&lt;/h2&gt;
+
+&lt;p&gt;以原子方式设置当前值为update。它的实现与compareAndSet完全一致。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何&lt;code&gt;happens-before&lt;/code&gt;顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证&lt;code&gt;happens-before&lt;/code&gt;顺序）。&lt;/p&gt;
+
+&lt;p&gt;参考:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.xamarin.com/api/type/Java.Util.Concurrent.Atomic.AtomicMarkableReference/&#34;&gt;Java.Util.Concurrent.Atomic.AtomicMarkableReference Class&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>AtomicStampedReference源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-stamped-reference/</link>
+      <pubDate>Thu, 23 Feb 2017 18:30:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-stamped-reference/</guid>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;在原子变量相关类中，AtomicReference, AtomicStampedReference, AtomicMarkableReference三个类是对于引用类型的操作，其原理和用法类似。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicStampedReference&lt;/code&gt;是带了整型版本号(int stamp)的引用型原子变量，每次执行CAS操作时需要对比版本，如果版本满足要求，则操作成功，否则操作失败，用于防止CAS操作的ABA问题。本文重点分析&lt;code&gt;AtomicStampedReference&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicMarkableReference&lt;/code&gt;则是带了布尔型标记位(Boolean mark)的引用型原子量，每次执行CAS操作是需要对比该标记位，如果标记满足要求，则操作成功，否则操作失败。&lt;/p&gt;
+
+&lt;p&gt;Java原子变量的实现依赖于&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作和volatile的内存可见性语义。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&#34;内部类&#34;&gt;内部类&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicStampedReference&lt;/code&gt;是带整形版本号的原子引用类型，为了同时兼顾引用值和版本号，它定义了一个静态内部类&lt;code&gt;Pair&lt;/code&gt;，&lt;code&gt;AtomicStampedReference&lt;/code&gt;的相关操作都是对&lt;code&gt;Pair&lt;/code&gt;内成员的操作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private static class Pair&amp;lt;T&amp;gt; {
+    final T reference;
+    final int stamp;
+    private Pair(T reference, int stamp) {
+        this.reference = reference;
+        this.stamp = stamp;
+    }
+    static &amp;lt;T&amp;gt; Pair&amp;lt;T&amp;gt; of(T reference, int stamp) {
+      	return new Pair&amp;lt;T&amp;gt;(reference, stamp);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;成员变量&#34;&gt;成员变量&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;AtomicStampedReference&lt;/code&gt;除了常规的&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;实例和&lt;code&gt;pairOffset&lt;/code&gt;内存偏移量外，声明了一个&lt;code&gt;volatile&lt;/code&gt;的&lt;code&gt;Pair&amp;lt;T&amp;gt;&lt;/code&gt;成员，用于同时维护引用值和版本号。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 成员变量unsafe是原子变量相关操作的基础
+// 原子变量的修改操作最终有sun.misc.Unsafe类的CAS操作实现
+private static final sun.misc.Unsafe UNSAFE = Unsafe.getUnsafe();
+// 成员变量value的内存偏移值
+private static final long pairOffset = objectFieldOffset(UNSAFE, &amp;quot;pair&amp;quot;, AtomicStampedReference.class);
+// 用volatile的内存语义保证可见性
+// 保存引用值和版本号
+private volatile Pair&amp;lt;V&amp;gt; pair;
+
+// 获取指定域的内存偏移量
+static long objectFieldOffset(sun.misc.Unsafe UNSAFE,
+                              String field, Class&amp;lt;?&amp;gt; klazz) {
+    try {
+        return UNSAFE.objectFieldOffset(klazz.getDeclaredField(field));
+    } catch (NoSuchFieldException e) {
+        // Convert Exception to corresponding Error
+        NoSuchFieldError error = new NoSuchFieldError(field);
+        error.initCause(e);
+        throw error;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;p&gt;由于&lt;code&gt;AtomicStampedReference&lt;/code&gt;要同时维护引用值和版本号，因此很多操作变得复杂。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 构造函数，初始化引用和版本号
+public AtomicStampedReference(V initialRef, int initialStamp)
+// 以原子方式获取当前引用值
+public V getReference()
+// 以原子方式获取当前版本号
+public int getStamp()
+// 以原子方式获取当前引用值和版本号
+public V get(int[] stampHolder)
+// 以原子的方式同时更新引用值和版本号
+// 当期望引用值不等于当前引用值时，操作失败，返回false
+// 当期望版本号不等于当前版本号时，操作失败，返回false
+// 在期望引用值和期望版本号同时等于当前值的前提下
+// 当新的引用值和新的版本号同时等于当前值时，不更新，直接返回true
+// 当新的引用值和新的版本号不同时等于当前值时，同时设置新的引用值和新的版本号，返回true
+// 该过程不保证volatile成员的happens-before语义顺序
+public boolean weakCompareAndSet(V  expectedReference,
+                                 V  newReference,
+                                 int expectedStamp,
+                                 int newStamp)
+// 以原子的方式同时更新引用值和版本号
+// 当期望引用值不等于当前引用值时，操作失败，返回false
+// 当期望版本号不等于当前版本号时，操作失败，返回false
+// 在期望引用值和期望版本号同时等于当前值的前提下
+// 当新的引用值和新的版本号同时等于当前值时，不更新，直接返回true
+// 当新的引用值和新的版本号不同时等于当前值时，同时设置新的引用值和新的版本号，返回true
+public boolean compareAndSet(V   expectedReference,
+                             V   newReference,
+                             int expectedStamp,
+                             int newStamp)
+// 以原子方式设置引用的当前值为新值newReference
+// 同时，以原子方式设置版本号的当前值为新值newStamp
+// 新引用值和新版本号只要有一个跟当前值不一样，就进行更新
+public void set(V newReference, int newStamp)
+// 以原子方式设置版本号为新的值
+// 前提：引用值保持不变
+// 当期望的引用值与当前引用值不相同时，操作失败，返回fasle
+// 当期望的引用值与当前引用值相同时，操作成功，返回true
+public boolean attemptStamp(V expectedReference, int newStamp)
+// 使用`sun.misc.Unsafe`类原子地交换两个对象
+private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
+
+&lt;h3 id=&#34;atomicstampedreference&#34;&gt;AtomicStampedReference&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public AtomicStampedReference(V initialRef, int initialStamp) {
+  	pair = Pair.of(initialRef, initialStamp);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;构造函数，根据指定的引用值和版本号，构造一个Pair对象，并将该对象赋值给成员变量&lt;code&gt;pair&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;由于成员变量&lt;code&gt;pair&lt;/code&gt;被volatile修饰，并且这里只有一个单操作的赋值语句，因此是可以保证原子性的。&lt;/p&gt;
+
+&lt;h3 id=&#34;get&#34;&gt;get&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public V get(int[] stampHolder) {
+    Pair&amp;lt;V&amp;gt; pair = this.pair;
+    stampHolder[0] = pair.stamp;
+    return pair.reference;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;真个函数很有意思，同时获取引用值和版本号。由于Java程序只能有一个返回值，该函数通过一个数组参数&lt;code&gt;int[] stampHolder&lt;/code&gt;来返回版本号，而通过&lt;code&gt;return&lt;/code&gt;语句返回引用值。&lt;/p&gt;
+
+&lt;h3 id=&#34;compareandset&#34;&gt;compareAndSet&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean compareAndSet(V   expectedReference,
+                             V   newReference,
+                             int expectedStamp,
+                             int newStamp) {
+ 	Pair&amp;lt;V&amp;gt; current = pair;
+ 	return
+ 		expectedReference == current.reference &amp;amp;&amp;amp;
+ 		expectedStamp == current.stamp &amp;amp;&amp;amp;
+ 		((newReference == current.reference &amp;amp;&amp;amp;
+ 		  newStamp == current.stamp) ||
+ 		  casPair(current, Pair.of(newReference, newStamp)));
+ }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以原子的方式同时更新引用值和版本号。&lt;/p&gt;
+
+&lt;p&gt;当期望引用值不等于当前引用值时，操作失败，返回false。&lt;/p&gt;
+
+&lt;p&gt;当期望版本号不等于当前版本号时，操作失败，返回false。&lt;/p&gt;
+
+&lt;p&gt;在期望引用值和期望版本号同时等于当前值的前提下，当新的引用值和新的版本号同时等于当前值时，不更新，直接返回true。由于要修改的内容与原内容完全一致，这种处理可以避免一次内存操作，效率较高。&lt;/p&gt;
+
+&lt;p&gt;当新的引用值和新的版本号不同时等于当前值时，同时设置新的引用值和新的版本号，返回true&lt;/p&gt;
+
+&lt;h3 id=&#34;weakcompareandset&#34;&gt;weakCompareAndSet&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean weakCompareAndSet(V   expectedReference,
+                                 V   newReference,
+                                 int expectedStamp,
+                                 int newStamp) {
+  	return compareAndSet(expectedReference, newReference,
+                       	 expectedStamp, newStamp);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以原子的方式同时更新引用值和版本号。该是通过调用CompareAndSet实现的。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何&lt;code&gt;happens-before&lt;/code&gt;顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证&lt;code&gt;happens-before&lt;/code&gt;顺序）。&lt;/p&gt;
+
+&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public void set(V newReference, int newStamp) {
+	Pair&amp;lt;V&amp;gt; current = pair;
+	if (newReference != current.reference || newStamp != current.stamp)
+		this.pair = Pair.of(newReference, newStamp);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;只要新的引用值和新的版本号，有一个与当前值不一样的，就同时修改引用值和版本号。&lt;/p&gt;
+
+&lt;h3 id=&#34;attemptstamp&#34;&gt;attemptStamp&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean attemptStamp(V expectedReference, int newStamp) {
+  	Pair&amp;lt;V&amp;gt; current = pair;
+  	return
+    	expectedReference == current.reference &amp;amp;&amp;amp;
+    	(newStamp == current.stamp ||
+     	 casPair(current, Pair.of(expectedReference, newStamp)));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;修改指定引用值的版本号。&lt;/p&gt;
+
+&lt;p&gt;当期望的引用值与当前引用值不相同时，操作失败，返回fasle。
+当期望的引用值与当前引用值相同时，操作成功，返回true。&lt;/p&gt;
+
+&lt;h3 id=&#34;caspair&#34;&gt;casPair&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val) {
+  	return UNSAFE.compareAndSwapObject(this, pairOffset, cmp, val);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类原子地交换两个对象。&lt;/p&gt;
 </description>
     </item>
     
@@ -2628,517 +2959,6 @@ public boolean addAll(Collection&amp;lt;? extends E&amp;gt; c) {
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;CopyOnWriteArraySet不允许重复元素。因此，添加操作都是调用CopyOnWriteArrayList的&lt;code&gt;addIfAbsent&lt;/code&gt;方法或者&lt;code&gt;addAllAbsent&lt;/code&gt;方法实现的。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>CopyOnWriteArrayList源码分析</title>
-      <link>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</link>
-      <pubDate>Thu, 23 Feb 2017 18:25:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.concurrent/copy-on-write-array-list/</guid>
-      <description>
-
-&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
-
-&lt;p&gt;CopyOnWriteArrayList相当于线程安全的ArrayList。和ArrayList一样，它是个可变数组；但是和ArrayList不同的是，它具有以下特性：
-1. 它最适合于具有以下特征的应用程序：List大小通常保持很小，只读操作远多于可变操作，需要在遍历期间防止线程间的冲突。
-2. 它是线程安全的。它的线程安全表现在两个方面，修改时使用锁进行同步，读取时使用数据快照。
-3. 因为通常要复制整个基础数组，所以可变操作（add()、set()和remove()等操作）的开销很大。
-4. 迭代器支持hasNext()、next等不可变操作，但不支持可变remove()等操作。
-5. 使用迭代器进行遍历的速度很快，并且不会与其他线程发生冲突。在构造迭代器时，迭代器依赖于不变的数组快照。&lt;/p&gt;
-
-&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
-
-&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;copyonwritearraylist原理和数据结构&#34;&gt;CopyOnWriteArrayList原理和数据结构&lt;/h2&gt;
-
-&lt;p&gt;CopyOnWriteArrayList的数据结构，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;CopyOnWriteArrayList UML图&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;说明：
-1. CopyOnWriteArrayList实现了List接口，因此可以认为它是一个有序的集合。
-2. CopyOnWriteArrayList实现了RandomAccess接口，因此可以认为它的元素可以随机访问。
-3. CopyOnWriteArrayList包含一个可重入锁Lock。每一个CopyOnWriteArrayList都和一个互斥锁lock绑定，通过lock，实现了对CopyOnWriteArrayList的互斥访问。
-4. CopyOnWriteArrayList包含了成员array数组，这说明CopyOnWriteArrayList本质上通过数组实现的。而且，可存储的元素个数没有上限。&lt;/p&gt;
-
-&lt;p&gt;下面从&amp;rdquo;动态数组&amp;rdquo;和&amp;rdquo;线程安全&amp;rdquo;两个方面进一步对CopyOnWriteArrayList的原理进行说明。
-1. &lt;strong&gt;CopyOnWriteArrayList的&amp;rdquo;动态数组&amp;rdquo;机制&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;它内部有个&amp;rdquo;volatile数组&amp;rdquo;(array)来保持数据。在&amp;rdquo;添加/修改/删除&amp;rdquo;数据时，都会新建一个数组，并将更新后的数据拷贝到新建的数组中，最后再将该数组赋值给&amp;rdquo;volatile数组&amp;rdquo;。这就是它叫做CopyOnWriteArrayList的原因！&lt;/p&gt;
-
-&lt;p&gt;CopyOnWriteArrayList就是通过这种方式实现的动态数组；不过正由于它在&amp;rdquo;添加/修改/删除&amp;rdquo;数据时，都会新建数组，所以涉及到修改数据的操作，CopyOnWriteArrayList效率很低。但是单单只是进行遍历的话，效率比较高。&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;CopyOnWriteArrayList的&amp;rdquo;线程安全&amp;rdquo;机制&lt;/strong&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;是通过volatile和互斥锁来实现的。
- a. CopyOnWriteArrayList是通过&amp;rdquo;volatile数组&amp;rdquo;来保存数据的。&lt;/p&gt;
-
-&lt;p&gt;一个线程读取volatile数组时，总能看到其他线程对该volatile变量最后的写入。就这样，通过volatile提供了&amp;rdquo;读取到的数据总是最新的&amp;rdquo;这个机制的保证。
- b. CopyOnWriteArrayList通过互斥锁来保护数据。&lt;/p&gt;
-
-&lt;p&gt;在&amp;rdquo;添加/修改/删除&amp;rdquo;数据时，会先&amp;rdquo;获取互斥锁&amp;rdquo;，在修改完毕后，先将数据更新到&amp;rdquo;volatile数组&amp;rdquo;中，然后再&amp;rdquo;释放互斥锁&amp;rdquo;；这样，就达到了保护数据的目的。&lt;/p&gt;
-
-&lt;h2 id=&#34;copyonwritearraylist成员变量&#34;&gt;CopyOnWriteArrayList成员变量&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;/** 可重入锁，对数组进行添加/修改/删除操作时，通过lock来进行同步操作 */
-transient final ReentrantLock lock = new ReentrantLock();
-
-/** 数组，保存数据的地方。对数组array的操作都要通过getArray和setArray进行操作 */
-private volatile transient Object[] array;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;copyonwritearraylist函数列表&#34;&gt;CopyOnWriteArrayList函数列表&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 创建一个空列表，默认大小为0。
-CopyOnWriteArrayList()
-// 创建一个按 collection 的迭代器返回元素的顺序包含指定 collection 元素的列表。
-CopyOnWriteArrayList(Collection&amp;lt;? extends E&amp;gt; c)
-// 创建一个保存给定数组的副本的列表。 
-CopyOnWriteArrayList(E[] toCopyIn)
-// 将指定元素添加到此列表的尾部。
-boolean add(E e)
-// 在此列表的指定位置上插入指定元素。
-void add(int index, E element)
-// 按照指定 collection 的迭代器返回元素的顺序，将指定 collection 中的所有元素添加此列表的尾部。
-boolean addAll(Collection&amp;lt;? extends E&amp;gt; c)
-// 从指定位置开始，将指定 collection 的所有元素插入此列表。
-boolean addAll(int index, Collection&amp;lt;? extends E&amp;gt; c)
-// 按照指定 collection 的迭代器返回元素的顺序，将指定 collection 中尚未包含在此列表中的所有元素添加列表的尾部。
-int addAllAbsent(Collection&amp;lt;? extends E&amp;gt; c)
-// 添加元素（如果不存在）。
-boolean addIfAbsent(E e)
-// 从此列表移除所有元素。
-void clear()
-// 返回此列表的浅表副本。
-Object clone()
-// 如果此列表包含指定的元素，则返回 true。
-boolean contains(Object o)
-// 如果此列表包含指定 collection 的所有元素，则返回 true。
-boolean containsAll(Collection&amp;lt;?&amp;gt; c)
-// 比较指定对象与此列表的相等性。
-boolean equals(Object o)
-// 返回列表中指定位置的元素。
-E get(int index)
-// 返回此列表的哈希码值。
-int hashCode()
-// 返回第一次出现的指定元素在此列表中的索引，从 index 开始向前搜索，如果没有找到该元素，则返回 -1。
-int indexOf(E e, int index)
-// 返回此列表中第一次出现的指定元素的索引；如果此列表不包含该元素，则返回 -1。
-int indexOf(Object o)
-// 如果此列表不包含任何元素，则返回 true。
-boolean isEmpty()
-// 返回以恰当顺序在此列表元素上进行迭代的迭代器。
-Iterator&amp;lt;E&amp;gt; iterator()
-// 返回最后一次出现的指定元素在此列表中的索引，从 index 开始向后搜索，如果没有找到该元素，则返回 -1。
-int lastIndexOf(E e, int index)
-// 返回此列表中最后出现的指定元素的索引；如果列表不包含此元素，则返回 -1。
-int lastIndexOf(Object o)
-// 返回此列表元素的列表迭代器（按适当顺序）。
-ListIterator&amp;lt;E&amp;gt; listIterator()
-// 返回列表中元素的列表迭代器（按适当顺序），从列表的指定位置开始。
-ListIterator&amp;lt;E&amp;gt; listIterator(int index)
-// 移除此列表指定位置上的元素。
-E remove(int index)
-// 从此列表移除第一次出现的指定元素（如果存在）。
-boolean remove(Object o)
-// 从此列表移除所有包含在指定 collection 中的元素。
-boolean removeAll(Collection&amp;lt;?&amp;gt; c)
-// 只保留此列表中包含在指定 collection 中的元素。
-boolean retainAll(Collection&amp;lt;?&amp;gt; c)
-// 用指定的元素替代此列表指定位置上的元素。
-E set(int index, E element)
-// 返回此列表中的元素数。
-int size()
-// 返回此列表中 fromIndex（包括）和 toIndex（不包括）之间部分的视图。
-List&amp;lt;E&amp;gt; subList(int fromIndex, int toIndex)
-// 返回一个按恰当顺序（从第一个元素到最后一个元素）包含此列表中所有元素的数组。
-Object[] toArray()
-// 返回以恰当顺序（从第一个元素到最后一个元素）包含列表所有元素的数组；
-// 返回数组的运行时类型是指定数组的运行时类型。
-&amp;lt;T&amp;gt; T[] toArray(T[] a)
-// 返回此列表的字符串表示形式。
-String toString()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;copyonwritearraylist重点函数&#34;&gt;CopyOnWriteArrayList重点函数&lt;/h2&gt;
-
-&lt;h3 id=&#34;构造函数&#34;&gt;构造函数&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;// 初始化一个大小为0的对象数组
-public CopyOnWriteArrayList() {
-    setArray(new Object[0]);
-}
-
-// 使用一个集合里的元素来初始化一个对象数组
-public CopyOnWriteArrayList(Collection&amp;lt;? extends E&amp;gt; c) {
-    Object[] elements = c.toArray();
-    if (elements.getClass() != Object[].class)
-        elements = Arrays.copyOf(elements, elements.length, Object[].class);
-    setArray(elements);
-}
-
-// 使用一个数组里元素来初始化一个对象数组
-public CopyOnWriteArrayList(E[] toCopyIn) {
-    setArray(Arrays.copyOf(toCopyIn, toCopyIn.length, Object[].class));
-}
-
-final Object[] getArray() {
-    return array;
-}
-
-final void setArray(Object[] a) {
-    array = a;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;CopyOnWriteArrayList的三个构造函数都调用了setArray()，将新创建的数组赋值给CopyOnWriteArrayList的成员变量array。&lt;/p&gt;
-
-&lt;h3 id=&#34;添加&#34;&gt;添加&lt;/h3&gt;
-
-&lt;h4 id=&#34;直接添加&#34;&gt;直接添加&lt;/h4&gt;
-
-&lt;p&gt;以add(E e)为例来分析&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的添加操作。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean add(E e) {
-    final ReentrantLock lock = this.lock;
-    // 获取“锁”
-    lock.lock();
-    try {
-        // 获取原始”volatile数组“中的数据和数据长度。
-        Object[] elements = getArray();
-        int len = elements.length;
-        // 新建一个数组newElements，并将原始数据拷贝到newElements中；
-        // newElements数组的长度=“原始数组的长度”+1
-        Object[] newElements = Arrays.copyOf(elements, len + 1);
-        // 将“新增加的元素”保存到newElements中。
-        newElements[len] = e;
-        // 将newElements赋值给”volatile数组“。
-        setArray(newElements);
-        return true;
-    } finally {
-        // 释放“锁”
-        lock.unlock();
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;p&gt;add(E e)的作用就是将数据e添加到”volatile数组“中。它的实现方式是，新建一个数组，接着将原始的”volatile数组“的数据拷贝到新数组中，然后将新增数据也添加到新数组中；最后，将新数组赋值给”volatile数组“。&lt;/p&gt;
-
-&lt;p&gt;在add(E e)中有两点需要关注。&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;在”添加操作“开始前，获取独占锁(lock)，若此时有需要线程要获取锁，则必须等待；在操作完毕后，释放独占锁(lock)，此时其它线程才能获取锁。通过独占锁，来防止多线程同时修改数据！lock的定义如下：&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;transient final ReentrantLock lock = new ReentrantLock();
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;操作完毕时，会通过setArray()来更新”volatile数组“。而且，前面我们提过”即对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入“；这样，每次添加元素之后，其它线程都能看到新添加的元素。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h4 id=&#34;不重复添加&#34;&gt;不重复添加&lt;/h4&gt;
-
-&lt;p&gt;由于CopyOnWriteArraySet是通过聚合了一个CopyOnWriteArrayList实现的，而CopyOnWriteArraySet是不包含重复元素的，因此CopyOnWriteArrayList提供了一个不添加重复元素的方法&lt;code&gt;addIfAbsent&lt;/code&gt;，该方法每次从头遍历数组，如果发现元素已经存在，则直接返回false，如果遍历后待添加元素不存在，则添加到新数组的末尾，然后将新数组设置为成员数组。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public boolean addIfAbsent(E e) {
-        final ReentrantLock lock = this.lock;
-        lock.lock();
-        try {
-            // Copy while checking if already present.
-            // This wins in the most common case where it is not present
-            Object[] elements = getArray();
-            int len = elements.length;
-            Object[] newElements = new Object[len + 1];
-            for (int i = 0; i &amp;lt; len; ++i) {
-                if (eq(e, elements[i]))
-                    return false; // exit, throwing away copy
-                else
-                    newElements[i] = elements[i];
-            }
-            newElements[len] = e;
-            setArray(newElements);
-            return true;
-        } finally {
-            lock.unlock();
-        }
-    }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;有在检查待添加元素是否已经存在时要从头遍历数组，因此随着元素个数递增，该方法的效率线性下降。&lt;/p&gt;
-
-&lt;h3 id=&#34;获取&#34;&gt;获取&lt;/h3&gt;
-
-&lt;p&gt;以get(int index)为例，来对&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的删除操作进行说明。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public E get(int index) {
-    return get(getArray(), index);
-}
-
-private E get(Object[] a, int index) {
-    return (E) a[index];
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;说明:&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;get(int index)的实现非常简单，就是返回&amp;rdquo;volatile数组&amp;rdquo;中的第index个元素。读取元素的过程不需要加锁，是读取时array的镜像。&lt;/p&gt;
-
-&lt;h3 id=&#34;删除&#34;&gt;删除&lt;/h3&gt;
-
-&lt;p&gt;以remove(int index)为例，来说明&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的删除操作。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public E remove(int index) {
-    final ReentrantLock lock = this.lock;
-    // 获取“锁”
-    lock.lock();
-    try {
-        // 获取原始”volatile数组“中的数据和数据长度。
-        Object[] elements = getArray();
-        int len = elements.length;
-        // 获取elements数组中的第index个数据。
-        E oldValue = get(elements, index);
-        int numMoved = len - index - 1;
-        // 如果被删除的是最后一个元素，则直接通过Arrays.copyOf()进行处理，而不需要新建数组。
-        // 否则，新建数组，然后将”volatile数组中被删除元素之外的其它元素“拷贝到新数组中。
-        // 最后，将新数组赋值给”volatile数组“。
-        if (numMoved == 0)
-            setArray(Arrays.copyOf(elements, len - 1));
-        else {
-            Object[] newElements = new Object[len - 1];
-            System.arraycopy(elements, 0, newElements, 0, index);
-            System.arraycopy(elements, index + 1, newElements, index,
-                             numMoved);
-            setArray(newElements);
-        }
-        return oldValue;
-    } finally {
-        // 释放“锁”
-        lock.unlock();
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;p&gt;remove(int index)的作用就是将”volatile数组“中第index个元素删除。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;em&gt;它的实现方式是，如果被删除的是最后一个元素，则直接通过Arrays.copyOf()进行处理，而不需要新建数组。&lt;/em&gt;&lt;/strong&gt;否则，新建数组，然后将”volatile数组中被删除元素之外的其它元素“拷贝到新数组中。最后，将新数组赋值给”volatile数组“。
-和add(E e)一样，remove(int index)也是”在操作之前，获取独占锁；操作完成之后，释放独占是“；并且”在操作完成时，会通过将数据更新到volatile数组中“。&lt;/p&gt;
-
-&lt;p&gt;remove操作没有检查index的合法性，有可能会抛出IndexOutOfBoundsExceptions&lt;/p&gt;
-
-&lt;h3 id=&#34;遍历&#34;&gt;遍历&lt;/h3&gt;
-
-&lt;p&gt;以&lt;code&gt;iterator()&lt;/code&gt;为例，来说明&lt;code&gt;CopyOnWriteArrayList&lt;/code&gt;的遍历操作。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public Iterator&amp;lt;E&amp;gt; iterator() {
-  return new COWIterator&amp;lt;E&amp;gt; (getArray(), 0);
-}
-
-private static class COWIterator&amp;lt;E&amp;gt; implements ListIterator&amp;lt;E&amp;gt; {
-    private final Object[] snapshot;
-    private int cursor;
-
-    private COWIterator(Object[] elements, int initialCursor) {
-        cursor = initialCursor;
-        snapshot = elements;
-    }
-
-    public boolean hasNext() {
-        return cursor &amp;lt; snapshot.length;
-    }
-
-    public boolean hasPrevious() {
-        return cursor &amp;gt; 0;
-    }
-
-    // 获取下一个元素
-    @SuppressWarnings(&amp;quot;unchecked&amp;quot;)
-    public E next() {
-        if (!hasNext())
-            throw new NoSuchElementException();
-        return (E) snapshot[cursor++];
-    }
-
-    // 获取上一个元素
-    @SuppressWarnings(&amp;quot;unchecked&amp;quot;)
-    public E previous() {
-        if (!hasPrevious())
-            throw new NoSuchElementException();
-        return (E) snapshot[--cursor];
-    }
-
-    public int nextIndex() {
-        return cursor;
-    }
-
-    public int previousIndex() {
-        return cursor-1;
-    }
-
-    public void remove() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void set(E e) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void add(E e) {
-        throw new UnsupportedOperationException();
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;p&gt;COWIterator不支持修改元素的操作。例如，对于&lt;code&gt;remove()&lt;/code&gt;,&lt;code&gt;set()&lt;/code&gt;,&lt;code&gt;add()&lt;/code&gt;等操作，&lt;code&gt;COWIterator&lt;/code&gt;都会抛出异常！
-另外，需要提到的一点是，CopyOnWriteArrayList返回迭代器不会抛出&lt;code&gt;ConcurrentModificationException&lt;/code&gt;异常，即它不是fail-fast机制的！&lt;/p&gt;
-
-&lt;p&gt;参考：&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/skywang12345/p/3498483.html&#34;&gt;Java多线程系列之CopyOnWriteArrayList&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Linux网络I/O模型整理</title>
-      <link>http://nituchao.com/post/2017/linux-io-mode/</link>
-      <pubDate>Wed, 22 Feb 2017 18:25:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/2017/linux-io-mode/</guid>
-      <description>
-
-&lt;p&gt;Linux的内核将所有外部设备都看做一个文件来操作，对一个文件的读写操作会调用内核提供的系统命令，返回一个file description(fd，文件描述符)。而对一个socket的读写也会有相应的描述符，称为socketfd(socket描述符)，描述符就是一个数字，它指向内核中的一个结构体(文件路径，数据区等一些属性)。&lt;/p&gt;
-
-&lt;h2 id=&#34;linux文件类型&#34;&gt;Linux文件类型&lt;/h2&gt;
-
-&lt;p&gt;Linux操作系统定义了七种文件，对这些文件的操作都属于I/O操作。其中，操作TCP套接字文件时会产生网络I/O。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;d: 目录文件(directory file)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这种文件包含了其他文件的名字以及指向与这些文件有关信息的指针。对一个目录文件具有读权限的任一进程都可以读该目录的内容，但只有内核可以直接写目录文件。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;l: 符号链接文件(symbolic link)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这种类型的文件指向另一个文件。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;s: 套接字文件(socket)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这种类型的文件用于进程间的网络通信。套接字也可用于在一台宿主机上进程之间的非网络通信。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;b: 块设备文件，二进制文件(block special file)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这种为类型的文件提供对设备(如磁盘)带缓冲的访问，每次访问以固定长度为单位进行。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;c: 字符设备文件(character special file)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这种类型的文件提供对设备不带缓冲的访问，每次访问长度可变。系统中的所有设备要么是字符特殊文件，要么是块特殊文件。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;p: 命名管道文件(FIFO)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这种类型的文件用于进程间通信，有时被称为命名管道(named pipe)。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;-: 普通文件(regular file)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这是最常用的文件类型，这种文件包含了某种形式的数据。至于这种数据是文本还是二进制数据，对于UNIX内核而言并无区别。对普通文件内容的解释由处理该文件的应用程序进行。&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;一个值得注意的例外是二进制可执行文件。为了执行程序，内核必须理解其格式。所有二进制可执行文件都遵循一种标准化的格式，这种格式使内核能够确定程序文本和数据的加载位置。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;linux网络i-o模型&#34;&gt;Linux网络I/O模型&lt;/h2&gt;
-
-&lt;p&gt;根据UNIX网络编程对I/O模型的分类，UNIX提供了五种I/O模型，服务器会根据自己的类型定位，使用其中一种或者多种I/O模型来处理网络请求。&lt;/p&gt;
-
-&lt;h3 id=&#34;阻塞i-o模型&#34;&gt;阻塞I/O模型&lt;/h3&gt;
-
-&lt;p&gt;最常用的I/O模型就是阻塞I/O模型，缺省情形下，所有文件操作都是阻塞的。我们以套接字借口为例来讲解此模型：在进程空间中调用recvfrom，其系统调用直到数据包到达且被复制到应用进程的缓冲区中或者发生错误时才返回，在此期间一直会等待，进程在从调用recvfrom开始到它返回的整段时间内都是被阻塞的，因此被称为阻塞I/O模型，如图1-1所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/block-io.png&#34; alt=&#34;阻塞I/O模型&#34; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;非阻塞i-o模型&#34;&gt;非阻塞I/O模型&lt;/h3&gt;
-
-&lt;p&gt;recvfrom从应用层到内核的时候，如果该缓冲区没有数据的话，就直接返回一个EWORLDBLOCK错误，一般都对非阻塞I/O模型进行轮询检查这个状态，看内核是不是有数据到来，如图1-2所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/non-block-io.png&#34; alt=&#34;非阻塞I/O模型&#34; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;i-o复用模型&#34;&gt;I/O复用模型&lt;/h3&gt;
-
-&lt;p&gt;Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。&lt;/p&gt;
-
-&lt;p&gt;Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/selector-io.png&#34; alt=&#34;I/O复用模型&#34; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;信号驱动i-o模型&#34;&gt;信号驱动I/O模型&lt;/h3&gt;
-
-&lt;p&gt;首先开启套接字接口信号驱动I/O功能，并通过系统调用sigaction执行一个信号处理函数(此系统调用立即返回，进程继续工作，它是非阻塞的)。当数据准备就绪时，就为该进程生成一个SIGIO信号，通过信号回调通知应用程序调用recvfrom来读取数据，并通知主循环函数处理数据，如图1-4所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/signal-io.png&#34; alt=&#34;信号驱动I/O模型&#34; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;异步i-o模型&#34;&gt;异步I/O模型&lt;/h3&gt;
-
-&lt;p&gt;告知内核启动某个操作，并让内核在整个操作完成后（包括将数据从内核复制到用户自己的缓冲区）通知我们。这种模型与信号驱动模型的主要区别是：信号驱动I/O由内核通过我们何时可以开始一个I/O操作；异步I/O模型由内核通知我们I/O操作何时已经完成，如图1-5所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/aio-io.png&#34; alt=&#34;异步I/O模型&#34; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;常用服务器&#34;&gt;常用服务器&lt;/h2&gt;
-
-&lt;p&gt;目前流行的服务器大致分为普通应用服务器和高性能服务器两种。&lt;/p&gt;
-
-&lt;p&gt;应用服务器通常会运行具体的业务代码，比如：订单交易，网站管理等。这些业务通常使用基于MVC模式的框架，并进行数据库操作。应用服务器往往跟编程语言和应用框架绑定，提供上下文管理能力，单次业务的处理时间比较长，业务逻辑比较复杂。因此，应用服务器往往采用阻塞式I/O模型或者非阻塞I/O模型。基于请求/响应的方式工作。&lt;/p&gt;
-
-&lt;p&gt;高性能服务器往往需要面对极高的并发网络连接，并对内存分配、CPU使用提出更加苛刻的要求，比如：适用于反向代理的负载均衡服务器Nignx。因此，高性能服务器往往采用I/O复用模型或信号驱动I/O模型，有些对性能要求更高得服务器会采用纯异步I/O模型。相比较请求/响应的工作方式，使用后面三种I/O模型的服务器的处理方式更多样，也更复杂。&lt;/p&gt;
-
-&lt;h3 id=&#34;使用阻塞i-o模型或非阻塞i-o模型的服务器&#34;&gt;使用阻塞I/O模型或非阻塞I/O模型的服务器&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Apache&lt;/li&gt;
-&lt;li&gt;Tomcat&lt;/li&gt;
-&lt;li&gt;Resin&lt;/li&gt;
-&lt;li&gt;Caddy&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;使用多路复用i-o模型的服务器&#34;&gt;使用多路复用I/O模型的服务器&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Nginx&lt;/li&gt;
-&lt;li&gt;Netty&lt;/li&gt;
-&lt;li&gt;Mina&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
-
-&lt;p&gt;1, 《Netty权威指南 第二版》，李林峰&lt;/p&gt;
 </description>
     </item>
     
