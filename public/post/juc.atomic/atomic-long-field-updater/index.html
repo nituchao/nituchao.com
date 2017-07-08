@@ -113,7 +113,7 @@
 
 <h2 id="概述">概述</h2>
 
-<p>在原子变量相关类中，AtomicIntegerFieldUpdater, AtomicLongFieldUpdater, AtomicReferenceFieldUpdater三个类是用于原子地修改对象的成员属性，它们的原理和用法类似，区别在于对Integer，Long，Reference类型的成员属性进行修改。本文重点研究AtomicLongFieldUpdater。</p>
+<p>在原子变量相关类中，<code>AtomicIntegerFieldUpdater</code>, <code>AtomicLongFieldUpdater</code>, <code>AtomicReferenceFieldUpdater</code>三个类是用于原子地修改对象的成员属性，它们的原理和用法类似，区别在于对Integer，Long，Reference类型的成员属性进行修改。本文重点研究AtomicLongFieldUpdater。</p>
 
 <p>AtomicLongFieldUpdater的设计非常有意思。AtomicLongFieldUpdater本身是一个抽象类，只有一个受保护的构造函数，它本身不能被实例化。</p>
 
