@@ -52,7 +52,7 @@ public native void    putLong(Object o, long offset, long x);
 
 
 
-### 内部类
+## 内部类
 
 `AtomicLongFieldUpdater`本身是抽象类，通过两个私有的静态内部子类来完成具体的工作。
 
