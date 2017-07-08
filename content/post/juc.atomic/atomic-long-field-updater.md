@@ -42,6 +42,8 @@ public native void    putLong(Object o, long offset, long x);
 
 
 
+
+
 本文基于JDK1.7.0_67
 
 > java version "1.7.0_67"
