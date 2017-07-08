@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Amqp on 泥土巢</title>
+    <link>http://nituchao.com/categories/amqp/index.xml</link>
+    <description>Recent content in Amqp on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/categories/amqp/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>在CentOS上安装Rabbitmq集群</title>
+      <link>http://nituchao.com/post/2017/centos-an-zhuang-rabbit-cluster/</link>
+      <pubDate>Thu, 02 Mar 2017 17:35:54 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/centos-an-zhuang-rabbit-cluster/</guid>
+      <description>
+
+&lt;h2 id=&#34;系统环境&#34;&gt;系统环境&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS 7 四台&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;安装包准备&#34;&gt;安装包准备&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;wxBase-2.8.12-1.el6.centos.x86_64.rpm&lt;/li&gt;
+&lt;li&gt;wxGTK-2.8.12-1.el6.centos.x86_64.rpm&lt;/li&gt;
+&lt;li&gt;wxGTK-gl-2.8.12-1.el6.centos.x86_64.rpm&lt;/li&gt;
+&lt;li&gt;esl-erlang_19.2.3~centos~6_amd64.rpm&lt;/li&gt;
+&lt;li&gt;otp_src_19.1.tar.gz&lt;/li&gt;
+&lt;li&gt;rabbitmq-server-3.6.6-1.el6.noarch.rpm&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;安装erlang环境&#34;&gt;安装Erlang环境&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# yum localinstall wxBase-2.8.12-1.el6.centos.x86_64.rpm
+# yum localinstall wxGTK-2.8.12-1.el6.centos.x86_64.rpm
+# yum localinstall wxGTK-gl-2.8.12-1.el6.centos.x86_64.rpm
+# yum localinstall esl-erlang_19.2.3~centos~6_amd64.rpm
+# yum install build-essential openssl openssl-devel unixODBC unixODBC-devel make gcc gcc-c++ kernel-devel m4 ncurses-devel tk tc
+# tar -zxvf otp_src_19.1.tar.gz
+# cd otp_src_19.1
+# ./configure --prefix=/home/erlang --without-javac
+# make &amp;amp;&amp;amp; make install
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;安装完Erlang之后，修改/etc/profile增加&lt;/p&gt;
+
+&lt;p&gt;export PATH=$PATH:/home/erlang/bin&lt;/p&gt;
+
+&lt;p&gt;执行source /etc/profile使得环境变量生效&lt;/p&gt;
+
+&lt;h2 id=&#34;安装rabbitmq&#34;&gt;安装Rabbitmq&lt;/h2&gt;
+
+&lt;h3 id=&#34;安装rabbitmq-1&#34;&gt;安装rabbitmq&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+# rpm --nodeps -Uvh rabbitmq-server-3.6.6-1.noarch.rpm
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;添加开机启动&#34;&gt;添加开机启动&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# chkconfig rabbitmq-server on
+# service rabbitmq-server start
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;开启web管理界面&#34;&gt;开启web管理界面&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# rabbitmq-plugins enable rabbitmq_management
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;添加用户&#34;&gt;添加用户&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# rabbitmqctl add_user work workO^m15213
+# rabbitmqctl set_user_tags work administrator
+# rabbitmqctl set_permissions -p / work &amp;quot;.*&amp;quot;&amp;quot;.*&amp;quot;&amp;quot;.*&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

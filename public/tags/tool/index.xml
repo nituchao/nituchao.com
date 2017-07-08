@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tool on 泥土巢</title>
+    <link>http://nituchao.com/tags/tool/index.xml</link>
+    <description>Recent content in Tool on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/tags/tool/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>终端Session管理工具整理</title>
+      <link>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</link>
+      <pubDate>Tue, 24 Jun 2014 15:19:00 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</guid>
+      <description>
+
+&lt;h2 id=&#34;tmux&#34;&gt;Tmux&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;2017年2月22日更新&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;最近一直在用Tmux作为默认的终端Session管理工具。Tmux可以轻松的完成窗口创建，屏幕切分，文本模式，命令行模式等功能。&lt;/p&gt;
+
+&lt;p&gt;最让我满意的是多屏幕的同步操作功能。每次需要ssh到服务器查看日志时，我会将屏幕切割成四块，分别登陆到4个服务器上，然后开启sync模式，这样输入的命令将同时在4台服务器上一起执行，大大提高了操作效率。&lt;/p&gt;
+
+&lt;p&gt;Tmux的Session支持后台运行，可以通过attache随时进入Tmux，并立即恢复工作状态。&lt;/p&gt;
+
+&lt;h3 id=&#34;同步操作&#34;&gt;同步操作&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/tmux-session.png&#34; width=780px height=500px alt=&#34;tmux同步操作&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;byoby&#34;&gt;Byoby&lt;/h2&gt;
+
+&lt;p&gt;byoby是Ubuntu团队开发的screen的替代产品，支持session管理，屏幕切分，SSH管理。配置和使用也非常简单，一直是我非常喜欢的系统Terminal的替代产品，大赞。&lt;/p&gt;
+
+&lt;h3 id=&#34;帮助菜单&#34;&gt;帮助菜单&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://hanquan.qiniudn.com/byobuhelp.png&#34; alt=&#34;byobu帮助&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>多线程 on 泥土巢</title>
+    <link>http://nituchao.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/index.xml</link>
+    <description>Recent content in 多线程 on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Java通过条件变量实现生产者消费者</title>
+      <link>http://nituchao.com/post/2016/java-tiao-jian-bian-liang-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
+      <pubDate>Tue, 27 Dec 2016 16:00:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/java-tiao-jian-bian-liang-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
+      <description>&lt;p&gt;Java通过条件变量来实现生产者消费者。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Java通过读写锁实现生产者消费者</title>
+      <link>http://nituchao.com/post/2016/java-du-xie-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</link>
+      <pubDate>Tue, 27 Dec 2016 15:12:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/java-du-xie-suo-shi-xian-sheng-chan-zhe-xiao-fei-zhe/</guid>
+      <description>&lt;p&gt;Java通过读写锁实现生产者消费者。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

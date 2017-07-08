@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jvm on 泥土巢</title>
+    <link>http://nituchao.com/tags/jvm/index.xml</link>
+    <description>Recent content in Jvm on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <atom:link href="http://nituchao.com/tags/jvm/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>YourKit远程连接线上服务器</title>
+      <link>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</link>
+      <pubDate>Mon, 06 Mar 2017 09:34:07 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</guid>
+      <description>
+
+&lt;p&gt;YourKit是一款业内领先的性能分析工具，目前支持Java和.NET两个平台。该工具功能全面强悍，能通过本地连接或者远程连接的方式，对各种服务器，框架，平台的性能进行分析，并提供了多种由浅入深，针对开发环境或者生产环境的分析模式。该工具提供了高效的图形化显示方式，动动鼠标就可以对系统进行显微镜式的观察分析。&lt;/p&gt;
+
+&lt;p&gt;通过YourKit可以对以下内容进行分析：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CPU profiling - investigate performace issues&lt;/li&gt;
+&lt;li&gt;Memory profiling - memory leaks, usage, GC&lt;/li&gt;
+&lt;li&gt;Threads and synchronization&lt;/li&gt;
+&lt;li&gt;Exception profiling&lt;/li&gt;
+&lt;li&gt;Web, Database, I/O&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;本文想总结一下，YourKit提供的两种连接到Java进程的方式，一种是attach方式，另一种是integrate方式。&lt;/p&gt;
+
+&lt;h2 id=&#34;通过attach方式连接到远程服务器&#34;&gt;通过attach方式连接到远程服务器&lt;/h2&gt;
+
+&lt;p&gt;在控制台，attach方式可以通过进程号，连接到运行中的任何Java进程中，这种方式并不保证总能连接成功，而且会禁用某些分析功能。&lt;/p&gt;
+
+&lt;h4 id=&#34;线上环境&#34;&gt;线上环境&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS release 6.3 64-Bit&lt;/li&gt;
+&lt;li&gt;Java 1.7.0_79 HotSpot&amp;trade; 64-Bit Server VM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;下载安装包&#34;&gt;下载安装包&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# wget https://www.yourkit.com/download/yjp-2017.02-b53.zip
+# unzip yjp-2017.02-b53.zip
+# cd yjp-2017.02
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;确定服务进程号&#34;&gt;确定服务进程号&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# jps
+2230 Resin
+3959 Jps
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;console连接进程&#34;&gt;Console连接进程&lt;/h4&gt;
+
+&lt;p&gt;通过下面的命令来连接到Java进程。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# bin/yjp.sh -attach
+[YourKit Java Profiler 2017.02-b53] Log file: /root/.yjp/log/yjp-4473.log
+Running JVMs:
+
+Name                             |   PID| Status
+-------------------------------- |------|--------------------------------
+Resin                            | 11760| Ready for attach
+ThriftMain                       |  2934| Ready for attach
+Resin                            |  2230| Agent already loaded, agent port is 10001
+Resin                            | 14232| Ready for attach
+Resin                            |  3657| Ready for attach
+WatchdogManager                  | 16411| Ready for attach
+
+Enter PID of the application you want to attach (0 to exit) and press Enter:
+&amp;gt;2230
+Please specify comma-separated list of startup options, or press Enter for default options (recommended):
+&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面的操作执行完成后，会出现如下提示，表示YourKit Console服务已经成功运行，并在10001开始工作。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;Attaching to process 2230 using default options
+[YourKit Java Profiler 2017.02-b53] Log file: /root/.yjp/log/yjp-30209.log
+The profiler agent has attached. Waiting while it initializes...
+The agent is loaded and is listening on port 10001.
+You can connect to it from the profiler UI.
+# lsof -i:10001
+COMMAND  PID USER   FD   TYPE    DEVICE SIZE/OFF NODE NAME
+java    2230 root   72u  IPv4 199000044      0t0  TCP *:scp-config (LISTEN)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在浏览器，通过ip:port的方式，可以看到YourKit的运行概况。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/your-kit-attach.png&#34; alt=&#34;YourKit Attach&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;yourkit-ui连接远程服务&#34;&gt;YourKit UI连接远程服务&lt;/h4&gt;
+
+&lt;p&gt;打开YourKit UI，点击Connect to remote application，输入IP:PORT进行连接。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-connect-attach.png&#34; alt=&#34;YourKit Connect&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;连接成功后，进行性能分析界面，大功告成。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-home-attach.png&#34; alt=&#34;YourKit性能分析界面&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;疑难问题&#34;&gt;疑难问题&lt;/h4&gt;
+
+&lt;p&gt;通过attach方式并不总能连接到Java进程，常常会出现JVM无响应的问题，控制台报错如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;Attaching to process 31833 using options
+com.yourkit.util.bf: com.sun.tools.attach.AttachNotSupportedException: Unable to open socket file: target process not responding or HotSpot VM not loaded
+	at com.yourkit.b.f.a(a:128)
+	at com.yourkit.b.c.attach(a:1)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.yourkit.h.run(a:17)
+
+Attach to a running JVM failed.
+
+Solution: start JVM with the profiler agent instead of attaching it to a running JVM:
+https://www.yourkit.com/docs/java/help/running_with_profiler.jsp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;因此，分析本地Java进程时可以选择attach方式，对于远程服务，还是推荐integrate方式。&lt;/p&gt;
+
+&lt;h2 id=&#34;通过integrate方式连接到远程服务器-重点推荐&#34;&gt;通过integrate方式连接到远程服务器（重点推荐）&lt;/h2&gt;
+
+&lt;p&gt;integrate方式通过修服务器启动配置文件，随服务启动，这种方式比较稳定，而且能够全面启用YourKit的所有功能。&lt;/p&gt;
+
+&lt;h4 id=&#34;线上环境-1&#34;&gt;线上环境&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS release 6.3 64-Bit&lt;/li&gt;
+&lt;li&gt;Java 1.7.0_79 HotSpot&amp;trade; 64-Bit Server VM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;下载安装包-1&#34;&gt;下载安装包&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# wget https://www.yourkit.com/download/yjp-2017.02-b53.zip
+# unzip yjp-2017.02-b53.zip
+# cd yjp-2017.02
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;确定服务进程号-1&#34;&gt;确定服务进程号&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# jps
+2230 Resin
+3959 Jps
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;console连接进程-1&#34;&gt;Console连接进程&lt;/h4&gt;
+
+&lt;p&gt;通过下面的命令来连接到Java进程。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# bin/yjp.sh -integrate
+Choose server to integrate with:
+1) Geronimo
+2) GlassFish
+3) JBoss / WildFly
+4) Jetty
+5) JRun 4
+6) Resin 3.1/4
+7) Tomcat 3–8
+8) WebLogic 9 and newer
+9) WebSphere Application Server 7 or newer
+10) WebSphere Application Server V8.5 Liberty profile
+11) Generic server (use if your server is not on the list)
+Enter number which corresponds to your server (0 to exit) and press Enter:
+&amp;gt;6
+Please specify whether the server runs on a 32-bit JVM or a 64-bit JVM.
+Hint: If you are not sure what to choose, choose &amp;quot;32-bit JVM&amp;quot;. If with this choice the server does not start with profiling, re-run the integration and choose &amp;quot;64-bit Java&amp;quot; option.
+1) 32-bit JVM
+2) 64-bit JVM
+&amp;gt;2
+Resin configuration file (&amp;lt;RESIN_HOME&amp;gt;/conf/resin.xml or &amp;lt;RESIN_HOME&amp;gt;/conf/resin.conf):
+&amp;gt;/home/work/bin/miui-sec-adv/resin/conf/resin.xml
+
+Startup options configuration: step 1 of 5
+Should option &#39;disablestacktelemetry&#39; be specified?
+1) Yes (recommended to minimize profiling overhead in production)
+2) No
+&amp;gt;2
+Startup options configuration: step 2 of 5
+Should option &#39;exceptions=disable&#39; be specified?
+1) Yes (recommended to minimize profiling overhead in production)
+2) No
+&amp;gt;1
+Startup options configuration: step 3 of 5
+Built-in probes:
+
+1) Enabled: recommended for use in DEVELOPMENT; gives high level profiling results, but may add overhead
+2) Disabled: recommended for use in PRODUCTION to minimise overhead, or for troubleshooting
+
+Hint: It&#39;s recommended to choose #1 in development and #2 in production.
+If choosing #1 makes profiling overhead big or there are startup issues, re-run the integration and choose #2.
+&amp;gt;2
+Startup options configuration: step 4 of 5
+Should option &#39;delay=10000&#39; be specified?
+1) Yes (recommended)
+2) No
+&amp;gt;1
+Startup options configuration: step 5 of 5
+Please specify comma-separated list of additional startup options, or press Enter for no additional options:
+&amp;gt;
+A new config file is created:
+
+/home/work/bin/miui-sec-adv/resin/conf/resin_yjp.xml
+
+To profile the server:
+
+1) [Recommended] Backup original &#39;resin.xml&#39;
+2) Rename &#39;resin_yjp.xml&#39; to &#39;resin.xml&#39;
+3) Start the server
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面的操作执行完成后，会在操作中指定的resin配置文件目录生成&lt;code&gt;resin_yjp.xml&lt;/code&gt;文件，接下来将该&lt;code&gt;resin_yjp.xml&lt;/code&gt;重命名为&lt;code&gt;resin.xml&lt;/code&gt;，并启动服务器。正常情况下，YourKit的Console程序便会随着Resin服务器自动启动，可以通过&lt;code&gt;lsof&lt;/code&gt;命令确认一下。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;# lsof -i:10001
+COMMAND  PID USER   FD   TYPE     DEVICE SIZE/OFF NODE NAME
+java    2389 work    8u  IPv4 3188835745      0t0  TCP *:scp-config (LISTEN)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;同时，可以通过IP:PORT的方式在浏览器中查看YourKit Console服务的概况。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-page-integrate.png&#34; alt=&#34;YourKit Page&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;yourkit-ui连接远程服务-1&#34;&gt;YourKit UI连接远程服务&lt;/h4&gt;
+
+&lt;p&gt;打开YourKit UI，点击Connect to remote application，输入IP:PORT进行连接。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-ui-connect-integrate.png&#34; alt=&#34;YourKit UI Connect&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;连接成功后，进行性能分析界面，大功告成。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/your-kit-home-integrate.png&#34; alt=&#34;YourKit性能分析界面&#34; /&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JVM调试相关的配置参数</title>
+      <link>http://nituchao.com/post/2016/jvm-tiao-shi-xiang-guan-de-pei-zhi-can-shu/</link>
+      <pubDate>Thu, 29 Dec 2016 20:15:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/jvm-tiao-shi-xiang-guan-de-pei-zhi-can-shu/</guid>
+      <description>&lt;p&gt;本文将详细分析JVM配置参数中，与调试相关的配置参数，这些配置参数将方便开发人员跟踪JVM运行，查看JVM日志等相关工作。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JVM行为相关的配置参数</title>
+      <link>http://nituchao.com/post/2016/jvm-xing-wei-xiang-guan-de-pei-zhi-can-shu/</link>
+      <pubDate>Thu, 29 Dec 2016 13:53:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/jvm-xing-wei-xiang-guan-de-pei-zhi-can-shu/</guid>
+      <description>&lt;p&gt;文本将分析与JVM行为相关的配置参数。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JVM G1收集器配置参数</title>
+      <link>http://nituchao.com/post/2016/jvm-g1-shou-ji-qi-pei-zhi-can-shu/</link>
+      <pubDate>Thu, 29 Dec 2016 12:22:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/jvm-g1-shou-ji-qi-pei-zhi-can-shu/</guid>
+      <description>&lt;p&gt;G1收集器配置参数&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JVM常用的非标准配置参数</title>
+      <link>http://nituchao.com/post/2016/jvm-chan-yong-de-fei-biao-zhun-pei-zhi-can-shu/</link>
+      <pubDate>Thu, 29 Dec 2016 10:18:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/jvm-chan-yong-de-fei-biao-zhun-pei-zhi-can-shu/</guid>
+      <description>&lt;p&gt;本文将研究JVM常见常见的非标准配置参数。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JVM性能相关的配置参数</title>
+      <link>http://nituchao.com/post/2016/jvm-xing-neng-xiang-guan-de-pei-zhi-can-shu/</link>
+      <pubDate>Thu, 29 Dec 2016 09:30:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/jvm-xing-neng-xiang-guan-de-pei-zhi-can-shu/</guid>
+      <description>&lt;p&gt;本问将介绍JVM性能相关的配置参数。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>JVM配置参数-X与-XX的区别</title>
+      <link>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</link>
+      <pubDate>Wed, 28 Dec 2016 13:14:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</guid>
+      <description>
+
+&lt;p&gt;启动JVM时通过指定配置参数来指导虚拟机按照我们的要求提供服务，这一点对大多数的Java程序员来说已经是司空见惯。&lt;/p&gt;
+
+&lt;p&gt;在指定配置参数时，会有-X和-XX两种形式，那么它们两者有什么区别呢，今天我想借这篇文章总结一下。&lt;/p&gt;
+
+&lt;p&gt;下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;java -Xmx15G \
+-Xms10G \
+-Xmn3G \
+-Xss512k \
+-XX:MaxPermSize=512M \
+-XX:PermSize=512M \
+-XX:+PrintFlagsFinal \
+-XX:MaxTenuringThreshold=1 \
+-XX:SurvivorRatio=23 \
+-XX:TargetSurvivorRatio=80 \
+-Xnoclassgc \
+-XX:+UseParNewGC \
+-XX:+UseConcMarkSweepGC \
+-XX:CMSInitiatingOccupancyFraction=80 \
+-XX:ParallelGCThreads=24 \
+-XX:ConcGCThreads=24 \
+-XX:+CMSParallelRemarkEnabled \
+-XX:+CMSScavengeBeforeRemark \
+-XX:+ExplicitGCInvokesConcurrent \
+-XX:+UseTLAB \
+-XX:TLABSize=64K, -verbose:gc \
+-XX:+PrintGCDetails \
+-XX:+PrintGCDateStamps \
+-XX:+PrintGCTimeStamps \
+-XX:+PrintGCApplicationStoppedTime \
+-Xloggc:./gc.log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Java HotSpot VM的官方文档中将启动参数分为如下两类：&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;配置 参数&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;类型&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;说明&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;举例&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;-X&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;non-standard&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;非标准参数。&lt;br/&gt;&lt;br/&gt;这些参数不是虚拟机规范规定的。因此，不是所有VM的实现(如:HotSpot,JRockit,J9等)都支持这些配置参数。&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;-Xmx、-Xms、-Xmn、-Xss&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;-XX&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;not-stable&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;不稳定参数。&lt;br/&gt;&lt;br/&gt;这些参数是虚拟机规范中规定的。这些参数指定虚拟机实例在运行时的各种行为，从而对虚拟机的运行时性能有很大影响。&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;-XX:SurvivorRatio、-XX:+UseParNewGc&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;补充: -X和-XX两种参数都可能随着JDK版本的变更而发生变化，有些参数可以能会被废弃掉，有些参数的功能会发生改变，但是JDK官方不会通知开发者这些变化，需要使用者注意。&lt;/p&gt;
+
+&lt;p&gt;-XX参数被称为不稳定参数，是因为这类参数的设置会引起JVM运行时性能上的差异，配置得当可以提高JVM性能，配置不当则会使JVM出现各种问题, 甚至造成JVM崩溃。&lt;/p&gt;
+
+&lt;p&gt;国外有个哥们从HotSpot VM的源码里发现了934个此类型的配置参数，因此能对JVM做出很多组合配置，对JVM的调优也没有统一的标准，需要我们在实践中不断总结经验，并结合实际业务来进行操作，最终找到最适合当前业务的那些配置。&lt;/p&gt;
+
+&lt;h2 id=&#34;一些有用的-xx配置&#34;&gt;一些有用的-XX配置&lt;/h2&gt;
+
+&lt;p&gt;对于-XX类型的配置选项，虚拟机规范有一些惯例，针对不同的平台虚拟机也会提供不同的默认值。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;对于布尔(Boolean)类型的配置选项，通过&lt;code&gt;-XX:+&amp;lt;option&amp;gt;&lt;/code&gt;来开启，通过&lt;code&gt;-XX:-&amp;lt;option&amp;gt;&lt;/code&gt;来关闭。&lt;/li&gt;
+&lt;li&gt;对于数字(Numberic)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;number&amp;gt;&lt;/code&gt;来配置。&lt;code&gt;&amp;lt;number&amp;gt;&lt;/code&gt;后面可以携带单位字母，比如: &amp;lsquo;k&amp;rsquo;或者&amp;rsquo;K&amp;rsquo;代表千字节，&amp;rsquo;m&amp;rsquo;或者&amp;rsquo;M&amp;rsquo;代表兆字节，&amp;rsquo;g&amp;rsquo;或者&amp;rsquo;G&amp;rsquo;代表千兆字节。&lt;/li&gt;
+&lt;li&gt;对于字符串(String)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;string&amp;gt;&lt;/code&gt;来配置。这种配置通过用来指定文件，路径或者命令列表。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;参考文献&#34;&gt;参考文献&lt;/h2&gt;
+
+&lt;p&gt;1, &lt;a href=&#34;http://jvm-options.tech.xebia.fr/&#34;&gt;JVM Options - The complete reference&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;2, &lt;a href=&#34;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&#34;&gt;Java HotSpot VM Options&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
