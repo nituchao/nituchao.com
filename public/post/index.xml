@@ -1194,11 +1194,21 @@ public double doubleValue()
 
 &lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
 
-&lt;h3 id=&#34;set-long-newvalue&#34;&gt;set(long newValue)&lt;/h3&gt;
+&lt;h3 id=&#34;set&#34;&gt;set&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public final void set(long newValue) {
+	value = newValue;
+}
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;以原子方式设置当前值为newValue，因为set方法只是一个单操作的赋值语句，因此是原子的。加上volatile的内存可见性保证，Set是原子操作无疑。&lt;/p&gt;
 
-&lt;h3 id=&#34;lazyset-long-newvalue&#34;&gt;lazySet(long newValue)&lt;/h3&gt;
+&lt;h3 id=&#34;lazyset&#34;&gt;lazySet&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public final void lazySet(long newValue) {
+  	unsafe.putOrderedLong(this, valueOffset, newValue);
+}
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;简单点说，lazySet优先保证数据的修改操作，而降低对可见性的要求。&lt;/p&gt;
 
@@ -1208,11 +1218,21 @@ public double doubleValue()
 
 &lt;h2 id=&#34;compareandset-long-expect-long-update&#34;&gt;compareAndSet(long expect, long update)&lt;/h2&gt;
 
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public final boolean compareAndSet(long expect, long update) {
+	return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
 &lt;p&gt;以原子方式设置当前值为update。如果当前值等于expect，并设置成功，返回true。如果当前值不等于expect，则设置失败，返回false。该过程不阻塞。由于是使用了&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;的CAS操作实现，它是原子操作无疑。&lt;/p&gt;
 
 &lt;p&gt;_&lt;em&gt;set和compareAndSet都是原子操作，只是他们的目的不同，set只是单纯想设置一个新的值。而compareAndSet则是希望在满足一定条件的情况下(当前值等于except)再设置新的值。&lt;/em&gt;&lt;/p&gt;
 
 &lt;h2 id=&#34;weakcompareandset-long-expect-long-update&#34;&gt;weakCompareAndSet(long expect, long update)&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public final boolean weakCompareAndSet(long expect, long update) {
+	return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
+}
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;以原子方式设置当前值为update。它的实现与compareAndSet完全一致。JDK文档中说，weakCompareAndSet在更新变量时并不创建任何&lt;code&gt;happens-before&lt;/code&gt;顺序，因此即使要修改的值是volatile的，也不保证对该变量的读写操作的顺序（一般来讲，volatile的内存语义保证&lt;code&gt;happens-before&lt;/code&gt;顺序）。&lt;/p&gt;
 
