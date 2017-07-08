@@ -48,15 +48,6 @@
     </item>
     
     <item>
-      <title>AtomicReferenceFieldUpdater源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
-      <pubDate>Thu, 23 Feb 2017 18:38:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>AtomicLong源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-long/</link>
       <pubDate>Thu, 23 Feb 2017 18:30:28 +0800</pubDate>
@@ -979,6 +970,15 @@ private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
 
 &lt;p&gt;使用&lt;code&gt;sun.misc.Unsafe&lt;/code&gt;类原子地交换两个对象。&lt;/p&gt;
 </description>
+    </item>
+    
+    <item>
+      <title>AtomicReferenceFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <description></description>
     </item>
     
   </channel>

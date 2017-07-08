@@ -770,15 +770,6 @@ the end.
     </item>
     
     <item>
-      <title>AtomicReferenceFieldUpdater源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
-      <pubDate>Thu, 23 Feb 2017 18:38:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>AtomicLong源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-long/</link>
       <pubDate>Thu, 23 Feb 2017 18:30:28 +0800</pubDate>
@@ -1992,6 +1983,15 @@ void spin_lock_bh(spinlock_t *lock);
 &lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/vividonly/article/details/6594195&#34;&gt;深入理解linux内核自旋锁&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
+    </item>
+    
+    <item>
+      <title>AtomicReferenceFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <description></description>
     </item>
     
     <item>

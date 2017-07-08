@@ -32,11 +32,6 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
-    <lastmod>2017-02-23T18:38:27+08:00</lastmod>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/post/juc.atomic/atomic-long/</loc>
     <lastmod>2017-02-23T18:30:28+08:00</lastmod>
   </url>
@@ -69,6 +64,11 @@
   <url>
     <loc>http://nituchao.com/post/juc.lock/clh-spin-ticket-mcs-lock/</loc>
     <lastmod>2017-02-23T18:29:27+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
+    <lastmod>2017-02-23T18:28:27+08:00</lastmod>
   </url>
   
   <url>
