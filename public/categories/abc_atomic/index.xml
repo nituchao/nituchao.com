@@ -977,15 +977,6 @@ private boolean casPair(Pair&amp;lt;V&amp;gt; cmp, Pair&amp;lt;V&amp;gt; val)
     </item>
     
     <item>
-      <title>AtomicReferenceFieldUpdater源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
-      <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>AtomicLongFieldUpdater源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-long-field-updater/</link>
       <pubDate>Thu, 23 Feb 2017 18:27:27 +0800</pubDate>
@@ -1363,6 +1354,15 @@ public long decrementAndGet(T obj)
 public long addAndGet(T obj, long delta)
 &lt;/code&gt;&lt;/pre&gt;
 </description>
+    </item>
+    
+    <item>
+      <title>AtomicReferenceFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <pubDate>Thu, 23 Feb 2017 18:27:26 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <description></description>
     </item>
     
   </channel>

@@ -1990,15 +1990,6 @@ void spin_lock_bh(spinlock_t *lock);
     </item>
     
     <item>
-      <title>AtomicReferenceFieldUpdater源码分析</title>
-      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
-      <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Java锁之Lock框架概述</title>
       <link>http://nituchao.com/post/juc.lock/lock-summary/</link>
       <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
@@ -3156,6 +3147,15 @@ public V putIfAbsent(K key, V value) {
 &lt;li&gt;&lt;a href=&#34;http://cxis.me/2016/05/26/ConcurrentHashMap%E7%AE%80%E4%BB%8B/&#34;&gt;ConcurrentHashMap简介&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 </description>
+    </item>
+    
+    <item>
+      <title>AtomicReferenceFieldUpdater源码分析</title>
+      <link>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</link>
+      <pubDate>Thu, 23 Feb 2017 18:27:26 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</guid>
+      <description></description>
     </item>
     
   </channel>

@@ -67,11 +67,6 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
-    <lastmod>2017-02-23T18:28:27+08:00</lastmod>
-  </url>
-  
-  <url>
     <loc>http://nituchao.com/post/juc.lock/lock-summary/</loc>
     <lastmod>2017-02-23T18:28:27+08:00</lastmod>
   </url>
@@ -84,6 +79,11 @@
   <url>
     <loc>http://nituchao.com/post/juc.concurrent/concurrent-hasmap/</loc>
     <lastmod>2017-02-23T18:27:27+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
+    <lastmod>2017-02-23T18:27:26+08:00</lastmod>
   </url>
   
   <url>
