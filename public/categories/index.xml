@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on 泥土巢</title>
+    <link>http://nituchao.com/categories/</link>
+    <description>Recent content in Categories on 泥土巢</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
+    <lastBuildDate>Thu, 23 Feb 2017 18:39:27 +0800</lastBuildDate>
+    
+	<atom:link href="http://nituchao.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Abc_atomic</title>
+      <link>http://nituchao.com/categories/abc_atomic/</link>
+      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/abc_atomic/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Abc_concurrent</title>
+      <link>http://nituchao.com/categories/abc_concurrent/</link>
+      <pubDate>Thu, 23 Feb 2017 18:27:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/abc_concurrent/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Abc_lock</title>
+      <link>http://nituchao.com/categories/abc_lock/</link>
+      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/abc_lock/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Amqp</title>
+      <link>http://nituchao.com/categories/amqp/</link>
+      <pubDate>Thu, 02 Mar 2017 17:35:54 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/amqp/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Console</title>
+      <link>http://nituchao.com/categories/console/</link>
+      <pubDate>Tue, 28 Feb 2017 19:01:58 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/console/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Daily</title>
+      <link>http://nituchao.com/categories/daily/</link>
+      <pubDate>Mon, 06 Mar 2017 09:34:07 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/daily/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Java</title>
+      <link>http://nituchao.com/categories/java/</link>
+      <pubDate>Sat, 12 Jul 2014 19:19:00 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/java/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Jvm</title>
+      <link>http://nituchao.com/categories/jvm/</link>
+      <pubDate>Thu, 29 Dec 2016 20:15:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/jvm/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Linux</title>
+      <link>http://nituchao.com/categories/linux/</link>
+      <pubDate>Wed, 22 Feb 2017 18:25:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Macos</title>
+      <link>http://nituchao.com/categories/macos/</link>
+      <pubDate>Tue, 24 Jun 2014 15:19:00 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/macos/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Mysql</title>
+      <link>http://nituchao.com/categories/mysql/</link>
+      <pubDate>Tue, 14 Feb 2017 14:09:01 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/mysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Queue</title>
+      <link>http://nituchao.com/categories/queue/</link>
+      <pubDate>Tue, 27 Dec 2016 16:12:12 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/queue/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Words</title>
+      <link>http://nituchao.com/categories/words/</link>
+      <pubDate>Sun, 22 Jun 2014 13:32:00 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/words/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Xa</title>
+      <link>http://nituchao.com/categories/xa/</link>
+      <pubDate>Wed, 15 Feb 2017 10:13:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/categories/xa/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

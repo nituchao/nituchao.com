@@ -57,7 +57,7 @@ public native void    putLong(Object o, long offset, long x);
 `AtomicLongFieldUpdater`本身是抽象类，通过两个私有的静态内部子类来完成具体的工作。
 
 * `CASUpdater`：顾名思义，使用CAS操作对象的成员变量。
-* LockedUpdater：顾名思义，在更新和读取对象的成员变量时，使用对象锁来保证同步。
+* `LockedUpdater`：顾名思义，在更新和读取对象的成员变量时，使用对象锁来保证同步。
 
 
 

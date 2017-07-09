@@ -2,12 +2,15 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Macos on 泥土巢</title>
-    <link>http://nituchao.com/categories/macos/index.xml</link>
+    <link>http://nituchao.com/categories/macos/</link>
     <description>Recent content in Macos on 泥土巢</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <atom:link href="http://nituchao.com/categories/macos/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 24 Jun 2014 15:19:00 +0800</lastBuildDate>
+    
+	<atom:link href="http://nituchao.com/categories/macos/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>终端Session管理工具整理</title>
@@ -15,30 +18,12 @@
       <pubDate>Tue, 24 Jun 2014 15:19:00 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2014/byobu-kuai-jie-jian-zheng-li/</guid>
-      <description>
-
-&lt;h2 id=&#34;tmux&#34;&gt;Tmux&lt;/h2&gt;
-
-&lt;p&gt;&lt;strong&gt;2017年2月22日更新&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;最近一直在用Tmux作为默认的终端Session管理工具。Tmux可以轻松的完成窗口创建，屏幕切分，文本模式，命令行模式等功能。&lt;/p&gt;
-
-&lt;p&gt;最让我满意的是多屏幕的同步操作功能。每次需要ssh到服务器查看日志时，我会将屏幕切割成四块，分别登陆到4个服务器上，然后开启sync模式，这样输入的命令将同时在4台服务器上一起执行，大大提高了操作效率。&lt;/p&gt;
-
-&lt;p&gt;Tmux的Session支持后台运行，可以通过attache随时进入Tmux，并立即恢复工作状态。&lt;/p&gt;
-
-&lt;h3 id=&#34;同步操作&#34;&gt;同步操作&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/tmux-session.png&#34; width=780px height=500px alt=&#34;tmux同步操作&#34; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;byoby&#34;&gt;Byoby&lt;/h2&gt;
-
-&lt;p&gt;byoby是Ubuntu团队开发的screen的替代产品，支持session管理，屏幕切分，SSH管理。配置和使用也非常简单，一直是我非常喜欢的系统Terminal的替代产品，大赞。&lt;/p&gt;
-
-&lt;h3 id=&#34;帮助菜单&#34;&gt;帮助菜单&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://hanquan.qiniudn.com/byobuhelp.png&#34; alt=&#34;byobu帮助&#34; /&gt;&lt;/p&gt;
-</description>
+      <description> Tmux 2017年2月22日更新
+最近一直在用Tmux作为默认的终端Session管理工具。Tmux可以轻松的完成窗口创建，屏幕切分，文本模式，命令行模式等功能。
+最让我满意的是多屏幕的同步操作功能。每次需要ssh到服务器查看日志时，我会将屏幕切割成四块，分别登陆到4个服务器上，然后开启sync模式，这样输入的命令将同时在4台服务器上一起执行，大大提高了操作效率。
+Tmux的Session支持后台运行，可以通过attache随时进入Tmux，并立即恢复工作状态。
+同步操作 Byoby byoby是Ubuntu团队开发的screen的替代产品，支持session管理，屏幕切分，SSH管理。配置和使用也非常简单，一直是我非常喜欢的系统Terminal的替代产品，大赞。
+帮助菜单 </description>
     </item>
     
     <item>
@@ -47,17 +32,7 @@
       <pubDate>Fri, 04 Apr 2014 09:19:00 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2014/emacs-shot-key/</guid>
-      <description>
-
-&lt;h2 id=&#34;复制粘贴&#34;&gt;复制粘贴&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;复制: Option + W&lt;/li&gt;
-&lt;li&gt;剪切: Ctrl + W&lt;/li&gt;
-&lt;li&gt;粘贴: Ctrl + Y&lt;/li&gt;
-&lt;li&gt;选中区域: Ctrl + Shift + 2/Ctrl + Space&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description> 复制粘贴  复制: Option + W 剪切: Ctrl + W 粘贴: Ctrl + Y 选中区域: Ctrl + Shift + 2/Ctrl + Space  </description>
     </item>
     
     <item>
@@ -66,26 +41,12 @@
       <pubDate>Sun, 03 Jun 2012 18:18:18 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2012/chameleon-yin-dao-ubuntu/</guid>
-      <description>&lt;p&gt;现在，我的笔记本上同时运行着3个系统，Windows 7，Mac OS 10.7和Ubuntu 10.10。Ubuntu 10.10主要是用来编译调试我的Egg Boiler系统。&lt;/p&gt;
-
-&lt;p&gt;Ubuntu的grub2不能引导Mac OS X系统，所以用chameleon来引导三个系统是非常好的选择，同时chameleon是完全的图形化引导，非常漂亮。&lt;/p&gt;
-
-&lt;p&gt;我的做法非常简单，首先要安装好三个系统，特别要注意的是安装Ubuntu时，要选择把gurb2安装到Ubuntu的/分区，而不能将boot loader安在整个硬盘上，否则变色龙不能识别Ubuntu。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/chameleon-disk-part.png&#34; alt=&#34;grub2安装&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;然后在Mac OS下安装Mac版变色龙到Mac OS系统分区。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/chameleon-install.png&#34; alt=&#34;安装变色龙&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;最后，用Ubuntu的live-cd中的Gparted分区工具把Mac OS X所在分区的标记更改为”boot”，也就是开机从Mac OS X所在分区引导。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/chameleon-boot.png&#34; alt=&#34;设置boot标志&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;最后附一个变色龙主题:&lt;a href=&#34;http://dl.dbank.com/c08nqxu7af&#34;&gt;传送门&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/chameleon-lion.png&#34; alt=&#34;lion主题&#34; /&gt;&lt;/p&gt;
-</description>
+      <description>现在，我的笔记本上同时运行着3个系统，Windows 7，Mac OS 10.7和Ubuntu 10.10。Ubuntu 10.10主要是用来编译调试我的Egg Boiler系统。
+Ubuntu的grub2不能引导Mac OS X系统，所以用chameleon来引导三个系统是非常好的选择，同时chameleon是完全的图形化引导，非常漂亮。
+我的做法非常简单，首先要安装好三个系统，特别要注意的是安装Ubuntu时，要选择把gurb2安装到Ubuntu的/分区，而不能将boot loader安在整个硬盘上，否则变色龙不能识别Ubuntu。
+然后在Mac OS下安装Mac版变色龙到Mac OS系统分区。
+最后，用Ubuntu的live-cd中的Gparted分区工具把Mac OS X所在分区的标记更改为”boot”，也就是开机从Mac OS X所在分区引导。
+最后附一个变色龙主题:传送门</description>
     </item>
     
     <item>
@@ -94,154 +55,13 @@
       <pubDate>Sun, 20 May 2012 20:20:00 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2012/windows-ying-pan-an-zhuang-mac/</guid>
-      <description>
-
-&lt;p&gt;经过一年多的尝试，建议大家安装Mac OS X 10.7原版，这个版本的Mac OS 系统对硬件的兼容性非常好，安装出现的问题也最少。建议大家驱动都自己手动安装，这样子才能更清楚自己装了哪些驱动，将来遇见诸如”五国”，”无限风火轮”的问题时才能更容易找到问题的原因。&lt;/p&gt;
-
-&lt;p&gt;此日志讨论的是在Windows系统下通过原版Mac OS X 10.7的dmg镜像来安装Mac OS系统的方法。&lt;/p&gt;
-
-&lt;p&gt;文章有点长，请耐心看完~~&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;理论上说，该方法也可以用来在Windows系统下制作U盘系统安装盘。&lt;/li&gt;
-&lt;li&gt;理论上说，该方法也可以用来在Windows系统下安装10.7.1,10.7.2,10.7.3,10.7.4甚至是10.8的原版镜像。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr/&gt;
-
-&lt;h2 id=&#34;准备工作&#34;&gt;准备工作&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;系统:Windows 7，Windows XP&lt;/li&gt;
-&lt;li&gt;Mac OS X 10.7原版dmg镜像&lt;/li&gt;
-&lt;li&gt;dmg镜像浏览工具HFSExplorer-0.21版&lt;/li&gt;
-&lt;li&gt;磁盘分区工具Paragon Partition Manager 11版&lt;/li&gt;
-&lt;li&gt;硬盘安装助手HD Install Helper v0.3版&lt;/li&gt;
-&lt;li&gt;Mac Driver 8版&lt;/li&gt;
-&lt;li&gt;Windows版变色龙&lt;/li&gt;
-&lt;li&gt;必要的驱动和破解文件
-
-&lt;ul&gt;
-&lt;li&gt;适合自己机型的dsdt.aml&lt;/li&gt;
-&lt;li&gt;修改过的适合10.7的OSInstall和OSInstall.mpkg，有需要的可以下载我准备好的传送门&lt;/li&gt;
-&lt;li&gt;FakeSMC.kext 破解补丁，用于破解Mac OS内核，必须&lt;/li&gt;
-&lt;li&gt;AppleACPIPS2Nub.kext&lt;/li&gt;
-&lt;li&gt;ApplePS2Controller.kext&lt;/li&gt;
-&lt;li&gt;NullCPUPowerManagement.kext 禁用电源管理功能，解决HPET错误&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;说明:以上的文件，除了dsdt.aml是要适合自己机型的外，其他的文件都是通用的，都可以在远景论坛上找到，想吃黑苹果，趴贴的精神和毅力必须是有的~~&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;制作安装盘&#34;&gt;制作安装盘&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;安装Mac Driver 8备用，安装完后需要重启。&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;留出3个分区&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;系统盘，20G,主分区，Mac OS X系统要安装在这个分区。建议该分区尽量大一点，因为装上Mac OS后我们还要装很多软件，比如我分了42G给该分区&lt;/li&gt;
-&lt;li&gt;安装盘，至少2G,主分区(或逻辑分区)，Mac OS X的安装盘要安装在这个分区。&lt;/li&gt;
-&lt;li&gt;备用盘，至少3G,不创建分区，该分区的目的是为了扩充安装盘分区，因为Mac OS X的镜像写入到安装盘分区后，安装盘分区只剩下300M左右，不能进行接下来的操作，这时候需要把这3G空白分区合进安装盘分区。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/v8TRO.png&#34; alt=&#34;分区&#34; /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;修改分区ID = AF。这一步很重要，ID = AF表示这是一个Apple HFS+分区，Mac OS只能安装在HFS+分区上。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/yRIIO.png&#34; alt=&#34;设置分区ID&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;强烈建议: 用下面的命令来修改系统盘和安装盘的分区ID，因为经过实践发现，用磁盘分区工具来修改ID失败的概率很大，通过命令行来修改通常不会出错，运行cmd打开命令行窗口后，一次执行下面的命令,看到success就ok了，这个时候在资源管理器里就看不到这个分区了。&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;diskpart
-select disk 0
-list partition    #列出所有分区，找到放硬盘镜象的partition
-select partition 0  #选择硬盘镜象所在的分区，这里的“0”换成你上面显示的硬盘镜象所在分区的编号
-set id=af
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;从原dmg镜像中提取BaseSystem.dmg，mach_kernel和Packages文件夹。&lt;/p&gt;
-
-&lt;p&gt;需要说明的是，直接下载的dmg镜像中提取的BaseSystem.dmg文件不能被硬盘安装助手识别，这个dmg镜像比如用HFSExplorer导出一次后才能被硬盘安装助手识别。因此这一步的操作有两个:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;用HFSExplor加载下载的Mac OS X Install ESD.dmg镜像。然后导出BaseSystem.dmg，mach_kernel和Packages文件夹备用&lt;/li&gt;
-&lt;li&gt;用HFSExplor加载导出的BaseSystem.dmg文件，然后点击”Tools”-&amp;gt;”Create disk image”，将BaseSystem.dmg重新导出成硬盘安装助手可以识别的dmg镜像，可以把导出的文件命名为BaseSystem_Eable.dmg。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/q3mjP.png&#34; alt=&#34;导出dmg镜像&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/pZBmF.png&#34; alt=&#34;导出进行中&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;最终有用的文件是：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;ul&gt;
-&lt;li&gt;BaseSystem_Eable.dmg&lt;/li&gt;
-&lt;li&gt;mach_kernel&lt;/li&gt;
-&lt;li&gt;Packages文件夹&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/blockquote&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;用硬盘安装助手HD_Install_Heper_v0.3写入BaseSystem_Eable.dmg镜像到安装盘分区，几分钟后，提示”All Done, have fun!”即表示写入成功。&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;扩充安装盘。&lt;/p&gt;
-
-&lt;p&gt;镜像写入后，如果安装了Mac Driver 8，你就可以在资源管理器里看到，安装盘只剩下300M左右，这点空间是不足以进行接下来的工作的。这就需要尽心安装盘分区扩展。&lt;/p&gt;
-
-&lt;p&gt;操作:打开Paragon Partition Manager磁盘分区工具，选中安装盘，右键选择”移动调整分区大小”,然后把剩下的那个空白分区合并进安装盘分区，然后点击左上角的”应用”按钮。&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;将提取的mach_kernel文件放到安装盘根目录下&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;删除/System/Installtion目录下原来的Packages链接文件，并将提取的Packages文件夹放到安装盘的/System/Installtion/目录下。&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;安装文件替换&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;将修改过的OSInstall.mpkg文件替换掉文件&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code&gt;/System/Installtion/Packages/OSInstall.mpkg
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;* 将修改过的OSInstall 文件替换掉文件
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;/System/Library/PrivateFrameworks/Install.framework/Frameworks/OSInstall.framework/Versions/A/OSInstall
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;在安装盘根目录下建立Extra文件夹在该文件夹下放入以下文件&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;dsdt.aml，该文件是用于Mac OS X系统识别主板和硬件的，一定要是适合自己机型的才有用，没有这个文件或这不适合自己机型会导致绝大多数情况的”五国”问题&lt;/li&gt;
-&lt;li&gt;建立Exentsion文件夹，放入下面四个驱动
-
-&lt;ul&gt;
-&lt;li&gt;FakeSMC.kext 破解补丁，用于破解Mac OS内核，必须&lt;/li&gt;
-&lt;li&gt;AppleACPIPS2Nub.kext&lt;/li&gt;
-&lt;li&gt;ApplePS2Controller.kext&lt;/li&gt;
-&lt;li&gt;NullCPUPowerManagement.kext 禁用电源管理功能，解决HPET错误&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;安装windows版变色龙&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;到这里，Mac OS X的安装盘就做好了。重启计算机，选择变色龙引导，然后选择引导刚刚做好的Mac OS X安装盘分区，稍稍等一下就可以进入安装界面了，如果提示你找不到键盘，只要插上外接的USB键盘就可以了。之后用磁盘分区工具对准备好的系统分区进行”抹盘”，然后按照提示一路下一步安装即可。&lt;/p&gt;
-
-&lt;hr/&gt;
-
-&lt;p&gt;安装完成后，进入Windows系统，把安装盘里刚刚建立的Extra文件夹(包括里面的文件)复制到Mac OS X的系统盘，如果没有这个Extra文件夹，安装好的Mac OS系统是进不去的，会提示五国。复制完后，重启计算机，用Windows版版色龙就可以引导进入新安装好的Mac OS X系统了。&lt;/p&gt;
-</description>
+      <description>经过一年多的尝试，建议大家安装Mac OS X 10.7原版，这个版本的Mac OS 系统对硬件的兼容性非常好，安装出现的问题也最少。建议大家驱动都自己手动安装，这样子才能更清楚自己装了哪些驱动，将来遇见诸如”五国”，”无限风火轮”的问题时才能更容易找到问题的原因。
+此日志讨论的是在Windows系统下通过原版Mac OS X 10.7的dmg镜像来安装Mac OS系统的方法。
+文章有点长，请耐心看完~~
+ 理论上说，该方法也可以用来在Windows系统下制作U盘系统安装盘。 理论上说，该方法也可以用来在Windows系统下安装10.7.1,10.7.2,10.7.3,10.7.4甚至是10.8的原版镜像。   准备工作  系统:Windows 7，Windows XP Mac OS X 10.7原版dmg镜像 dmg镜像浏览工具HFSExplorer-0.21版 磁盘分区工具Paragon Partition Manager 11版 硬盘安装助手HD Install Helper v0.3版 Mac Driver 8版 Windows版变色龙 必要的驱动和破解文件  适合自己机型的dsdt.aml 修改过的适合10.7的OSInstall和OSInstall.mpkg，有需要的可以下载我准备好的传送门 FakeSMC.kext 破解补丁，用于破解Mac OS内核，必须 AppleACPIPS2Nub.kext ApplePS2Controller.kext NullCPUPowerManagement.kext 禁用电源管理功能，解决HPET错误   说明:以上的文件，除了dsdt.aml是要适合自己机型的外，其他的文件都是通用的，都可以在远景论坛上找到，想吃黑苹果，趴贴的精神和毅力必须是有的~~
+制作安装盘  安装Mac Driver 8备用，安装完后需要重启。
+ 留出3个分区
+ 系统盘，20G,主分区，Mac OS X系统要安装在这个分区。建议该分区尽量大一点，因为装上Mac OS后我们还要装很多软件，比如我分了42G给该分区 安装盘，至少2G,主分区(或逻辑分区)，Mac OS X的安装盘要安装在这个分区。 备用盘，至少3G,不创建分区，该分区的目的是为了扩充安装盘分区，因为Mac OS X的镜像写入到安装盘分区后，安装盘分区只剩下300M左右，不能进行接下来的操作，这时候需要把这3G空白分区合进安装盘分区。    修改分区ID = AF。这一步很重要，ID = AF表示这是一个Apple HFS+分区，Mac OS只能安装在HFS+分区上。  强烈建议: 用下面的命令来修改系统盘和安装盘的分区ID，因为经过实践发现，用磁盘分区工具来修改ID失败的概率很大，通过命令行来修改通常不会出错，运行cmd打开命令行窗口后，一次执行下面的命令,看到success就ok了，这个时候在资源管理器里就看不到这个分区了。</description>
     </item>
     
   </channel>

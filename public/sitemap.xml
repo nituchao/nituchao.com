@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
     <loc>http://nituchao.com/post/2017/your-kit-yuan-cheng-lian-jie-xian-shang-fu-wu/</loc>
@@ -79,11 +80,6 @@
   <url>
     <loc>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</loc>
     <lastmod>2017-02-23T18:27:26+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://nituchao.com/post/juc.atomic/atomic-reference-field-update/</loc>
-    <lastmod>2017-02-23T18:27:25+08:00</lastmod>
   </url>
   
   <url>
@@ -267,7 +263,7 @@
   </url>
   
   <url>
-    <loc>http://nituchao.com/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/</loc>
+    <loc>http://nituchao.com/post/2012/bian-yi-zi-ji-de-linux-xi-tong/</loc>
     <lastmod>2012-05-18T20:20:00+08:00</lastmod>
   </url>
   
@@ -327,6 +323,7 @@
   
   <url>
     <loc>http://nituchao.com/categories/</loc>
+    <lastmod>2017-02-23T18:39:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -482,6 +479,7 @@
   
   <url>
     <loc>http://nituchao.com/tags/</loc>
+    <lastmod>2017-02-15T10:12:41+08:00</lastmod>
     <priority>0</priority>
   </url>
   
