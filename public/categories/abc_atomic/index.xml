@@ -137,7 +137,7 @@ Java HotSpot™ 64-Bit Server VM (build 24.65-b04, mixed mode)
     <item>
       <title>AtomicIntegerFieldUpdater源码分析</title>
       <link>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</link>
-      <pubDate>Thu, 23 Feb 2017 18:27:26 +0800</pubDate>
+      <pubDate>Thu, 23 Feb 2017 18:27:25 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.atomic/atomic-integer-field-updater/</guid>
       <description>概述 在原子变量相关类中，AtomicIntegerFieldUpdater, AtomicLongFieldUpdater, AtomicReferenceFieldUpdater三个类是用于原子地修改对象的成员属性，它们的原理和用法类似，区别在于对Integer，Long，Reference类型的成员属性进行修改。本文重点研究AtomicIntegerFieldUpdater。
