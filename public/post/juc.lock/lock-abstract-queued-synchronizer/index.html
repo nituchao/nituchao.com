@@ -110,6 +110,81 @@
 				</div>
 				<section>
 					
+
+<h2 id="概述">概述</h2>
+
+<p>队列同步器AbstractQueuedSynchronizer（以下简称AQS），是用来构建锁或者其他同步组件的基础框架。它使用一个int成员变量来表示同步状态（重入次数，共享状态等），通过CAS操作对同步状态进行修改，确保状态的改变是安全的。通过内置的FIFO(First In First Out)队列来完成资源获取的排队工作。在AQS里有两个队列，分别是维护Sync Queue和Condition Queue，两个队列的节点都是AQS的静态内部类Node。Sync Queue在独占模式和共享模式中均会使用到，本质上是一个存放Node的CLH队列（主要特点是, 队列中总有一个 dummy 节点, 后继节点获取锁的条件由前继节点决定, 前继节点在释放 lock 时会唤醒sleep中的后继节点），维护的是等待获取锁的线程信息。Condition Queue在独占模式中才会用到，当用户使用条件变量进行线程同步时，维护的是等待条件变量的线程信息。</p>
+
+<p>通过AQS实现的锁分独占锁(ReentrantLock，WriteLock，Segment等)和共享锁(ReadLock)，使用一个volatile修饰的int类型的变量state来表示当前同步块的状态。state在AQS中功能强大，即可以用来表示同步器的加锁状态，也可以用来表示重入锁的重入次数(tryAcquire)，还可以用来标识读锁和写锁的加锁状态。</p>
+
+<p>在AQS的基础上，JUC包实现了如下几类锁：
+1，公平锁和非公平所</p>
+
+<p>2，可重入锁</p>
+
+<p>3，独占锁和共享锁</p>
+
+<p>以上三类锁并不是独立的，可以有多种组合。</p>
+
+<p>1，ReentrantLock：可重入锁，公平锁|非公平锁，独占锁。</p>
+
+<p>2，ReentrantReadWriteLock：可重入锁，公平锁|非公平锁，独占锁|共享锁。</p>
+
+<p>另外，除了上面列举的ReentrantLock和ReentrantReadWriteLock外，下面几个类也是依靠AQS实现的。</p>
+
+<p>1，CountDownLatch</p>
+
+<p>2，CyclicBarrier</p>
+
+<p>3，Semaphore</p>
+
+<p>4，Segment</p>
+
+<p>AQS主要包含下面几个特点，是我们理解AQS框架的关键：</p>
+
+<p>1，内部含有两条队列（Sync Queue，Condition Queue）。</p>
+
+<p>2，AQS内部定义获取锁（acquire），释放锁（release）的主逻辑，子类实现相应的模板方法。</p>
+
+<p>3，支持共享和独占两种模式（共享模式时只用Sync Queue，独占时只用Sync Queue，但如果涉及条件变量Condition，则还有Condition Queue）。</p>
+
+<p>4，支持不响应中断获取独占锁（acquire），响应中断获取独占锁（acquireInterruptibly），超时获取独占锁（tryAcquireNanos）；不响应中断获取共享锁（acquireShared），响应中断获取共享锁（acquireSharedInterruptibly），超时获取共享锁（tryAcquireSharedNanos）；</p>
+
+<p>5，在子类的tryAcquire，tryAcquireShared中实现公平和非公平的区分。</p>
+
+<p>本文重点介绍AbstractQueuedSynchronizer的设计，其实现待到具体的子类再做分析。</p>
+
+<p>本文基于JDK1.7.0_67</p>
+
+<blockquote>
+<p>java version &ldquo;1.7.0<em>67&rdquo;</em></p>
+
+<p>_Java&trade; SE Runtime Environment (build 1.7.0_67-b01)</p>
+
+<p>Java HotSpot&trade; 64-Bit Server VM (build 24.65-b04, mixed mode)</p>
+</blockquote>
+
+<h2 id="内部类">内部类</h2>
+
+<h3 id="node">Node</h3>
+
+<h3 id="conditionobject">ConditionObject</h3>
+
+<p>参考：</p>
+
+<ul>
+<li><a href="http://download.csdn.net/detail/u011898232/9548575">Java 并发编程的艺术</a></li>
+<li><a href="http://ifeve.com/sun-misc-unsafe/">Java Magic. Part 4: sun.misc.Unsafe</a></li>
+<li><a href="http://www.blogjava.net/mstar/archive/2013/04/24/398351.html">Java里的CompareAndSet(CAS)</a></li>
+<li><a href="http://blog.csdn.net/luonanqin/article/details/41871909">ReentrantLock的lock-unlock流程详解</a></li>
+<li><a href="http://blog.csdn.net/chen77716/article/details/6641477">深入JVM锁机制2-Lock</a></li>
+<li><a href="http://www.infoq.com/cn/articles/jdk1.8-abstractqueuedsynchronizer">深度解析Java 8：JDK1.8 AbstractQueuedSynchronizer的实现分析（上）</a></li>
+<li><a href="https://www.cnblogs.com/zhanjindong/p/java-concurrent-package-aqs-AbstractQueuedSynchronizer.html">AbstractQueuedSynchronizer源码分析</a></li>
+<li><a href="https://my.oschina.net/xianggao/blog/532709">聊聊并发（十二）—AQS分析</a></li>
+<li><a href="http://www.javarticles.com/2012/10/abstractqueuedsynchronizer-aqs.html">AbstractQueuedSynchronizer (AQS)</a></li>
+<li><a href="http://blog.csdn.net/tomato__/article/details/24774465">并发编程实践二：AbstractQueuedSynchronizer</a></li>
+</ul>
+
 				</section>
 			</article>
 		</main>
@@ -125,7 +200,19 @@
 			<ul>
 				<li><strong><a href="#title">Java锁之AQS抽象类源码分析</a></strong></li>
 			</ul>
-			
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#概述">概述</a></li>
+<li><a href="#内部类">内部类</a>
+<ul>
+<li><a href="#node">Node</a></li>
+<li><a href="#conditionobject">ConditionObject</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
 		</div>
 	</div>
 	</div>
