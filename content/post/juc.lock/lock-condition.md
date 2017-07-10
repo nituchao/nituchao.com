@@ -8,7 +8,7 @@ draft: false
 
 ## 概述
 
-Condition是一个接口，用于定义条件变量。条件变量的实例化是通过一个Lock对象上调用newCondition()方法获取的，这样，条件变量就和一个锁对象绑定起来了。Java中的条件变量只能和锁配合使用，来控制编发程序访问竞争资源的安全。条件变量增强了juc包下基于AQS锁框架的灵活性。对比synchronized代表的监视器锁，条件变量将锁和监视器操作(await, signal, signalAll)分离开来，而且一个锁可以绑定多个条件变量，每个条件变量的实例会维护一个单独的等待队列。条件变量使得锁框架能更加精细控制线程等待与唤醒。在AbstractQueuedSynchronizer和AbstractQueuedLongSynchronizer类中分别有一个实现ConditionObject，为整个AQS框架提供条件变量的相关能力。
+Condition是一个接口，用于定义条件变量。条件变量的实例化是通过一个Lock对象调用newCondition()方法获取的，这样，条件变量就和一个锁对象绑定起来了。Java中的条件变量只能和锁配合使用，来控制编发程序访问竞争资源的安全。条件变量增强了juc包下基于AQS锁框架的灵活性。对比synchronized代表的监视器锁，条件变量将锁和监视器操作(await, signal, signalAll)分离开来，而且一个锁可以绑定多个条件变量，每个条件变量的实例会维护一个单独的等待队列。条件变量使得锁框架能更加精细控制线程等待与唤醒。在AbstractQueuedSynchronizer和AbstractQueuedLongSynchronizer类中分别有一个实现ConditionObject，为整个AQS框架提供条件变量的相关能力。
 
 
 
@@ -44,7 +44,13 @@ void signalAll();
 
 ### signal()和signalAll()
 
-signal()和signal()函数的字面意思很好理解，signal()负责唤醒等待队列中的一个线程，signalAll负责唤醒等待队列中的所有线程。那什么时候用signal()？什么时候用signalAll()？答案是：避免死锁的情况下，要用signalAll()，其他情况下两者可以通用，甚至signal()的效率要高一些。
+signal()和signal()函数的字面意思很好理解，signal()负责唤醒等待队列中的一个线程，signalAll负责唤醒等待队列中的所有线程。
+
+那什么时候用signal()？什么时候用signalAll()？
+
+答案是：避免死锁的情况下，要用signalAll()，其他情况下两者可以通用，甚至signal()的效率要高一些。
+
+
 
 参考：
 
