@@ -631,7 +631,40 @@ Condition newCondition();
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.lock/lock-read-write-lock/</guid>
-      <description></description>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;为了提高性能，Java提供了读写锁，在读的地方使用读锁，在写的地方使用写锁，灵活控制。如果没有写锁的情况下，读是无阻塞的，在一定程度上提高了程序的执行效率。读锁本质上是一种共享锁，写锁本质上是一种互斥锁。Java通过ReadWriteLock接口声明了读写锁的相关操作，通过该接口用户可以同时获取一个读锁实例和写锁实例。ReentrantReadWriteLock是ReadWriteLock的唯一实现，该类通过静态内部类的方式实现了ReadLock和WriteLock，并且根据需要提供了公平锁(FairSync)和非公平所(NonfairSync)的实现。&lt;/p&gt;
+
+&lt;p&gt;本文重点关注ReadWriteLock接口的设计，具体实现会在ReentrantReadWriteLock类中进行具体分析。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;函数列表&#34;&gt;函数列表&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;Lock readLock();
+Lock writeLock();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;重点函数分析&#34;&gt;重点函数分析&lt;/h2&gt;
+
+&lt;h3 id=&#34;readlock&#34;&gt;readLock&lt;/h3&gt;
+
+&lt;p&gt;返回一个读锁。读锁本质上是一个共享锁。在Java的实现中，共享锁通过计数器实现，区分公平锁和非公平锁。&lt;/p&gt;
+
+&lt;h3 id=&#34;writelock&#34;&gt;writeLock&lt;/h3&gt;
+
+&lt;p&gt;返回一个写锁。写锁本质上是一个独占锁。在Java的实现中，区分公平锁和非公平锁。&lt;/p&gt;
+</description>
     </item>
     
     <item>
