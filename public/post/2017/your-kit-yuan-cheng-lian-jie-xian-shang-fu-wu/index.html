@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>YourKit远程连接线上服务器 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/atelier-estuary-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">作品</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书单</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/abc_atomic">Abc_atomic</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_concurrent">Abc_concurrent</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_lock">Abc_lock</a></li>
+						
+							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
+						
+							<li><a href="http://nituchao.com/categories/console">Console</a></li>
+						
+							<li><a href="http://nituchao.com/categories/daily">Daily</a></li>
+						
+							<li><a href="http://nituchao.com/categories/java">Java</a></li>
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
+						
+							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/queue">Queue</a></li>
+						
+							<li><a href="http://nituchao.com/categories/words">Words</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">YourKit远程连接线上服务器</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2017-03-06">2017年03月06日</time></span>
+				</div>
+				<section>
+					
+
+<p>YourKit是一款业内领先的性能分析工具，目前支持Java和.NET两个平台。该工具功能全面强悍，能通过本地连接或者远程连接的方式，对各种服务器，框架，平台的性能进行分析，并提供了多种由浅入深，针对开发环境或者生产环境的分析模式。该工具提供了高效的图形化显示方式，动动鼠标就可以对系统进行显微镜式的观察分析。</p>
+
+<p>通过YourKit可以对以下内容进行分析：</p>
+
+<ul>
+<li>CPU profiling - investigate performace issues</li>
+<li>Memory profiling - memory leaks, usage, GC</li>
+<li>Threads and synchronization</li>
+<li>Exception profiling</li>
+<li>Web, Database, I/O</li>
+</ul>
+
+<p>本文想总结一下，YourKit提供的两种连接到Java进程的方式，一种是attach方式，另一种是integrate方式。</p>
+
+<h2 id="通过attach方式连接到远程服务器">通过attach方式连接到远程服务器</h2>
+
+<p>在控制台，attach方式可以通过进程号，连接到运行中的任何Java进程中，这种方式并不保证总能连接成功，而且会禁用某些分析功能。</p>
+
+<h4 id="线上环境">线上环境</h4>
+
+<ul>
+<li>CentOS release 6.3 64-Bit</li>
+<li>Java 1.7.0_79 HotSpot&trade; 64-Bit Server VM</li>
+</ul>
+
+<h4 id="下载安装包">下载安装包</h4>
+
+<pre><code class="language-shell"># wget https://www.yourkit.com/download/yjp-2017.02-b53.zip
+# unzip yjp-2017.02-b53.zip
+# cd yjp-2017.02
+</code></pre>
+
+<h4 id="确定服务进程号">确定服务进程号</h4>
+
+<pre><code class="language-shell"># jps
+2230 Resin
+3959 Jps
+</code></pre>
+
+<h4 id="console连接进程">Console连接进程</h4>
+
+<p>通过下面的命令来连接到Java进程。</p>
+
+<pre><code class="language-shell"># bin/yjp.sh -attach
+[YourKit Java Profiler 2017.02-b53] Log file: /root/.yjp/log/yjp-4473.log
+Running JVMs:
+
+Name                             |   PID| Status
+-------------------------------- |------|--------------------------------
+Resin                            | 11760| Ready for attach
+ThriftMain                       |  2934| Ready for attach
+Resin                            |  2230| Agent already loaded, agent port is 10001
+Resin                            | 14232| Ready for attach
+Resin                            |  3657| Ready for attach
+WatchdogManager                  | 16411| Ready for attach
+
+Enter PID of the application you want to attach (0 to exit) and press Enter:
+&gt;2230
+Please specify comma-separated list of startup options, or press Enter for default options (recommended):
+&gt;
+</code></pre>
+
+<p>上面的操作执行完成后，会出现如下提示，表示YourKit Console服务已经成功运行，并在10001开始工作。</p>
+
+<pre><code class="language-shell">Attaching to process 2230 using default options
+[YourKit Java Profiler 2017.02-b53] Log file: /root/.yjp/log/yjp-30209.log
+The profiler agent has attached. Waiting while it initializes...
+The agent is loaded and is listening on port 10001.
+You can connect to it from the profiler UI.
+# lsof -i:10001
+COMMAND  PID USER   FD   TYPE    DEVICE SIZE/OFF NODE NAME
+java    2230 root   72u  IPv4 199000044      0t0  TCP *:scp-config (LISTEN)
+</code></pre>
+
+<p>在浏览器，通过ip:port的方式，可以看到YourKit的运行概况。</p>
+
+<p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/your-kit-attach.png" alt="YourKit Attach" /></p>
+
+<h4 id="yourkit-ui连接远程服务">YourKit UI连接远程服务</h4>
+
+<p>打开YourKit UI，点击Connect to remote application，输入IP:PORT进行连接。</p>
+
+<p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-connect-attach.png" alt="YourKit Connect" /></p>
+
+<p>连接成功后，进行性能分析界面，大功告成。</p>
+
+<p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-home-attach.png" alt="YourKit性能分析界面" /></p>
+
+<h4 id="疑难问题">疑难问题</h4>
+
+<p>通过attach方式并不总能连接到Java进程，常常会出现JVM无响应的问题，控制台报错如下：</p>
+
+<pre><code class="language-shell">Attaching to process 31833 using options
+com.yourkit.util.bf: com.sun.tools.attach.AttachNotSupportedException: Unable to open socket file: target process not responding or HotSpot VM not loaded
+	at com.yourkit.b.f.a(a:128)
+	at com.yourkit.b.c.attach(a:1)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.yourkit.h.run(a:17)
+
+Attach to a running JVM failed.
+
+Solution: start JVM with the profiler agent instead of attaching it to a running JVM:
+https://www.yourkit.com/docs/java/help/running_with_profiler.jsp
+</code></pre>
+
+<p>因此，分析本地Java进程时可以选择attach方式，对于远程服务，还是推荐integrate方式。</p>
+
+<h2 id="通过integrate方式连接到远程服务器-重点推荐">通过integrate方式连接到远程服务器（重点推荐）</h2>
+
+<p>integrate方式通过修服务器启动配置文件，随服务启动，这种方式比较稳定，而且能够全面启用YourKit的所有功能。</p>
+
+<h4 id="线上环境-1">线上环境</h4>
+
+<ul>
+<li>CentOS release 6.3 64-Bit</li>
+<li>Java 1.7.0_79 HotSpot&trade; 64-Bit Server VM</li>
+</ul>
+
+<h4 id="下载安装包-1">下载安装包</h4>
+
+<pre><code class="language-shell"># wget https://www.yourkit.com/download/yjp-2017.02-b53.zip
+# unzip yjp-2017.02-b53.zip
+# cd yjp-2017.02
+</code></pre>
+
+<h4 id="确定服务进程号-1">确定服务进程号</h4>
+
+<pre><code class="language-shell"># jps
+2230 Resin
+3959 Jps
+</code></pre>
+
+<h4 id="console连接进程-1">Console连接进程</h4>
+
+<p>通过下面的命令来连接到Java进程。</p>
+
+<pre><code class="language-shell"># bin/yjp.sh -integrate
+Choose server to integrate with:
+1) Geronimo
+2) GlassFish
+3) JBoss / WildFly
+4) Jetty
+5) JRun 4
+6) Resin 3.1/4
+7) Tomcat 3–8
+8) WebLogic 9 and newer
+9) WebSphere Application Server 7 or newer
+10) WebSphere Application Server V8.5 Liberty profile
+11) Generic server (use if your server is not on the list)
+Enter number which corresponds to your server (0 to exit) and press Enter:
+&gt;6
+Please specify whether the server runs on a 32-bit JVM or a 64-bit JVM.
+Hint: If you are not sure what to choose, choose &quot;32-bit JVM&quot;. If with this choice the server does not start with profiling, re-run the integration and choose &quot;64-bit Java&quot; option.
+1) 32-bit JVM
+2) 64-bit JVM
+&gt;2
+Resin configuration file (&lt;RESIN_HOME&gt;/conf/resin.xml or &lt;RESIN_HOME&gt;/conf/resin.conf):
+&gt;/home/work/bin/miui-sec-adv/resin/conf/resin.xml
+
+Startup options configuration: step 1 of 5
+Should option 'disablestacktelemetry' be specified?
+1) Yes (recommended to minimize profiling overhead in production)
+2) No
+&gt;2
+Startup options configuration: step 2 of 5
+Should option 'exceptions=disable' be specified?
+1) Yes (recommended to minimize profiling overhead in production)
+2) No
+&gt;1
+Startup options configuration: step 3 of 5
+Built-in probes:
+
+1) Enabled: recommended for use in DEVELOPMENT; gives high level profiling results, but may add overhead
+2) Disabled: recommended for use in PRODUCTION to minimise overhead, or for troubleshooting
+
+Hint: It's recommended to choose #1 in development and #2 in production.
+If choosing #1 makes profiling overhead big or there are startup issues, re-run the integration and choose #2.
+&gt;2
+Startup options configuration: step 4 of 5
+Should option 'delay=10000' be specified?
+1) Yes (recommended)
+2) No
+&gt;1
+Startup options configuration: step 5 of 5
+Please specify comma-separated list of additional startup options, or press Enter for no additional options:
+&gt;
+A new config file is created:
+
+/home/work/bin/miui-sec-adv/resin/conf/resin_yjp.xml
+
+To profile the server:
+
+1) [Recommended] Backup original 'resin.xml'
+2) Rename 'resin_yjp.xml' to 'resin.xml'
+3) Start the server
+</code></pre>
+
+<p>上面的操作执行完成后，会在操作中指定的resin配置文件目录生成<code>resin_yjp.xml</code>文件，接下来将该<code>resin_yjp.xml</code>重命名为<code>resin.xml</code>，并启动服务器。正常情况下，YourKit的Console程序便会随着Resin服务器自动启动，可以通过<code>lsof</code>命令确认一下。</p>
+
+<pre><code class="language-shell"># lsof -i:10001
+COMMAND  PID USER   FD   TYPE     DEVICE SIZE/OFF NODE NAME
+java    2389 work    8u  IPv4 3188835745      0t0  TCP *:scp-config (LISTEN)
+</code></pre>
+
+<p>同时，可以通过IP:PORT的方式在浏览器中查看YourKit Console服务的概况。</p>
+
+<p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-page-integrate.png" alt="YourKit Page" /></p>
+
+<h4 id="yourkit-ui连接远程服务-1">YourKit UI连接远程服务</h4>
+
+<p>打开YourKit UI，点击Connect to remote application，输入IP:PORT进行连接。</p>
+
+<p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/yourkit-ui-connect-integrate.png" alt="YourKit UI Connect" /></p>
+
+<p>连接成功后，进行性能分析界面，大功告成。</p>
+
+<p><img src="http://olno3yiqc.bkt.clouddn.com/blog/img/your-kit-home-integrate.png" alt="YourKit性能分析界面" /></p>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">YourKit远程连接线上服务器</a></strong></li>
+			</ul>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#通过attach方式连接到远程服务器">通过attach方式连接到远程服务器</a>
+<ul>
+<li>
+<ul>
+<li><a href="#线上环境">线上环境</a></li>
+<li><a href="#下载安装包">下载安装包</a></li>
+<li><a href="#确定服务进程号">确定服务进程号</a></li>
+<li><a href="#console连接进程">Console连接进程</a></li>
+<li><a href="#yourkit-ui连接远程服务">YourKit UI连接远程服务</a></li>
+<li><a href="#疑难问题">疑难问题</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#通过integrate方式连接到远程服务器-重点推荐">通过integrate方式连接到远程服务器（重点推荐）</a>
+<ul>
+<li>
+<ul>
+<li><a href="#线上环境-1">线上环境</a></li>
+<li><a href="#下载安装包-1">下载安装包</a></li>
+<li><a href="#确定服务进程号-1">确定服务进程号</a></li>
+<li><a href="#console连接进程-1">Console连接进程</a></li>
+<li><a href="#yourkit-ui连接远程服务-1">YourKit UI连接远程服务</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

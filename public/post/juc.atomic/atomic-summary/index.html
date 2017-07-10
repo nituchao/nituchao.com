@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>Atomic变量 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/atelier-estuary-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">作品</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书单</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/abc_atomic">Abc_atomic</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_concurrent">Abc_concurrent</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_lock">Abc_lock</a></li>
+						
+							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
+						
+							<li><a href="http://nituchao.com/categories/console">Console</a></li>
+						
+							<li><a href="http://nituchao.com/categories/daily">Daily</a></li>
+						
+							<li><a href="http://nituchao.com/categories/java">Java</a></li>
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
+						
+							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/queue">Queue</a></li>
+						
+							<li><a href="http://nituchao.com/categories/words">Words</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">Atomic变量</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2017-02-23">2017年02月23日</time></span>
+				</div>
+				<section>
+					<p>Java原子变量的诞生源自一个简单的需求 —— 多个线程共享某个变量或者对象时，需要对修改和读取操作进行同步。</p>
+
+<p>同步包含两层含义：</p>
+
+<ol>
+<li>互斥访问</li>
+<li>可见性</li>
+</ol>
+
+<p>通常，多线程对临界资源的互斥访问通过对象锁(synchronized关键字)保证。对象锁是一种独占锁（悲观锁），会导致其它所有需要锁的线程挂起。而可见性则由volatile的内存语义保证。</p>
+
+<p>Java 1.5开始提供了原子变量和原子引用，这些类放置在<code>java.util.concurrent</code>下。大概可以归为4类：</p>
+
+<ol>
+<li>基本类型：AtomicInteger, AtomicLong, AtomicBoolean;</li>
+<li>数组类型：AtomicIntegerArray, AtomicLongArray, AtomicReferenceArray;</li>
+<li>引用类型：AtomicReference, AtomicStampedReference, AtomicMarkableReference;</li>
+<li>对象的属性修改类型：AtomicIntegerFieldUpdater, AtomicLongFieldUpdater, AtomicReferenceFieldUpdater;</li>
+</ol>
+
+<p>Java原子变量的存在是为了对相应的数据进行原子操作。</p>
+
+<p>所谓的原子操作包含下面几层含义：</p>
+
+<ol>
+<li>操作过程不会被中断。</li>
+<li>操作过程不会被阻塞。</li>
+<li>修改结果被其他线程可见。</li>
+</ol>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">Atomic变量</a></strong></li>
+			</ul>
+			
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

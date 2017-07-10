@@ -2,15 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux on 泥土巢</title>
-    <link>http://nituchao.com/categories/linux/</link>
+    <link>http://nituchao.com/categories/linux/index.xml</link>
     <description>Recent content in Linux on 泥土巢</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Wed, 22 Feb 2017 18:25:27 +0800</lastBuildDate>
-    
-	<atom:link href="http://nituchao.com/categories/linux/index.xml" rel="self" type="application/rss+xml" />
-    
+    <atom:link href="http://nituchao.com/categories/linux/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Linux网络I/O模型整理</title>
@@ -18,47 +15,187 @@
       <pubDate>Wed, 22 Feb 2017 18:25:27 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2017/linux-io-mode/</guid>
-      <description>Linux的内核将所有外部设备都看做一个文件来操作，对一个文件的读写操作会调用内核提供的系统命令，返回一个file description(fd，文件描述符)。而对一个socket的读写也会有相应的描述符，称为socketfd(socket描述符)，描述符就是一个数字，它指向内核中的一个结构体(文件路径，数据区等一些属性)。
-Linux文件类型 Linux操作系统定义了七种文件，对这些文件的操作都属于I/O操作。其中，操作TCP套接字文件时会产生网络I/O。
- d: 目录文件(directory file)  这种文件包含了其他文件的名字以及指向与这些文件有关信息的指针。对一个目录文件具有读权限的任一进程都可以读该目录的内容，但只有内核可以直接写目录文件。
- l: 符号链接文件(symbolic link)  这种类型的文件指向另一个文件。
- s: 套接字文件(socket)  这种类型的文件用于进程间的网络通信。套接字也可用于在一台宿主机上进程之间的非网络通信。
- b: 块设备文件，二进制文件(block special file)  这种为类型的文件提供对设备(如磁盘)带缓冲的访问，每次访问以固定长度为单位进行。
- c: 字符设备文件(character special file)  这种类型的文件提供对设备不带缓冲的访问，每次访问长度可变。系统中的所有设备要么是字符特殊文件，要么是块特殊文件。
- p: 命名管道文件(FIFO)  这种类型的文件用于进程间通信，有时被称为命名管道(named pipe)。
- -: 普通文件(regular file)  这是最常用的文件类型，这种文件包含了某种形式的数据。至于这种数据是文本还是二进制数据，对于UNIX内核而言并无区别。对普通文件内容的解释由处理该文件的应用程序进行。
- 一个值得注意的例外是二进制可执行文件。为了执行程序，内核必须理解其格式。所有二进制可执行文件都遵循一种标准化的格式，这种格式使内核能够确定程序文本和数据的加载位置。
- Linux网络I/O模型 根据UNIX网络编程对I/O模型的分类，UNIX提供了五种I/O模型，服务器会根据自己的类型定位，使用其中一种或者多种I/O模型来处理网络请求。
-阻塞I/O模型 最常用的I/O模型就是阻塞I/O模型，缺省情形下，所有文件操作都是阻塞的。我们以套接字借口为例来讲解此模型：在进程空间中调用recvfrom，其系统调用直到数据包到达且被复制到应用进程的缓冲区中或者发生错误时才返回，在此期间一直会等待，进程在从调用recvfrom开始到它返回的整段时间内都是被阻塞的，因此被称为阻塞I/O模型，如图1-1所示：
-非阻塞I/O模型 recvfrom从应用层到内核的时候，如果该缓冲区没有数据的话，就直接返回一个EWORLDBLOCK错误，一般都对非阻塞I/O模型进行轮询检查这个状态，看内核是不是有数据到来，如图1-2所示：
-I/O复用模型 Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。
-Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：
-信号驱动I/O模型 首先开启套接字接口信号驱动I/O功能，并通过系统调用sigaction执行一个信号处理函数(此系统调用立即返回，进程继续工作，它是非阻塞的)。当数据准备就绪时，就为该进程生成一个SIGIO信号，通过信号回调通知应用程序调用recvfrom来读取数据，并通知主循环函数处理数据，如图1-4所示：
-异步I/O模型 告知内核启动某个操作，并让内核在整个操作完成后（包括将数据从内核复制到用户自己的缓冲区）通知我们。这种模型与信号驱动模型的主要区别是：信号驱动I/O由内核通过我们何时可以开始一个I/O操作；异步I/O模型由内核通知我们I/O操作何时已经完成，如图1-5所示：
-常用服务器 目前流行的服务器大致分为普通应用服务器和高性能服务器两种。
-应用服务器通常会运行具体的业务代码，比如：订单交易，网站管理等。这些业务通常使用基于MVC模式的框架，并进行数据库操作。应用服务器往往跟编程语言和应用框架绑定，提供上下文管理能力，单次业务的处理时间比较长，业务逻辑比较复杂。因此，应用服务器往往采用阻塞式I/O模型或者非阻塞I/O模型。基于请求/响应的方式工作。
-高性能服务器往往需要面对极高的并发网络连接，并对内存分配、CPU使用提出更加苛刻的要求，比如：适用于反向代理的负载均衡服务器Nignx。因此，高性能服务器往往采用I/O复用模型或信号驱动I/O模型，有些对性能要求更高得服务器会采用纯异步I/O模型。相比较请求/响应的工作方式，使用后面三种I/O模型的服务器的处理方式更多样，也更复杂。
-使用阻塞I/O模型或非阻塞I/O模型的服务器  Apache Tomcat Resin Caddy  使用多路复用I/O模型的服务器  Nginx Netty Mina  参考资料 1, 《Netty权威指南 第二版》，李林峰</description>
+      <description>
+
+&lt;p&gt;Linux的内核将所有外部设备都看做一个文件来操作，对一个文件的读写操作会调用内核提供的系统命令，返回一个file description(fd，文件描述符)。而对一个socket的读写也会有相应的描述符，称为socketfd(socket描述符)，描述符就是一个数字，它指向内核中的一个结构体(文件路径，数据区等一些属性)。&lt;/p&gt;
+
+&lt;h2 id=&#34;linux文件类型&#34;&gt;Linux文件类型&lt;/h2&gt;
+
+&lt;p&gt;Linux操作系统定义了七种文件，对这些文件的操作都属于I/O操作。其中，操作TCP套接字文件时会产生网络I/O。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;d: 目录文件(directory file)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这种文件包含了其他文件的名字以及指向与这些文件有关信息的指针。对一个目录文件具有读权限的任一进程都可以读该目录的内容，但只有内核可以直接写目录文件。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;l: 符号链接文件(symbolic link)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这种类型的文件指向另一个文件。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;s: 套接字文件(socket)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这种类型的文件用于进程间的网络通信。套接字也可用于在一台宿主机上进程之间的非网络通信。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;b: 块设备文件，二进制文件(block special file)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这种为类型的文件提供对设备(如磁盘)带缓冲的访问，每次访问以固定长度为单位进行。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;c: 字符设备文件(character special file)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这种类型的文件提供对设备不带缓冲的访问，每次访问长度可变。系统中的所有设备要么是字符特殊文件，要么是块特殊文件。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;p: 命名管道文件(FIFO)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这种类型的文件用于进程间通信，有时被称为命名管道(named pipe)。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;-: 普通文件(regular file)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这是最常用的文件类型，这种文件包含了某种形式的数据。至于这种数据是文本还是二进制数据，对于UNIX内核而言并无区别。对普通文件内容的解释由处理该文件的应用程序进行。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;一个值得注意的例外是二进制可执行文件。为了执行程序，内核必须理解其格式。所有二进制可执行文件都遵循一种标准化的格式，这种格式使内核能够确定程序文本和数据的加载位置。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;linux网络i-o模型&#34;&gt;Linux网络I/O模型&lt;/h2&gt;
+
+&lt;p&gt;根据UNIX网络编程对I/O模型的分类，UNIX提供了五种I/O模型，服务器会根据自己的类型定位，使用其中一种或者多种I/O模型来处理网络请求。&lt;/p&gt;
+
+&lt;h3 id=&#34;阻塞i-o模型&#34;&gt;阻塞I/O模型&lt;/h3&gt;
+
+&lt;p&gt;最常用的I/O模型就是阻塞I/O模型，缺省情形下，所有文件操作都是阻塞的。我们以套接字借口为例来讲解此模型：在进程空间中调用recvfrom，其系统调用直到数据包到达且被复制到应用进程的缓冲区中或者发生错误时才返回，在此期间一直会等待，进程在从调用recvfrom开始到它返回的整段时间内都是被阻塞的，因此被称为阻塞I/O模型，如图1-1所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/block-io.png&#34; alt=&#34;阻塞I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;非阻塞i-o模型&#34;&gt;非阻塞I/O模型&lt;/h3&gt;
+
+&lt;p&gt;recvfrom从应用层到内核的时候，如果该缓冲区没有数据的话，就直接返回一个EWORLDBLOCK错误，一般都对非阻塞I/O模型进行轮询检查这个状态，看内核是不是有数据到来，如图1-2所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/non-block-io.png&#34; alt=&#34;非阻塞I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;i-o复用模型&#34;&gt;I/O复用模型&lt;/h3&gt;
+
+&lt;p&gt;Linux提供select/poll，进程通过将一个或者多个fd传递给select或者poll系统调用，阻塞在select操作上，这样select/poll可以帮我们侦测多个fd是否处于就绪状态。select/poll是顺序扫描fd是否就绪，而且支持的fd数量有限，因此它的使用受到了一些制约。&lt;/p&gt;
+
+&lt;p&gt;Linux还提供了一个epoll系统调用，epoll使用基于事件驱动方法代替顺序扫描，因此性能更高。当有fd就绪时，立即回调函数rollback，如图1-3所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/selector-io.png&#34; alt=&#34;I/O复用模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;信号驱动i-o模型&#34;&gt;信号驱动I/O模型&lt;/h3&gt;
+
+&lt;p&gt;首先开启套接字接口信号驱动I/O功能，并通过系统调用sigaction执行一个信号处理函数(此系统调用立即返回，进程继续工作，它是非阻塞的)。当数据准备就绪时，就为该进程生成一个SIGIO信号，通过信号回调通知应用程序调用recvfrom来读取数据，并通知主循环函数处理数据，如图1-4所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/signal-io.png&#34; alt=&#34;信号驱动I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;异步i-o模型&#34;&gt;异步I/O模型&lt;/h3&gt;
+
+&lt;p&gt;告知内核启动某个操作，并让内核在整个操作完成后（包括将数据从内核复制到用户自己的缓冲区）通知我们。这种模型与信号驱动模型的主要区别是：信号驱动I/O由内核通过我们何时可以开始一个I/O操作；异步I/O模型由内核通知我们I/O操作何时已经完成，如图1-5所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://olno3yiqc.bkt.clouddn.com/blog/img/aio-io.png&#34; alt=&#34;异步I/O模型&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;常用服务器&#34;&gt;常用服务器&lt;/h2&gt;
+
+&lt;p&gt;目前流行的服务器大致分为普通应用服务器和高性能服务器两种。&lt;/p&gt;
+
+&lt;p&gt;应用服务器通常会运行具体的业务代码，比如：订单交易，网站管理等。这些业务通常使用基于MVC模式的框架，并进行数据库操作。应用服务器往往跟编程语言和应用框架绑定，提供上下文管理能力，单次业务的处理时间比较长，业务逻辑比较复杂。因此，应用服务器往往采用阻塞式I/O模型或者非阻塞I/O模型。基于请求/响应的方式工作。&lt;/p&gt;
+
+&lt;p&gt;高性能服务器往往需要面对极高的并发网络连接，并对内存分配、CPU使用提出更加苛刻的要求，比如：适用于反向代理的负载均衡服务器Nignx。因此，高性能服务器往往采用I/O复用模型或信号驱动I/O模型，有些对性能要求更高得服务器会采用纯异步I/O模型。相比较请求/响应的工作方式，使用后面三种I/O模型的服务器的处理方式更多样，也更复杂。&lt;/p&gt;
+
+&lt;h3 id=&#34;使用阻塞i-o模型或非阻塞i-o模型的服务器&#34;&gt;使用阻塞I/O模型或非阻塞I/O模型的服务器&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Apache&lt;/li&gt;
+&lt;li&gt;Tomcat&lt;/li&gt;
+&lt;li&gt;Resin&lt;/li&gt;
+&lt;li&gt;Caddy&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;使用多路复用i-o模型的服务器&#34;&gt;使用多路复用I/O模型的服务器&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Nginx&lt;/li&gt;
+&lt;li&gt;Netty&lt;/li&gt;
+&lt;li&gt;Mina&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
+
+&lt;p&gt;1, 《Netty权威指南 第二版》，李林峰&lt;/p&gt;
+</description>
     </item>
     
     <item>
       <title>编译自己的Linux系统</title>
-      <link>http://nituchao.com/post/2012/bian-yi-zi-ji-de-linux-xi-tong/</link>
+      <link>http://nituchao.com/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/</link>
       <pubDate>Fri, 18 May 2012 20:20:00 +0800</pubDate>
       
-      <guid>http://nituchao.com/post/2012/bian-yi-zi-ji-de-linux-xi-tong/</guid>
-      <description>LFS，全称是Linux from Scratch，是一个教科书项目的名称，由 Gerard Beekmans 所发展并维护。这个项目旨在教人们完全从零开始编译自己的linux系统，所有的软件都是通过源码包安装，每个人都可以按照自己的需要定制自己的linux，这样可以做出来最小，最快也最满足自己需要的linux，我的这个linux就是按照LFS的思想来编译构建的。
-LFS官网
-在高中时我就想过将来有机会一定要做一个自己的操作系统出来，后来发现这并不是一件容易的事情，当然，也不是完全不可能，三年前接触了linux后，我就在构思如何能编译一个linux出来。后来，在研究破解无线网的过程中我接触到Beini Linux(奶瓶操作系统)，只有不到60M(ps:据说这个系统的作者是为了庆祝自己女儿的出生写下的这个操作系统),这让我觉得linux是完全可以自己定制并做的很小很小。
-言归正传，我第一次接触LFS是在一年前，当时对linux的底层原理和库依赖关系等还是非常不清楚，对整个LFS的过程云里雾里的，所以就搁浅了。
-最近又拿起来LFS，细细读了读，发现很多东西已经理解很透了，于是就在着手在自己的笔记本上构建LFS系统，说实话这个过程很费精力，我前后总共用了四天时间，几乎每天醒着的时间都在搞这个系统，当然，最后做出来后，很是自豪，这个系统我称之为”Egg Boiler 1.0“，吼吼~~。
-基本的LFS系统构建好以后，开机只要3s左右就到登陆界面了，真是快的一塌糊涂，爽啊。之后，我又在这个系统上安装了DHCP和pppoe，使得他可以自动获取IP地址，由于没有GUI界面，我安装了lynx浏览器，这样就可以通过文本方式访问互联网。
-由于是第一次编译linux系统，下面说说自己遇到的困难:
-首先是宿主系统的选择，最初用的是Fadero 16，因为他是基于Rad hat的，应该会很稳定，结果它搭载的Gnome3.4界面在root用户登陆的情况下总是崩溃，而且崩溃之后就进不了系统，在这种情况下重装了好几次，最后还是决定放弃Fadero。之后试用了Arch Linux也不是很顺利，最后还是决定用ubuntu 10.10，ubuntu果然不负众望，基本没出什么问题直到新系统的诞生…
-其次是宿主系统环境的设置，LFS对GCC，Glib的环境的要求非常苛刻，刚开始不清楚，有些就没有按照官方给的配置设置环境，结果编译到一半，尤其是GCC的编译，总是出错，几近崩溃了都，最后还是老老实实按照官方给的要求重新配置了ubuntu的软件环境，总算是一步一步进行下去了…
-再者是LFS版本的选择。早一点的LFS版本有中文翻译，我最早就是用的LFS 6.3，因为文档又中文，但是在编译GCC时总是出错，看了论坛上前人的经验才最后决定用LFS 6.8，虽然文档全是英文，但是基本上都能看懂能理解，结果LFS 6.8在我的ubuntu上果然一路顺利。可见，LFS的版本还是很重要的，一定要选对LFS版本，并严格按照文档来才能成功。
-我还没有想好我做的这个系统究竟用来做什么，不过有了这个基础，将来根据需要把它改成服务器系统或嵌入式系统就很轻松了。
- oo$$$$$$$$$$oo oooo$$$$$$$$$$$$oooo oo$$$$$$$$$$$$$$$$$$$$$$$$o oo$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o o$ $$ o$ o $ oo o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o $$ $$ $$o$ oo $ $ &amp;quot;$ o$$$$$$$$$ $$$$$$$$$$$$$ $$$$$$$$$o $$$o$$o$ &amp;quot;$$$$$$o$ o$$$$$$$$$ $$$$$$$$$$$ $$$$$$$$$$o $$$$$$$$ $$$$$$$ $$$$$$$$$$$ $$$$$$$$$$$ $$$$$$$$$$$$$$$$$$$$$$$ $$$$$$$$$$$$$$$$$$$$$$$ $$$$$$$$$$$$$ $$$$$$$$$$$$$$ &amp;quot;&amp;quot;&amp;quot;$$$ &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ &amp;quot;$$$ $$$ o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ &amp;quot;$$$o o$$&amp;quot; $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ $$$o $$$ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&amp;quot; &amp;quot;$$$$$$ooooo$$$$o o$$$oooo$$$$$ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ o$$$$$$$$$$$$$$$$$ $$$$$$$$&amp;quot;$$$$ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ $$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot; &amp;quot;&amp;quot;&amp;quot;&amp;quot; $$$$ &amp;quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$&amp;quot; o$$$ &amp;quot;$$$o &amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$$$$$$$$&amp;quot;$$&amp;quot; $$$ $$$o &amp;quot;$$&amp;quot;&amp;quot;$$$$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot; o$$$ $$$$o o$$$&amp;quot; &amp;quot;$$$$o o$$$$$$o&amp;quot;$$$$o o$$$$ &amp;quot;$$$$$oo &amp;quot;&amp;quot;$$$$o$$$$$o o$$$$&amp;quot;&amp;quot; &amp;quot;&amp;quot;$$$$$oooo &amp;quot;$$$o$$$$$$$$$&amp;quot;&amp;quot;&amp;quot; &amp;quot;&amp;quot;$$$$$$$oo $$$$$$$$$$ &amp;quot;&amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$ $$$$$$$$$$$$ $$$$$$$$$$&amp;quot; &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot; &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;  </description>
+      <guid>http://nituchao.com/post/2012/bian-yi-zi-ji-de-Linux-xi-tong/</guid>
+      <description>&lt;p&gt;LFS，全称是Linux from Scratch，是一个教科书项目的名称，由 Gerard Beekmans 所发展并维护。这个项目旨在教人们完全从零开始编译自己的linux系统，所有的软件都是通过源码包安装，每个人都可以按照自己的需要定制自己的linux，这样可以做出来最小，最快也最满足自己需要的linux，我的这个linux就是按照LFS的思想来编译构建的。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.linuxfromscratch.org/lfs/&#34;&gt;LFS官网&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;在高中时我就想过将来有机会一定要做一个自己的操作系统出来，后来发现这并不是一件容易的事情，当然，也不是完全不可能，三年前接触了linux后，我就在构思如何能编译一个linux出来。后来，在研究破解无线网的过程中我接触到Beini Linux(奶瓶操作系统)，只有不到60M(ps:据说这个系统的作者是为了庆祝自己女儿的出生写下的这个操作系统),这让我觉得linux是完全可以自己定制并做的很小很小。&lt;/p&gt;
+
+&lt;p&gt;言归正传，我第一次接触LFS是在一年前，当时对linux的底层原理和库依赖关系等还是非常不清楚，对整个LFS的过程云里雾里的，所以就搁浅了。&lt;/p&gt;
+
+&lt;p&gt;最近又拿起来LFS，细细读了读，发现很多东西已经理解很透了，于是就在着手在自己的笔记本上构建LFS系统，说实话这个过程很费精力，我前后总共用了四天时间，几乎每天醒着的时间都在搞这个系统，当然，最后做出来后，很是自豪，这个系统我称之为”Egg Boiler 1.0“，吼吼~~。&lt;/p&gt;
+
+&lt;p&gt;基本的LFS系统构建好以后，开机只要3s左右就到登陆界面了，真是快的一塌糊涂，爽啊。之后，我又在这个系统上安装了DHCP和pppoe，使得他可以自动获取IP地址，由于没有GUI界面，我安装了lynx浏览器，这样就可以通过文本方式访问互联网。&lt;/p&gt;
+
+&lt;p&gt;由于是第一次编译linux系统，下面说说自己遇到的困难:&lt;/p&gt;
+
+&lt;p&gt;首先是宿主系统的选择，最初用的是Fadero 16，因为他是基于Rad hat的，应该会很稳定，结果它搭载的Gnome3.4界面在root用户登陆的情况下总是崩溃，而且崩溃之后就进不了系统，在这种情况下重装了好几次，最后还是决定放弃Fadero。之后试用了Arch Linux也不是很顺利，最后还是决定用ubuntu 10.10，ubuntu果然不负众望，基本没出什么问题直到新系统的诞生…&lt;/p&gt;
+
+&lt;p&gt;其次是宿主系统环境的设置，LFS对GCC，Glib的环境的要求非常苛刻，刚开始不清楚，有些就没有按照官方给的配置设置环境，结果编译到一半，尤其是GCC的编译，总是出错，几近崩溃了都，最后还是老老实实按照官方给的要求重新配置了ubuntu的软件环境，总算是一步一步进行下去了…&lt;/p&gt;
+
+&lt;p&gt;再者是LFS版本的选择。早一点的LFS版本有中文翻译，我最早就是用的LFS 6.3，因为文档又中文，但是在编译GCC时总是出错，看了论坛上前人的经验才最后决定用LFS 6.8，虽然文档全是英文，但是基本上都能看懂能理解，结果LFS 6.8在我的ubuntu上果然一路顺利。可见，LFS的版本还是很重要的，一定要选对LFS版本，并严格按照文档来才能成功。&lt;/p&gt;
+
+&lt;p&gt;我还没有想好我做的这个系统究竟用来做什么，不过有了这个基础，将来根据需要把它改成服务器系统或嵌入式系统就很轻松了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+                             oo$$$$$$$$$$oo
+                          oooo$$$$$$$$$$$$oooo
+                      oo$$$$$$$$$$$$$$$$$$$$$$$$o
+                   oo$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o         o$   $$ o$
+   o $ oo        o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o       $$ $$ $$o$
+oo $ $ &amp;quot;$      o$$$$$$$$$    $$$$$$$$$$$$$    $$$$$$$$$o       $$$o$$o$
+&amp;quot;$$$$$$o$     o$$$$$$$$$      $$$$$$$$$$$      $$$$$$$$$$o    $$$$$$$$
+  $$$$$$$    $$$$$$$$$$$      $$$$$$$$$$$      $$$$$$$$$$$$$$$$$$$$$$$
+  $$$$$$$$$$$$$$$$$$$$$$$    $$$$$$$$$$$$$    $$$$$$$$$$$$$$  &amp;quot;&amp;quot;&amp;quot;$$$
+   &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     &amp;quot;$$$
+    $$$   o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     &amp;quot;$$$o
+   o$$&amp;quot;   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$       $$$o
+   $$$    $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&amp;quot; &amp;quot;$$$$$$ooooo$$$$o
+  o$$$oooo$$$$$  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$   o$$$$$$$$$$$$$$$$$
+  $$$$$$$$&amp;quot;$$$$   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     $$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;&amp;quot;
+ &amp;quot;&amp;quot;&amp;quot;&amp;quot;       $$$$    &amp;quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$&amp;quot;      o$$$
+            &amp;quot;$$$o     &amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$$$$$$$$&amp;quot;$$&amp;quot;         $$$
+              $$$o          &amp;quot;$$&amp;quot;&amp;quot;$$$$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;           o$$$
+               $$$$o                                o$$$&amp;quot;
+                &amp;quot;$$$$o      o$$$$$$o&amp;quot;$$$$o        o$$$$
+                  &amp;quot;$$$$$oo     &amp;quot;&amp;quot;$$$$o$$$$$o   o$$$$&amp;quot;&amp;quot;
+                     &amp;quot;&amp;quot;$$$$$oooo  &amp;quot;$$$o$$$$$$$$$&amp;quot;&amp;quot;&amp;quot;
+                        &amp;quot;&amp;quot;$$$$$$$oo $$$$$$$$$$
+                                &amp;quot;&amp;quot;&amp;quot;&amp;quot;$$$$$$$$$$$
+                                    $$$$$$$$$$$$
+                                     $$$$$$$$$$&amp;quot;
+                                      &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;
+                                      &amp;quot;$$$&amp;quot;&amp;quot;&amp;quot;&amp;quot;
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
     </item>
     
   </channel>

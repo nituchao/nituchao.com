@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>JVM配置参数-X与-XX的区别 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/atelier-estuary-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">作品</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书单</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/abc_atomic">Abc_atomic</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_concurrent">Abc_concurrent</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_lock">Abc_lock</a></li>
+						
+							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
+						
+							<li><a href="http://nituchao.com/categories/console">Console</a></li>
+						
+							<li><a href="http://nituchao.com/categories/daily">Daily</a></li>
+						
+							<li><a href="http://nituchao.com/categories/java">Java</a></li>
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
+						
+							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/queue">Queue</a></li>
+						
+							<li><a href="http://nituchao.com/categories/words">Words</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">JVM配置参数-X与-XX的区别</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2016-12-28">2016年12月28日</time></span>
+				</div>
+				<section>
+					
+
+<p>启动JVM时通过指定配置参数来指导虚拟机按照我们的要求提供服务，这一点对大多数的Java程序员来说已经是司空见惯。</p>
+
+<p>在指定配置参数时，会有-X和-XX两种形式，那么它们两者有什么区别呢，今天我想借这篇文章总结一下。</p>
+
+<p>下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：</p>
+
+<pre><code class="language-bash">java -Xmx15G \
+-Xms10G \
+-Xmn3G \
+-Xss512k \
+-XX:MaxPermSize=512M \
+-XX:PermSize=512M \
+-XX:+PrintFlagsFinal \
+-XX:MaxTenuringThreshold=1 \
+-XX:SurvivorRatio=23 \
+-XX:TargetSurvivorRatio=80 \
+-Xnoclassgc \
+-XX:+UseParNewGC \
+-XX:+UseConcMarkSweepGC \
+-XX:CMSInitiatingOccupancyFraction=80 \
+-XX:ParallelGCThreads=24 \
+-XX:ConcGCThreads=24 \
+-XX:+CMSParallelRemarkEnabled \
+-XX:+CMSScavengeBeforeRemark \
+-XX:+ExplicitGCInvokesConcurrent \
+-XX:+UseTLAB \
+-XX:TLABSize=64K, -verbose:gc \
+-XX:+PrintGCDetails \
+-XX:+PrintGCDateStamps \
+-XX:+PrintGCTimeStamps \
+-XX:+PrintGCApplicationStoppedTime \
+-Xloggc:./gc.log
+</code></pre>
+
+<p>Java HotSpot VM的官方文档中将启动参数分为如下两类：</p>
+
+<table>
+<thead>
+<tr>
+<th align="center">配置 参数</th>
+<th align="center">类型</th>
+<th align="left">说明</th>
+<th align="center">举例</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="center">-X</td>
+<td align="center">non-standard</td>
+<td align="left">非标准参数。<br/><br/>这些参数不是虚拟机规范规定的。因此，不是所有VM的实现(如:HotSpot,JRockit,J9等)都支持这些配置参数。</td>
+<td align="center">-Xmx、-Xms、-Xmn、-Xss</td>
+</tr>
+
+<tr>
+<td align="center">-XX</td>
+<td align="center">not-stable</td>
+<td align="left">不稳定参数。<br/><br/>这些参数是虚拟机规范中规定的。这些参数指定虚拟机实例在运行时的各种行为，从而对虚拟机的运行时性能有很大影响。</td>
+<td align="center">-XX:SurvivorRatio、-XX:+UseParNewGc</td>
+</tr>
+</tbody>
+</table>
+
+<p>补充: -X和-XX两种参数都可能随着JDK版本的变更而发生变化，有些参数可以能会被废弃掉，有些参数的功能会发生改变，但是JDK官方不会通知开发者这些变化，需要使用者注意。</p>
+
+<p>-XX参数被称为不稳定参数，是因为这类参数的设置会引起JVM运行时性能上的差异，配置得当可以提高JVM性能，配置不当则会使JVM出现各种问题, 甚至造成JVM崩溃。</p>
+
+<p>国外有个哥们从HotSpot VM的源码里发现了934个此类型的配置参数，因此能对JVM做出很多组合配置，对JVM的调优也没有统一的标准，需要我们在实践中不断总结经验，并结合实际业务来进行操作，最终找到最适合当前业务的那些配置。</p>
+
+<h2 id="一些有用的-xx配置">一些有用的-XX配置</h2>
+
+<p>对于-XX类型的配置选项，虚拟机规范有一些惯例，针对不同的平台虚拟机也会提供不同的默认值。</p>
+
+<ul>
+<li>对于布尔(Boolean)类型的配置选项，通过<code>-XX:+&lt;option&gt;</code>来开启，通过<code>-XX:-&lt;option&gt;</code>来关闭。</li>
+<li>对于数字(Numberic)类型的配置选项，通过<code>-XX:&lt;option&gt;=&lt;number&gt;</code>来配置。<code>&lt;number&gt;</code>后面可以携带单位字母，比如: &lsquo;k&rsquo;或者&rsquo;K&rsquo;代表千字节，&rsquo;m&rsquo;或者&rsquo;M&rsquo;代表兆字节，&rsquo;g&rsquo;或者&rsquo;G&rsquo;代表千兆字节。</li>
+<li>对于字符串(String)类型的配置选项，通过<code>-XX:&lt;option&gt;=&lt;string&gt;</code>来配置。这种配置通过用来指定文件，路径或者命令列表。</li>
+</ul>
+
+<h2 id="参考文献">参考文献</h2>
+
+<p>1, <a href="http://jvm-options.tech.xebia.fr/">JVM Options - The complete reference</a></p>
+
+<p>2, <a href="http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html">Java HotSpot VM Options</a></p>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">JVM配置参数-X与-XX的区别</a></strong></li>
+			</ul>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#一些有用的-xx配置">一些有用的-XX配置</a></li>
+<li><a href="#参考文献">参考文献</a></li>
+</ul></li>
+</ul>
+</nav>
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

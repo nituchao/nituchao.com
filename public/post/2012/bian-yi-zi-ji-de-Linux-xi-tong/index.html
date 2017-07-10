@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>编译自己的Linux系统 - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/atelier-estuary-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">作品</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书单</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/te">经济学人</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/abc_atomic">Abc_atomic</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_concurrent">Abc_concurrent</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_lock">Abc_lock</a></li>
+						
+							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
+						
+							<li><a href="http://nituchao.com/categories/console">Console</a></li>
+						
+							<li><a href="http://nituchao.com/categories/daily">Daily</a></li>
+						
+							<li><a href="http://nituchao.com/categories/java">Java</a></li>
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
+						
+							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/queue">Queue</a></li>
+						
+							<li><a href="http://nituchao.com/categories/words">Words</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">编译自己的Linux系统</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2012-05-18">2012年05月18日</time></span>
+				</div>
+				<section>
+					<p>LFS，全称是Linux from Scratch，是一个教科书项目的名称，由 Gerard Beekmans 所发展并维护。这个项目旨在教人们完全从零开始编译自己的linux系统，所有的软件都是通过源码包安装，每个人都可以按照自己的需要定制自己的linux，这样可以做出来最小，最快也最满足自己需要的linux，我的这个linux就是按照LFS的思想来编译构建的。</p>
+
+<p><a href="http://www.linuxfromscratch.org/lfs/">LFS官网</a></p>
+
+<p>在高中时我就想过将来有机会一定要做一个自己的操作系统出来，后来发现这并不是一件容易的事情，当然，也不是完全不可能，三年前接触了linux后，我就在构思如何能编译一个linux出来。后来，在研究破解无线网的过程中我接触到Beini Linux(奶瓶操作系统)，只有不到60M(ps:据说这个系统的作者是为了庆祝自己女儿的出生写下的这个操作系统),这让我觉得linux是完全可以自己定制并做的很小很小。</p>
+
+<p>言归正传，我第一次接触LFS是在一年前，当时对linux的底层原理和库依赖关系等还是非常不清楚，对整个LFS的过程云里雾里的，所以就搁浅了。</p>
+
+<p>最近又拿起来LFS，细细读了读，发现很多东西已经理解很透了，于是就在着手在自己的笔记本上构建LFS系统，说实话这个过程很费精力，我前后总共用了四天时间，几乎每天醒着的时间都在搞这个系统，当然，最后做出来后，很是自豪，这个系统我称之为”Egg Boiler 1.0“，吼吼~~。</p>
+
+<p>基本的LFS系统构建好以后，开机只要3s左右就到登陆界面了，真是快的一塌糊涂，爽啊。之后，我又在这个系统上安装了DHCP和pppoe，使得他可以自动获取IP地址，由于没有GUI界面，我安装了lynx浏览器，这样就可以通过文本方式访问互联网。</p>
+
+<p>由于是第一次编译linux系统，下面说说自己遇到的困难:</p>
+
+<p>首先是宿主系统的选择，最初用的是Fadero 16，因为他是基于Rad hat的，应该会很稳定，结果它搭载的Gnome3.4界面在root用户登陆的情况下总是崩溃，而且崩溃之后就进不了系统，在这种情况下重装了好几次，最后还是决定放弃Fadero。之后试用了Arch Linux也不是很顺利，最后还是决定用ubuntu 10.10，ubuntu果然不负众望，基本没出什么问题直到新系统的诞生…</p>
+
+<p>其次是宿主系统环境的设置，LFS对GCC，Glib的环境的要求非常苛刻，刚开始不清楚，有些就没有按照官方给的配置设置环境，结果编译到一半，尤其是GCC的编译，总是出错，几近崩溃了都，最后还是老老实实按照官方给的要求重新配置了ubuntu的软件环境，总算是一步一步进行下去了…</p>
+
+<p>再者是LFS版本的选择。早一点的LFS版本有中文翻译，我最早就是用的LFS 6.3，因为文档又中文，但是在编译GCC时总是出错，看了论坛上前人的经验才最后决定用LFS 6.8，虽然文档全是英文，但是基本上都能看懂能理解，结果LFS 6.8在我的ubuntu上果然一路顺利。可见，LFS的版本还是很重要的，一定要选对LFS版本，并严格按照文档来才能成功。</p>
+
+<p>我还没有想好我做的这个系统究竟用来做什么，不过有了这个基础，将来根据需要把它改成服务器系统或嵌入式系统就很轻松了。</p>
+
+<pre><code>
+                             oo$$$$$$$$$$oo
+                          oooo$$$$$$$$$$$$oooo
+                      oo$$$$$$$$$$$$$$$$$$$$$$$$o
+                   oo$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o         o$   $$ o$
+   o $ oo        o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$o       $$ $$ $$o$
+oo $ $ &quot;$      o$$$$$$$$$    $$$$$$$$$$$$$    $$$$$$$$$o       $$$o$$o$
+&quot;$$$$$$o$     o$$$$$$$$$      $$$$$$$$$$$      $$$$$$$$$$o    $$$$$$$$
+  $$$$$$$    $$$$$$$$$$$      $$$$$$$$$$$      $$$$$$$$$$$$$$$$$$$$$$$
+  $$$$$$$$$$$$$$$$$$$$$$$    $$$$$$$$$$$$$    $$$$$$$$$$$$$$  &quot;&quot;&quot;$$$
+   &quot;$$$&quot;&quot;&quot;&quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     &quot;$$$
+    $$$   o$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     &quot;$$$o
+   o$$&quot;   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$       $$$o
+   $$$    $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&quot; &quot;$$$$$$ooooo$$$$o
+  o$$$oooo$$$$$  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$   o$$$$$$$$$$$$$$$$$
+  $$$$$$$$&quot;$$$$   $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$     $$$$&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;
+ &quot;&quot;&quot;&quot;       $$$$    &quot;$$$$$$$$$$$$$$$$$$$$$$$$$$$$&quot;      o$$$
+            &quot;$$$o     &quot;&quot;&quot;$$$$$$$$$$$$$$$$$$&quot;$$&quot;         $$$
+              $$$o          &quot;$$&quot;&quot;$$$$$$&quot;&quot;&quot;&quot;           o$$$
+               $$$$o                                o$$$&quot;
+                &quot;$$$$o      o$$$$$$o&quot;$$$$o        o$$$$
+                  &quot;$$$$$oo     &quot;&quot;$$$$o$$$$$o   o$$$$&quot;&quot;
+                     &quot;&quot;$$$$$oooo  &quot;$$$o$$$$$$$$$&quot;&quot;&quot;
+                        &quot;&quot;$$$$$$$oo $$$$$$$$$$
+                                &quot;&quot;&quot;&quot;$$$$$$$$$$$
+                                    $$$$$$$$$$$$
+                                     $$$$$$$$$$&quot;
+                                      &quot;$$$&quot;&quot;&quot;&quot;
+                                      &quot;$$$&quot;&quot;&quot;&quot;
+
+</code></pre>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">编译自己的Linux系统</a></strong></li>
+			</ul>
+			
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

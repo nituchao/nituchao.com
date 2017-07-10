@@ -2,15 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Jvm on 泥土巢</title>
-    <link>http://nituchao.com/categories/jvm/</link>
+    <link>http://nituchao.com/categories/jvm/index.xml</link>
     <description>Recent content in Jvm on 泥土巢</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CN</language>
     <copyright>Copyright (c) 2017, nituchao | All rights reserved.</copyright>
-    <lastBuildDate>Thu, 29 Dec 2016 20:15:12 +0800</lastBuildDate>
-    
-	<atom:link href="http://nituchao.com/categories/jvm/index.xml" rel="self" type="application/rss+xml" />
-    
+    <atom:link href="http://nituchao.com/categories/jvm/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>JVM调试相关的配置参数</title>
@@ -18,7 +15,8 @@
       <pubDate>Thu, 29 Dec 2016 20:15:12 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2016/jvm-tiao-shi-xiang-guan-de-pei-zhi-can-shu/</guid>
-      <description>本文将详细分析JVM配置参数中，与调试相关的配置参数，这些配置参数将方便开发人员跟踪JVM运行，查看JVM日志等相关工作。</description>
+      <description>&lt;p&gt;本文将详细分析JVM配置参数中，与调试相关的配置参数，这些配置参数将方便开发人员跟踪JVM运行，查看JVM日志等相关工作。&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -27,7 +25,8 @@
       <pubDate>Thu, 29 Dec 2016 13:53:12 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2016/jvm-xing-wei-xiang-guan-de-pei-zhi-can-shu/</guid>
-      <description>文本将分析与JVM行为相关的配置参数。</description>
+      <description>&lt;p&gt;文本将分析与JVM行为相关的配置参数。&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -36,7 +35,8 @@
       <pubDate>Thu, 29 Dec 2016 12:22:12 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2016/jvm-g1-shou-ji-qi-pei-zhi-can-shu/</guid>
-      <description>G1收集器配置参数</description>
+      <description>&lt;p&gt;G1收集器配置参数&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -45,7 +45,8 @@
       <pubDate>Thu, 29 Dec 2016 10:18:12 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2016/jvm-chan-yong-de-fei-biao-zhun-pei-zhi-can-shu/</guid>
-      <description>本文将研究JVM常见常见的非标准配置参数。</description>
+      <description>&lt;p&gt;本文将研究JVM常见常见的非标准配置参数。&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -54,7 +55,8 @@
       <pubDate>Thu, 29 Dec 2016 09:30:12 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2016/jvm-xing-neng-xiang-guan-de-pei-zhi-can-shu/</guid>
-      <description>本问将介绍JVM性能相关的配置参数。</description>
+      <description>&lt;p&gt;本问将介绍JVM性能相关的配置参数。&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -63,11 +65,93 @@
       <pubDate>Wed, 28 Dec 2016 13:14:12 +0800</pubDate>
       
       <guid>http://nituchao.com/post/2016/jvm-options-x-vs-xx/</guid>
-      <description>启动JVM时通过指定配置参数来指导虚拟机按照我们的要求提供服务，这一点对大多数的Java程序员来说已经是司空见惯。
-在指定配置参数时，会有-X和-XX两种形式，那么它们两者有什么区别呢，今天我想借这篇文章总结一下。
-下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：
-java -Xmx15G \ -Xms10G \ -Xmn3G \ -Xss512k \ -XX:MaxPermSize=512M \ -XX:PermSize=512M \ -XX:+PrintFlagsFinal \ -XX:MaxTenuringThreshold=1 \ -XX:SurvivorRatio=23 \ -XX:TargetSurvivorRatio=80 \ -Xnoclassgc \ -XX:+UseParNewGC \ -XX:+UseConcMarkSweepGC \ -XX:CMSInitiatingOccupancyFraction=80 \ -XX:ParallelGCThreads=24 \ -XX:ConcGCThreads=24 \ -XX:+CMSParallelRemarkEnabled \ -XX:+CMSScavengeBeforeRemark \ -XX:+ExplicitGCInvokesConcurrent \ -XX:+UseTLAB \ -XX:TLABSize=64K, -verbose:gc \ -XX:+PrintGCDetails \ -XX:+PrintGCDateStamps \ -XX:+PrintGCTimeStamps \ -XX:+PrintGCApplicationStoppedTime \ -Xloggc:./gc.log  Java HotSpot VM的官方文档中将启动参数分为如下两类：
-   配置 参数 类型 说明 举例     -X non-standard 非标准参数。这些参数不是虚拟机规范规定的。因此，不是所有VM的实现(如:HotSpot,JRockit,J9等)都支持这些配置参数。 -Xmx、-Xms、-Xmn、-Xss   -XX not-stable 不稳定参数。这些参数是虚拟机规范中规定的。这些参数指定虚拟机实例在运行时的各种行为，从而对虚拟机的运行时性能有很大影响。 -XX:SurvivorRatio、-XX:+UseParNewGc    补充: -X和-XX两种参数都可能随着JDK版本的变更而发生变化，有些参数可以能会被废弃掉，有些参数的功能会发生改变，但是JDK官方不会通知开发者这些变化，需要使用者注意。</description>
+      <description>
+
+&lt;p&gt;启动JVM时通过指定配置参数来指导虚拟机按照我们的要求提供服务，这一点对大多数的Java程序员来说已经是司空见惯。&lt;/p&gt;
+
+&lt;p&gt;在指定配置参数时，会有-X和-XX两种形式，那么它们两者有什么区别呢，今天我想借这篇文章总结一下。&lt;/p&gt;
+
+&lt;p&gt;下面是我们的某个Java项目在正式环境上启动JVM时的一个典型命令，在该命令中指定了各种启动参数：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;java -Xmx15G \
+-Xms10G \
+-Xmn3G \
+-Xss512k \
+-XX:MaxPermSize=512M \
+-XX:PermSize=512M \
+-XX:+PrintFlagsFinal \
+-XX:MaxTenuringThreshold=1 \
+-XX:SurvivorRatio=23 \
+-XX:TargetSurvivorRatio=80 \
+-Xnoclassgc \
+-XX:+UseParNewGC \
+-XX:+UseConcMarkSweepGC \
+-XX:CMSInitiatingOccupancyFraction=80 \
+-XX:ParallelGCThreads=24 \
+-XX:ConcGCThreads=24 \
+-XX:+CMSParallelRemarkEnabled \
+-XX:+CMSScavengeBeforeRemark \
+-XX:+ExplicitGCInvokesConcurrent \
+-XX:+UseTLAB \
+-XX:TLABSize=64K, -verbose:gc \
+-XX:+PrintGCDetails \
+-XX:+PrintGCDateStamps \
+-XX:+PrintGCTimeStamps \
+-XX:+PrintGCApplicationStoppedTime \
+-Xloggc:./gc.log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Java HotSpot VM的官方文档中将启动参数分为如下两类：&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;center&#34;&gt;配置 参数&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;类型&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;说明&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;举例&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;-X&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;non-standard&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;非标准参数。&lt;br/&gt;&lt;br/&gt;这些参数不是虚拟机规范规定的。因此，不是所有VM的实现(如:HotSpot,JRockit,J9等)都支持这些配置参数。&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;-Xmx、-Xms、-Xmn、-Xss&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;center&#34;&gt;-XX&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;not-stable&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;不稳定参数。&lt;br/&gt;&lt;br/&gt;这些参数是虚拟机规范中规定的。这些参数指定虚拟机实例在运行时的各种行为，从而对虚拟机的运行时性能有很大影响。&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;-XX:SurvivorRatio、-XX:+UseParNewGc&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;补充: -X和-XX两种参数都可能随着JDK版本的变更而发生变化，有些参数可以能会被废弃掉，有些参数的功能会发生改变，但是JDK官方不会通知开发者这些变化，需要使用者注意。&lt;/p&gt;
+
+&lt;p&gt;-XX参数被称为不稳定参数，是因为这类参数的设置会引起JVM运行时性能上的差异，配置得当可以提高JVM性能，配置不当则会使JVM出现各种问题, 甚至造成JVM崩溃。&lt;/p&gt;
+
+&lt;p&gt;国外有个哥们从HotSpot VM的源码里发现了934个此类型的配置参数，因此能对JVM做出很多组合配置，对JVM的调优也没有统一的标准，需要我们在实践中不断总结经验，并结合实际业务来进行操作，最终找到最适合当前业务的那些配置。&lt;/p&gt;
+
+&lt;h2 id=&#34;一些有用的-xx配置&#34;&gt;一些有用的-XX配置&lt;/h2&gt;
+
+&lt;p&gt;对于-XX类型的配置选项，虚拟机规范有一些惯例，针对不同的平台虚拟机也会提供不同的默认值。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;对于布尔(Boolean)类型的配置选项，通过&lt;code&gt;-XX:+&amp;lt;option&amp;gt;&lt;/code&gt;来开启，通过&lt;code&gt;-XX:-&amp;lt;option&amp;gt;&lt;/code&gt;来关闭。&lt;/li&gt;
+&lt;li&gt;对于数字(Numberic)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;number&amp;gt;&lt;/code&gt;来配置。&lt;code&gt;&amp;lt;number&amp;gt;&lt;/code&gt;后面可以携带单位字母，比如: &amp;lsquo;k&amp;rsquo;或者&amp;rsquo;K&amp;rsquo;代表千字节，&amp;rsquo;m&amp;rsquo;或者&amp;rsquo;M&amp;rsquo;代表兆字节，&amp;rsquo;g&amp;rsquo;或者&amp;rsquo;G&amp;rsquo;代表千兆字节。&lt;/li&gt;
+&lt;li&gt;对于字符串(String)类型的配置选项，通过&lt;code&gt;-XX:&amp;lt;option&amp;gt;=&amp;lt;string&amp;gt;&lt;/code&gt;来配置。这种配置通过用来指定文件，路径或者命令列表。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;参考文献&#34;&gt;参考文献&lt;/h2&gt;
+
+&lt;p&gt;1, &lt;a href=&#34;http://jvm-options.tech.xebia.fr/&#34;&gt;JVM Options - The complete reference&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;2, &lt;a href=&#34;http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html&#34;&gt;Java HotSpot VM Options&lt;/a&gt;&lt;/p&gt;
+</description>
     </item>
     
   </channel>
