@@ -53,6 +53,15 @@ protected final Thread getExclusiveOwnerThread();
     </item>
     
     <item>
+      <title>Java锁之AOS抽象类的理解</title>
+      <link>http://nituchao.com/post/juc.lock/lock-abstract-queued-synchronizer/</link>
+      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/lock-abstract-queued-synchronizer/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Java锁之Condition接口的理解</title>
       <link>http://nituchao.com/post/juc.lock/lock-condition/</link>
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>

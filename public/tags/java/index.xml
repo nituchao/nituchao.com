@@ -206,6 +206,15 @@ protected final Thread getExclusiveOwnerThread();
     </item>
     
     <item>
+      <title>Java锁之AOS抽象类的理解</title>
+      <link>http://nituchao.com/post/juc.lock/lock-abstract-queued-synchronizer/</link>
+      <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
+      
+      <guid>http://nituchao.com/post/juc.lock/lock-abstract-queued-synchronizer/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Java锁之Condition接口的理解</title>
       <link>http://nituchao.com/post/juc.lock/lock-condition/</link>
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
@@ -2131,50 +2140,6 @@ void spin_lock_bh(spinlock_t *lock);
 &lt;li&gt;&lt;a href=&#34;https://my.oschina.net/MinGKai/blog/188522&#34;&gt;基于队列的锁:mcs lock简介&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/vividonly/article/details/6594195&#34;&gt;深入理解linux内核自旋锁&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Java锁之Lock框架概述</title>
-      <link>http://nituchao.com/post/juc.lock/lock-summary/</link>
-      <pubDate>Thu, 23 Feb 2017 18:28:27 +0800</pubDate>
-      
-      <guid>http://nituchao.com/post/juc.lock/lock-summary/</guid>
-      <description>
-
-&lt;p&gt;在Java中关于锁有两个体系，一个是synchronized代表的对象监视器同步锁，一个是以AQS为基础的锁框架，该框架位于java.uti.concurrent包下。&lt;/p&gt;
-
-&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
-
-&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&#34;aqs框架原理-aqs框架图-file-users-liang-library-group-20containers-ubf8t346g9-office-msoclip1-01-65cceb69-4317-8645-9279-f8aa33dad044-png&#34;&gt;AQS框架原理&lt;img src=&#34;file:////Users/liang/Library/Group%20Containers/UBF8T346G9.Office/msoclip1/01/65CCEB69-4317-8645-9279-F8AA33DAD044.png&#34; alt=&#34;AQS框架图&#34; /&gt;&lt;/h2&gt;
-
-&lt;h2 id=&#34;juc包中的锁&#34;&gt;JUC包中的锁&lt;/h2&gt;
-
-&lt;p&gt;相比同步锁，JUC包中的锁的功能更加强大，它为锁提供了一个框架，该框架允许更灵活地使用锁，只是它的用法更难罢了。&lt;/p&gt;
-
-&lt;p&gt;JUC包中的锁，包括：&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Lock接口&lt;/li&gt;
-&lt;li&gt;ReadWriteLock接口&lt;/li&gt;
-&lt;li&gt;Condition接口&lt;/li&gt;
-&lt;li&gt;ReentrantLock独占锁&lt;/li&gt;
-&lt;li&gt;ReentrantReadWriteLock读写锁&lt;/li&gt;
-&lt;li&gt;CountDownLatch&lt;/li&gt;
-&lt;li&gt;CyclicBarrier&lt;/li&gt;
-&lt;li&gt;Semaphore&lt;/li&gt;
-&lt;li&gt;AbstractOwnableSynchronizer抽象类&lt;/li&gt;
-&lt;li&gt;AbstractQueuedSynchronizer抽象类&lt;/li&gt;
-&lt;li&gt;AbstractQueuedLongSynchronizer抽象类&lt;/li&gt;
-&lt;/ul&gt;
 </description>
     </item>
     
