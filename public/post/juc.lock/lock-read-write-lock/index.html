@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
 		<link rel="icon" href="http://nituchao.com/favicon.ico">
-		<title>Java锁之Lock接口的理解 - 泥土巢</title>
+		<title>Java锁之ReadWriteLock接口的理解 - 泥土巢</title>
 		
 		<link rel="stylesheet" href="http://nituchao.com/css/highlight/atelier-estuary-dark.css">
 		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
@@ -104,55 +104,12 @@
 		<main role="main">
 			<article>
 				<a id="title"></a>
-				<h1 class="doc-entry-title">Java锁之Lock接口的理解</h1>
+				<h1 class="doc-entry-title">Java锁之ReadWriteLock接口的理解</h1>
 				<div class="doc-entry-meta">
 					<span><time datetime="2017-02-23">2017年02月23日</time></span>
 				</div>
 				<section>
 					
-
-<h2 id="概述">概述</h2>
-
-<p>在JUC包中，Lock接口定义了一个锁应该拥有基本操作。Lock接口的实现类非常多，既有共享锁，也有独占锁，甚至在ConcurrentHashMap等并发集合里的Segment结构本质上也是锁的实现。另外，Lock接口还组合了一个Condition类型的条件变量，用于提供更加灵活、高效的控制操作。</p>
-
-<p>本文重点关注Lock接口的设计，具体实现会在各个实现类中进行具体分析。</p>
-
-<p>本文基于JDK1.7.0_67</p>
-
-<blockquote>
-<p>java version &ldquo;1.7.0<em>67&rdquo;</em></p>
-
-<p>_Java&trade; SE Runtime Environment (build 1.7.0_67-b01)</p>
-
-<p>Java HotSpot&trade; 64-Bit Server VM (build 24.65-b04, mixed mode)</p>
-</blockquote>
-
-<h3 id="函数列表">函数列表</h3>
-
-<pre><code class="language-java">// 获取锁
-// 如果获取失败，则进入阻塞队列
-// 忽略了中断，在成功获取锁之后，再根据中断标识处理中断，即selfInterrupt中断自己
-void lock();
-// 获取锁
-// 如果获取失败，则进入阻塞队列
-// 在锁获取过程中不处理中断状态，而是直接抛出中断异常，由上层调用者处理中断。
-void lockInterruptibly() throws InterruptedException;
-// 尝试获取锁
-// 获取成功，返回true
-// 获取失败，返回fasle
-// 不阻塞
-boolean tryLock();
-// 尝试获取锁
-// 获取成功，返回true
-// 获取失败，返回false
-// 该操作必须在time时间内完成
-boolean tryLock(long time, TimeUnit unit) throws InterruptedException;
-// 释放锁
-void unlock();
-// 创建一个条件变量，用于更加精细地控制同步过程
-Condition newCondition();
-</code></pre>
-
 				</section>
 			</article>
 		</main>
@@ -166,19 +123,9 @@ Condition newCondition();
 		<div class="sidebar-toc">
 			<h4 class="sidebar-heading">本文导航</h4>
 			<ul>
-				<li><strong><a href="#title">Java锁之Lock接口的理解</a></strong></li>
+				<li><strong><a href="#title">Java锁之ReadWriteLock接口的理解</a></strong></li>
 			</ul>
-			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#概述">概述</a>
-<ul>
-<li><a href="#函数列表">函数列表</a></li>
-</ul></li>
-</ul></li>
-</ul>
-</nav>
+			
 		</div>
 	</div>
 	</div>
