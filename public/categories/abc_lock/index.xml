@@ -10,7 +10,7 @@
     <atom:link href="http://nituchao.com/categories/abc_lock/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Java锁之AbstractOwnableSynchronizer抽象类的理解</title>
+      <title>Java锁之AOS抽象类的理解</title>
       <link>http://nituchao.com/post/juc.lock/lock-abstract-ownable-synchronizer/</link>
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
       
