@@ -53,7 +53,7 @@ protected final Thread getExclusiveOwnerThread();
     </item>
     
     <item>
-      <title>Java锁之AOS抽象类的理解</title>
+      <title>Java锁之AQS抽象类的理解</title>
       <link>http://nituchao.com/post/juc.lock/lock-abstract-queued-synchronizer/</link>
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
       
