@@ -75,6 +75,62 @@ AQS主要包含下面几个特点，是我们理解AQS框架的关键：
 
 ### Node
 
+#### 成员变量
+
+```java
+// 标识节点是否是 共享的节点(这样的节点只存在于 Sync Queue 里面)
+static final Node SHARED = new Node();
+// 标识节点是 独占模式
+static final Node EXCLUSIVE = null;
+// 说明节点已经取消获取lock了(一般是由于interrup 或timeout导致的)
+// 很多时候是在 cancelAcquire 里面进行设置这个标识
+static final int CANCELLED =  1;
+// 标识当前节点的后继节点需要唤醒
+// 这个通常是在 独占模式下使用, 在共享模式下有时用 PROPAGATE
+static final int SIGNAL    = -1;
+// 当前节点在 Condition Queue 里面
+static final int CONDITION = -2;
+// 当前节点获取到 lock 或进行 release lock 时, 
+// 共享模式的最终状态是 PROPAGATE
+// PS: 有可能共享模式的节点变成PROPAGATE之前就被其后继节点抢占head节点, 而从Sync Queue中被踢出掉
+static final int PROPAGATE = -3;
+volatile int waitStatus;
+volatile Node prev;
+volatile Node next;
+volatile Thread thread;
+Node nextWaiter;
+```
+
+
+
+#### 函数列表
+
+```java
+
+final boolean isShared() {
+	return nextWaiter == SHARED;
+}
+final Node predecessor() throws NullPointerException {
+  Node p = prev;
+  if (p == null)
+  	throw new NullPointerException();
+  else
+  	return p;
+}
+
+Node() {}
+
+Node(Thread thread, Node mode) {     // Used by addWaiter
+  this.nextWaiter = mode;
+  this.thread = thread;
+}
+
+Node(Thread thread, int waitStatus) { // Used by Condition
+  this.waitStatus = waitStatus;
+  this.thread = thread;
+}
+```
+
 
 
 ### ConditionObject

@@ -58,7 +58,134 @@ protected final Thread getExclusiveOwnerThread();
       <pubDate>Thu, 23 Feb 2017 18:39:27 +0800</pubDate>
       
       <guid>http://nituchao.com/post/juc.lock/lock-abstract-queued-synchronizer/</guid>
-      <description></description>
+      <description>
+
+&lt;h2 id=&#34;概述&#34;&gt;概述&lt;/h2&gt;
+
+&lt;p&gt;队列同步器AbstractQueuedSynchronizer（以下简称AQS），是用来构建锁或者其他同步组件的基础框架。它使用一个int成员变量来表示同步状态（重入次数，共享状态等），通过CAS操作对同步状态进行修改，确保状态的改变是安全的。通过内置的FIFO(First In First Out)队列来完成资源获取的排队工作。在AQS里有两个队列，分别是维护Sync Queue和Condition Queue，两个队列的节点都是AQS的静态内部类Node。Sync Queue在独占模式和共享模式中均会使用到，本质上是一个存放Node的CLH队列（主要特点是, 队列中总有一个 dummy 节点, 后继节点获取锁的条件由前继节点决定, 前继节点在释放 lock 时会唤醒sleep中的后继节点），维护的是等待获取锁的线程信息。Condition Queue在独占模式中才会用到，当用户使用条件变量进行线程同步时，维护的是等待条件变量的线程信息。&lt;/p&gt;
+
+&lt;p&gt;通过AQS实现的锁分独占锁(ReentrantLock，WriteLock，Segment等)和共享锁(ReadLock)，使用一个volatile修饰的int类型的变量state来表示当前同步块的状态。state在AQS中功能强大，即可以用来表示同步器的加锁状态，也可以用来表示重入锁的重入次数(tryAcquire)，还可以用来标识读锁和写锁的加锁状态。&lt;/p&gt;
+
+&lt;p&gt;在AQS的基础上，JUC包实现了如下几类锁：
+1，公平锁和非公平所&lt;/p&gt;
+
+&lt;p&gt;2，可重入锁&lt;/p&gt;
+
+&lt;p&gt;3，独占锁和共享锁&lt;/p&gt;
+
+&lt;p&gt;以上三类锁并不是独立的，可以有多种组合。&lt;/p&gt;
+
+&lt;p&gt;1，ReentrantLock：可重入锁，公平锁|非公平锁，独占锁。&lt;/p&gt;
+
+&lt;p&gt;2，ReentrantReadWriteLock：可重入锁，公平锁|非公平锁，独占锁|共享锁。&lt;/p&gt;
+
+&lt;p&gt;另外，除了上面列举的ReentrantLock和ReentrantReadWriteLock外，下面几个类也是依靠AQS实现的。&lt;/p&gt;
+
+&lt;p&gt;1，CountDownLatch&lt;/p&gt;
+
+&lt;p&gt;2，CyclicBarrier&lt;/p&gt;
+
+&lt;p&gt;3，Semaphore&lt;/p&gt;
+
+&lt;p&gt;4，Segment&lt;/p&gt;
+
+&lt;p&gt;AQS主要包含下面几个特点，是我们理解AQS框架的关键：&lt;/p&gt;
+
+&lt;p&gt;1，内部含有两条队列（Sync Queue，Condition Queue）。&lt;/p&gt;
+
+&lt;p&gt;2，AQS内部定义获取锁（acquire），释放锁（release）的主逻辑，子类实现相应的模板方法。&lt;/p&gt;
+
+&lt;p&gt;3，支持共享和独占两种模式（共享模式时只用Sync Queue，独占时只用Sync Queue，但如果涉及条件变量Condition，则还有Condition Queue）。&lt;/p&gt;
+
+&lt;p&gt;4，支持不响应中断获取独占锁（acquire），响应中断获取独占锁（acquireInterruptibly），超时获取独占锁（tryAcquireNanos）；不响应中断获取共享锁（acquireShared），响应中断获取共享锁（acquireSharedInterruptibly），超时获取共享锁（tryAcquireSharedNanos）；&lt;/p&gt;
+
+&lt;p&gt;5，在子类的tryAcquire，tryAcquireShared中实现公平和非公平的区分。&lt;/p&gt;
+
+&lt;p&gt;本文重点介绍AbstractQueuedSynchronizer的设计，其实现待到具体的子类再做分析。&lt;/p&gt;
+
+&lt;p&gt;本文基于JDK1.7.0_67&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;java version &amp;ldquo;1.7.0&lt;em&gt;67&amp;rdquo;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;_Java&amp;trade; SE Runtime Environment (build 1.7.0_67-b01)&lt;/p&gt;
+
+&lt;p&gt;Java HotSpot&amp;trade; 64-Bit Server VM (build 24.65-b04, mixed mode)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;内部类&#34;&gt;内部类&lt;/h2&gt;
+
+&lt;h3 id=&#34;node&#34;&gt;Node&lt;/h3&gt;
+
+&lt;h4 id=&#34;成员变量&#34;&gt;成员变量&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 标识节点是否是 共享的节点(这样的节点只存在于 Sync Queue 里面)
+static final Node SHARED = new Node();
+// 标识节点是 独占模式
+static final Node EXCLUSIVE = null;
+// 说明节点已经取消获取lock了(一般是由于interrup 或timeout导致的)
+// 很多时候是在 cancelAcquire 里面进行设置这个标识
+static final int CANCELLED =  1;
+// 标识当前节点的后继节点需要唤醒
+// 这个通常是在 独占模式下使用, 在共享模式下有时用 PROPAGATE
+static final int SIGNAL    = -1;
+// 当前节点在 Condition Queue 里面
+static final int CONDITION = -2;
+// 当前节点获取到 lock 或进行 release lock 时, 
+// 共享模式的最终状态是 PROPAGATE
+// PS: 有可能共享模式的节点变成PROPAGATE之前就被其后继节点抢占head节点, 而从Sync Queue中被踢出掉
+static final int PROPAGATE = -3;
+volatile int waitStatus;
+volatile Node prev;
+volatile Node next;
+volatile Thread thread;
+Node nextWaiter;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;函数列表&#34;&gt;函数列表&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;
+final boolean isShared() {
+	return nextWaiter == SHARED;
+}
+final Node predecessor() throws NullPointerException {
+  Node p = prev;
+  if (p == null)
+  	throw new NullPointerException();
+  else
+  	return p;
+}
+
+Node() {}
+
+Node(Thread thread, Node mode) {     // Used by addWaiter
+  this.nextWaiter = mode;
+  this.thread = thread;
+}
+
+Node(Thread thread, int waitStatus) { // Used by Condition
+  this.waitStatus = waitStatus;
+  this.thread = thread;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;conditionobject&#34;&gt;ConditionObject&lt;/h3&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://download.csdn.net/detail/u011898232/9548575&#34;&gt;Java 并发编程的艺术&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://ifeve.com/sun-misc-unsafe/&#34;&gt;Java Magic. Part 4: sun.misc.Unsafe&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.blogjava.net/mstar/archive/2013/04/24/398351.html&#34;&gt;Java里的CompareAndSet(CAS)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/luonanqin/article/details/41871909&#34;&gt;ReentrantLock的lock-unlock流程详解&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/chen77716/article/details/6641477&#34;&gt;深入JVM锁机制2-Lock&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.infoq.com/cn/articles/jdk1.8-abstractqueuedsynchronizer&#34;&gt;深度解析Java 8：JDK1.8 AbstractQueuedSynchronizer的实现分析（上）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.cnblogs.com/zhanjindong/p/java-concurrent-package-aqs-AbstractQueuedSynchronizer.html&#34;&gt;AbstractQueuedSynchronizer源码分析&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://my.oschina.net/xianggao/blog/532709&#34;&gt;聊聊并发（十二）—AQS分析&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.javarticles.com/2012/10/abstractqueuedsynchronizer-aqs.html&#34;&gt;AbstractQueuedSynchronizer (AQS)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://blog.csdn.net/tomato__/article/details/24774465&#34;&gt;并发编程实践二：AbstractQueuedSynchronizer&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     
     <item>
