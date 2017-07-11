@@ -82,20 +82,19 @@ AQS主要包含下面几个特点，是我们理解AQS框架的关键：
 static final Node SHARED = new Node();
 // 标识节点是 独占模式
 static final Node EXCLUSIVE = null;
-// 说明节点已经取消获取lock了(一般是由于interrup 或timeout导致的)
-// 很多时候是在 cancelAcquire 里面进行设置这个标识
+// 代表线程已经被取消
 static final int CANCELLED =  1;
-// 标识当前节点的后继节点需要唤醒
-// 这个通常是在 独占模式下使用, 在共享模式下有时用 PROPAGATE
+// 代表后续节点需要唤醒
 static final int SIGNAL    = -1;
-// 当前节点在 Condition Queue 里面
+// 代表线程在condition queue中，等待某一条件
 static final int CONDITION = -2;
-// 当前节点获取到 lock 或进行 release lock 时, 
-// 共享模式的最终状态是 PROPAGATE
-// PS: 有可能共享模式的节点变成PROPAGATE之前就被其后继节点抢占head节点, 而从Sync Queue中被踢出掉
+// 代表后续结点会传播唤醒的操作，共享模式下起作用
 static final int PROPAGATE = -3;
+// 当前节点的状态
 volatile int waitStatus;
+// 当前节点的上一个节点
 volatile Node prev;
+// 当前节点的下一个节点
 volatile Node next;
 volatile Thread thread;
 Node nextWaiter;
