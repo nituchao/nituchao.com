@@ -23,8 +23,8 @@ copyright = "Copyright (c) 2017, nituchao | All rights reserved."
     name = "设备"
     link = "device"
 [[params.mainMenu]]
-    name = "经济学人"
-    link = "te"
+    name = "定律"
+    link = "theorem"
 [[params.mainMenu]]
     name = "关于"
     link = "about"

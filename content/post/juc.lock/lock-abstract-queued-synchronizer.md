@@ -75,6 +75,8 @@ AQS主要包含下面几个特点，是我们理解AQS框架的关键：
 
 ### Node
 
+Node是AbstractQueuedSynchronizer的静态内部类，文章概述里，我们说在AQS中有两类等待队列(Sync Queue和Condition Queue)，Node就是等待队列的节点类。AQS的等待队列是"CLH"锁队列的变种。"CLH"锁是一种自旋锁，在AQS中
+
 #### 成员变量
 
 ```java
@@ -96,7 +98,9 @@ volatile int waitStatus;
 volatile Node prev;
 // 当前节点的下一个节点
 volatile Node next;
+// 当前节点代表的线程
 volatile Thread thread;
+// 这个节点等待的模式(共享模式和独占模式)
 Node nextWaiter;
 ```
 
@@ -105,29 +109,18 @@ Node nextWaiter;
 #### 函数列表
 
 ```java
-
-final boolean isShared() {
-	return nextWaiter == SHARED;
-}
-final Node predecessor() throws NullPointerException {
-  Node p = prev;
-  if (p == null)
-  	throw new NullPointerException();
-  else
-  	return p;
-}
-
-Node() {}
-
-Node(Thread thread, Node mode) {     // Used by addWaiter
-  this.nextWaiter = mode;
-  this.thread = thread;
-}
-
-Node(Thread thread, int waitStatus) { // Used by Condition
-  this.waitStatus = waitStatus;
-  this.thread = thread;
-}
+// 空制造函数
+Node();
+// 构造函数，初始化nextWaiter
+// addWaiter使用
+Node(Thread thread, Node mode);
+// 构造函数，初始化waitStatus
+// Condition使用
+Node(Thread thread, int waitStatus);
+// 如果当前节点的等待模式(nextWaiter)是共享模式，返回true
+final boolean isShared();
+// 返回当前节点的上一个节点
+final Node predecessor() throws NullPointerException;
 ```
 
 

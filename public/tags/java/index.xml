@@ -270,6 +270,8 @@ protected final Thread getExclusiveOwnerThread();
 
 &lt;h3 id=&#34;node&#34;&gt;Node&lt;/h3&gt;
 
+&lt;p&gt;Node是AbstractQueuedSynchronizer的静态内部类，文章概述里，我们说在AQS中有两类等待队列(Sync Queue和Condition Queue)，Node就是等待队列的节点类。AQS的等待队列是&amp;rdquo;CLH&amp;rdquo;锁队列的变种。&amp;rdquo;CLH&amp;rdquo;锁是一种自旋锁，在AQS中&lt;/p&gt;
+
 &lt;h4 id=&#34;成员变量&#34;&gt;成员变量&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 标识节点是否是 共享的节点(这样的节点只存在于 Sync Queue 里面)
@@ -290,35 +292,26 @@ volatile int waitStatus;
 volatile Node prev;
 // 当前节点的下一个节点
 volatile Node next;
+// 当前节点代表的线程
 volatile Thread thread;
+// 这个节点等待的模式(共享模式和独占模式)
 Node nextWaiter;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h4 id=&#34;函数列表&#34;&gt;函数列表&lt;/h4&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;
-final boolean isShared() {
-	return nextWaiter == SHARED;
-}
-final Node predecessor() throws NullPointerException {
-  Node p = prev;
-  if (p == null)
-  	throw new NullPointerException();
-  else
-  	return p;
-}
-
-Node() {}
-
-Node(Thread thread, Node mode) {     // Used by addWaiter
-  this.nextWaiter = mode;
-  this.thread = thread;
-}
-
-Node(Thread thread, int waitStatus) { // Used by Condition
-  this.waitStatus = waitStatus;
-  this.thread = thread;
-}
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// 空制造函数
+Node();
+// 构造函数，初始化nextWaiter
+// addWaiter使用
+Node(Thread thread, Node mode);
+// 构造函数，初始化waitStatus
+// Condition使用
+Node(Thread thread, int waitStatus);
+// 如果当前节点的等待模式(nextWaiter)是共享模式，返回true
+final boolean isShared();
+// 返回当前节点的上一个节点
+final Node predecessor() throws NullPointerException;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;conditionobject&#34;&gt;ConditionObject&lt;/h3&gt;
