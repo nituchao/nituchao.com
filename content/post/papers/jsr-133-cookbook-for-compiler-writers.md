@@ -1,5 +1,5 @@
 ---
-title: "The JSR-133 Cookbook for Compile Writers"
+title: "The JSR-133 Cookbook"
 date: "2016-10-11T20:39:27+08:00"
 categories: ["ZBC_Papers"]
 tags: ["Java", "Papers"]
@@ -11,6 +11,8 @@ draft: false
 by Doug Lea, with help from members of the JMM mailing list.
 
 *dl@cs.oswego.edu.*
+
+[origin html link](http://gee.cs.oswego.edu/dl/jmm/cookbook.html)
 
 **Preface: Over the 10+ years since this was initially written, many processor and language memory model specifications and issues have become clearer and better understood. And many have not. While this guide is maintained to remain accurate, it is incomplete about some of these evolving details. For more extensive coverage, see especially the work of Peter Sewell and the Cambridge Relaxed Memory Concurrency Group**
 
