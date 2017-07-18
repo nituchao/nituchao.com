@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="alternate" href="/index.xml" type="application/rss+xml" title="泥土巢">
+		<link rel="icon" href="http://nituchao.com/favicon.ico">
+		<title>The JSR-133 Cookbook for Compile Writers - 泥土巢</title>
+		
+		<link rel="stylesheet" href="http://nituchao.com/css/highlight/atelier-estuary-dark.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootstrap-theme.min.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/theme.css">
+		<link rel="stylesheet" href="http://nituchao.com/css/bootie-docs.css">
+	</head>
+
+<body role="document">
+
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="http://nituchao.com/">泥土巢</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li ><a href="http://nituchao.com/">主页</a></li>
+			
+			
+				
+					
+					<li ><a href="http://nituchao.com/post">文章</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/kk">作品</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/book">书单</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/device">设备</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/theorem">定律</a></li>
+				
+					
+					<li ><a href="http://nituchao.com/about">关于</a></li>
+				
+			
+				
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">文章分类<span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+						
+							<li><a href="http://nituchao.com/categories/abc_atomic">Abc_atomic</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_concurrent">Abc_concurrent</a></li>
+						
+							<li><a href="http://nituchao.com/categories/abc_lock">Abc_lock</a></li>
+						
+							<li><a href="http://nituchao.com/categories/amqp">Amqp</a></li>
+						
+							<li><a href="http://nituchao.com/categories/console">Console</a></li>
+						
+							<li><a href="http://nituchao.com/categories/daily">Daily</a></li>
+						
+							<li><a href="http://nituchao.com/categories/java">Java</a></li>
+						
+							<li><a href="http://nituchao.com/categories/jvm">Jvm</a></li>
+						
+							<li><a href="http://nituchao.com/categories/linux">Linux</a></li>
+						
+							<li><a href="http://nituchao.com/categories/macos">Macos</a></li>
+						
+							<li><a href="http://nituchao.com/categories/mysql">Mysql</a></li>
+						
+							<li><a href="http://nituchao.com/categories/queue">Queue</a></li>
+						
+							<li><a href="http://nituchao.com/categories/words">Words</a></li>
+						
+							<li><a href="http://nituchao.com/categories/xa">Xa</a></li>
+						
+							<li><a href="http://nituchao.com/categories/zbc_papers">Zbc_papers</a></li>
+						
+						</ul>
+					</li>
+				
+				</ul>
+				
+			</div>
+		</div>
+	</nav>
+
+<div class="container">
+
+
+<div class="row">
+	<div class="col-sm-8 doc-main">
+		<main role="main">
+			<article>
+				<a id="title"></a>
+				<h1 class="doc-entry-title">The JSR-133 Cookbook for Compile Writers</h1>
+				<div class="doc-entry-meta">
+					<span><time datetime="2016-10-11">2016年10月11日</time></span>
+				</div>
+				<section>
+					
+
+<h1 id="the-jsr-133-cookbook-for-compiler-writers">The JSR-133 Cookbook for Compiler Writers</h1>
+
+<p>by Doug Lea, with help from members of the JMM mailing list.</p>
+
+<p><em>dl@cs.oswego.edu.</em></p>
+
+<p><strong>Preface: Over the 10+ years since this was initially written, many processor and language memory model specifications and issues have become clearer and better understood. And many have not. While this guide is maintained to remain accurate, it is incomplete about some of these evolving details. For more extensive coverage, see especially the work of Peter Sewell and the Cambridge Relaxed Memory Concurrency Group</strong></p>
+
+<p>This is an unofficial guide to implementing the new <a href="http://www.cs.umd.edu/~pugh/java/memoryModel/">Java Memory Model (JMM)</a> specified by <a href="http://jcp.org/en/jsr/detail?id=133">JSR-133 </a>. It provides at most brief backgrounds about why various rules exist, instead concentrating on their consequences for compilers and JVMs with respect to instruction reorderings, multiprocessor barrier instructions, and atomic operations. It includes a set of recommended recipes for complying to JSR-133. This guide is &ldquo;unofficial&rdquo; because it includes interpretations of particular processor properties and specifications. We cannot guarantee that the intepretations are correct. Also, processor specifications and implementations may change over time.</p>
+
+<h2 id="reorderings">Reorderings</h2>
+
+<p>For a compiler writer, the JMM mainly consists of rules disallowing reorderings of certain instructions that access fields (where &ldquo;fields&rdquo; include array elements) as well as monitors (locks).</p>
+
+<h3 id="volatiles-and-monitors">Volatiles and Monitors</h3>
+
+<p>The main JMM rules for volatiles and monitors can be viewed as a matrix with cells indicating that you cannot reorder instructions associated with particular sequences of bytecodes. This table is not itself the JMM specification; it is just a useful way of viewing its main consequences for compilers and runtime systems.</p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Can Reorder</strong></th>
+<th><em>2nd operation</em></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><em>1st operation</em></td>
+<td>Normal LoadNormal Store</td>
+<td>Volatile Load MonitorEnter</td>
+<td>Volatile Store MonitorExit</td>
+</tr>
+
+<tr>
+<td>Normal LoadNormal Store</td>
+<td></td>
+<td></td>
+<td>No</td>
+</tr>
+
+<tr>
+<td>Volatile Load MonitorEnter</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+</tr>
+
+<tr>
+<td>Volatile store MonitorExit</td>
+<td></td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p>Where:</p>
+
+<ul>
+<li>Normal Loads are getfield, getstatic, array load of non-volatile fields.</li>
+<li>Normal Stores are putfield, putstatic, array store of non-volatile fields</li>
+<li>Volatile Loads are getfield, getstatic of volatile fields that are accessible by multiple threads</li>
+<li>Volatile Stores are putfield, putstatic of volatile fields that are accessible by multiple threads</li>
+<li>MonitorEnters (including entry to synchronized methods) are for lock objects accessible by multiple threads.</li>
+<li>MonitorExits (including exit from synchronized methods) are for lock objects accessible by multiple threads.</li>
+</ul>
+
+<p>The cells for Normal Loads are the same as for Normal Stores, those for Volatile Loads are the same as MonitorEnter, and those for Volatile Stores are same as MonitorExit, so they are collapsed together here (but are expanded out as needed in subsequent tables). We consider here only variables that are readable and writable as an atomic unit &ndash; that is, no bit fields, unaligned accesses, or accesses larger than word sizes available on a platform.</p>
+
+<p>Any number of other operations might be present between the indicated 1st and 2nd operations in the table. So, for example, the &ldquo;No&rdquo; in cell [Normal Store, Volatile Store] says that a non-volatile store cannot be reordered with ANY subsequent volatile store; at least any that can make a difference in multithreaded program semantics.</p>
+
+<p>The JSR-133 specification is worded such that the rules for both volatiles and monitors apply only to those that may be accessed by multiple threads. If a compiler can somehow (usually only with great effort) prove that a lock is only accessible from a single thread, it may be eliminated. Similarly, a volatile field provably accessible from only a single thread acts as a normal field. More fine-grained analyses and optimizations are also possible, for example, those relying on provable inaccessibility from multiple threads only during certain intervals.</p>
+
+<p>Blank cells in the table mean that the reordering is allowed if the accesses aren&rsquo;t otherwise dependent with respect to basic Java semantics (as specified in the <a href="http://www.javasoft.com/doc/language_specification/index.html">JLS</a>). For example even though the table doesn&rsquo;t say so, you can&rsquo;t reorder a load with a subsequent store to the same location. But you can reorder a load and store to two distinct locations, and may wish to do so in the course of various compiler transformations and optimizations. This includes cases that aren&rsquo;t usually thought of as reorderings; for example reusing a computed value based on a loaded field rather than reloading and recomputing the value acts as a reordering. However, the JMM spec permits transformations that eliminate avoidable dependencies, and in turn allow reorderings.</p>
+
+<p>In all cases, permitted reorderings must maintain minimal Java safety properties even when accesses are incorrectly synchronized by programmers: All observed field values must be either the default zero/null &ldquo;pre-construction&rdquo; values, or those written by some thread. This usually entails zeroing all heap memory holding objects before it is used in constructors and never reordering other loads with the zeroing stores. A good way to do this is to zero out reclaimed memory within the garbage collector. See the JSR-133 spec for rules dealing with other corner cases surrounding safety guarantees.</p>
+
+<p>The rules and properties described here are for accesses to Java-level fields. In practice, these will additionally interact with accesses to internal bookkeeping fields and data, for example object headers, GC tables, and dynamically generated code.</p>
+
+<h3 id="final-fields">Final Fields</h3>
+
+<p>Loads and Stores of final fields act as &ldquo;normal&rdquo; accesses with respect to locks and volatiles, but impose two additional reordering rules:</p>
+
+<ol>
+<li>A store of a final field (inside a constructor) and, if the field is a reference, any store that this final can reference, cannot be reordered with a subsequent store (outside that constructor) of the reference to the object holding that field into a variable accessible to other threads. For example, you cannot reorder
+​      <code>x.finalField = v; ... ; sharedRef = x;</code>
+This comes into play for example when inlining constructors, where &ldquo;<code>...</code>&rdquo; spans the logical end of the constructor. You cannot move stores of finals within constructors down below a store outside of the constructor that might make the object visible to other threads. (As seen below, this may also require issuing a barrier). Similarly, you cannot reorder either of the first two with the third assignment in:
+​      <code>v.afield = 1; x.finalField = v; ... ; sharedRef = x;</code></li>
+<li>The initial load (i.e., the very first encounter by a thread) of a final field cannot be reordered with the initial load of the reference to the object containing the final field. This comes into play in:
+​      <code>x = sharedRef; ... ; i = x.finalField;</code>
+A compiler would never reorder these since they are dependent, but there can be consequences of this rule on some processors.</li>
+</ol>
+
+<p>These rules imply that reliable use of final fields by Java programmers requires that the load of a shared reference to an object with a final field itself be synchronized, volatile, or final, or derived from such a load, thus ultimately ordering the initializing stores in constructors with subsequent uses outside constructors.</p>
+
+<h2 id="memory-barriers">Memory Barriers</h2>
+
+<p>Compilers and processors must both obey reordering rules. No particular effort is required to ensure that uniprocessors maintain proper ordering, since they all guarantee &ldquo;as-if-sequential&rdquo; consistency. But on multiprocessors, guaranteeing conformance often requires emitting barrier instructions. Even if a compiler optimizes away a field access (for example because a loaded value is not used), barriers must still be generated as if the access were still present. (Although see below about independently optimizing away barriers.)</p>
+
+<p>Memory barriers are only indirectly related to higher-level notions described in memory models such as &ldquo;acquire&rdquo; and &ldquo;release&rdquo;. And memory barriers are not themselves &ldquo;synchronization barriers&rdquo;. And memory barriers are unrelated to the kinds of &ldquo;write barriers&rdquo; used in some garbage collectors. Memory barrier instructions directly control only the interaction of a CPU with its cache, with its write-buffer that holds stores waiting to be flushed to memory, and/or its buffer of waiting loads or speculatively executed instructions. These effects may lead to further interaction among caches, main memory and other processors. But there is nothing in the JMM that mandates any particular form of communication across processors so long as stores eventually become globally performed; i.e., visible across all processors, and that loads retrieve them when they are visible.</p>
+
+<h3 id="categories">Categories</h3>
+
+<p>Nearly all processors support at least a coarse-grained barrier instruction, often just called a Fence, that guarantees that all loads and stores initiated before the fence will be strictly ordered before any load or store initiated after the fence. This is usually among the most time-consuming instructions on any given processor (often nearly as, or even more expensive than atomic instructions). Most processors additionally support more fine-grained barriers.</p>
+
+<p>A property of memory barriers that takes some getting used to is that they apply <em>BETWEEN</em> memory accesses. Despite the names given for barrier instructions on some processors, the right/best barrier to use depends on the kinds of accesses it separates. Here&rsquo;s a common categorization of barrier types that maps pretty well to specific instructions (sometimes no-ops) on existing processors:</p>
+
+<ul>
+<li>LoadLoad Barriers</li>
+</ul>
+
+<p>The sequence: <code>Load1; LoadLoad; Load2</code>ensures that Load1&rsquo;s data are loaded before data accessed by Load2 and all subsequent load instructions are loaded. In general, explicit LoadLoad barriers are needed on processors that perform speculative loads and/or out-of-order processing in which waiting load instructions can bypass waiting stores. On processors that guarantee to always preserve load ordering, the barriers amount to no-ops.</p>
+
+<ul>
+<li>StoreStore Barriers</li>
+</ul>
+
+<p>The sequence: <code>Store1; StoreStore; Store2</code>ensures that Store1&rsquo;s data are visible to other processors (i.e., flushed to memory) before the data associated with Store2 and all subsequent store instructions. In general, StoreStore barriers are needed on processors that do not otherwise guarantee strict ordering of flushes from write buffers and/or caches to other processors or main memory.</p>
+
+<ul>
+<li>LoadStore Barriers</li>
+</ul>
+
+<p>The sequence: <code>Load1; LoadStore; Store2</code>ensures that Load1&rsquo;s data are loaded before all data associated with Store2 and subsequent store instructions are flushed. LoadStore barriers are needed only on those out-of-order procesors in which waiting store instructions can bypass loads.</p>
+
+<ul>
+<li>StoreLoad Barriers</li>
+</ul>
+
+<p>The sequence: <code>Store1; StoreLoad; Load2</code>ensures that Store1&rsquo;s data are made visible to other processors (i.e., flushed to main memory) before data accessed by Load2 and all subsequent load instructions are loaded. StoreLoad barriers protect against a subsequent load incorrectly using Store1&rsquo;s data value rather than that from a more recent store to the same location performed by a different processor. Because of this, on the processors discussed below, a StoreLoad is strictly necessary only for separating stores from subsequent loads of the <em>same</em> location(s) as were stored before the barrier. StoreLoad barriers are needed on nearly all recent multiprocessors, and are usually the most expensive kind. Part of the reason they are expensive is that they must disable mechanisms that ordinarily bypass cache to satisfy loads from write-buffers. This might be implemented by letting the buffer fully flush, among other possible stalls.</p>
+
+<p>On all processors discussed below, it turns out that instructions that perform StoreLoad also obtain the other three barrier effects, so StoreLoad can serve as a general-purpose (but usually expensive) Fence. (This is an empirical fact, not a necessity.) The opposite doesn&rsquo;t hold though. It is <em>NOT</em> usually the case that issuing any combination of other barriers gives the equivalent of a StoreLoad.</p>
+
+<p>The following table shows how these barriers correspond to JSR-133 ordering rules.</p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Required barriers</strong></th>
+<th><em>2nd operation</em></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><em>1st operation</em></td>
+<td>Normal Load</td>
+<td>Normal Store</td>
+<td>Volatile Load MonitorEnter</td>
+<td>Volatile Store MonitorExit</td>
+</tr>
+
+<tr>
+<td>Normal Load</td>
+<td></td>
+<td></td>
+<td></td>
+<td>LoadStore</td>
+</tr>
+
+<tr>
+<td>Normal Store</td>
+<td></td>
+<td></td>
+<td></td>
+<td>StoreStore</td>
+</tr>
+
+<tr>
+<td>Volatile Load MonitorEnter</td>
+<td>LoadLoad</td>
+<td>LoadStore</td>
+<td>LoadLoad</td>
+<td>LoadStore</td>
+</tr>
+
+<tr>
+<td>Volatile Store MonitorExit</td>
+<td></td>
+<td></td>
+<td>StoreLoad</td>
+<td>StoreStore</td>
+</tr>
+</tbody>
+</table>
+
+<p>Plus the special final-field rule requiring a StoreStore barrier in
+​      <code>x.finalField = v; StoreStore; sharedRef = x;</code></p>
+
+<p>Here&rsquo;s an example showing placements.</p>
+
+<table>
+<thead>
+<tr>
+<th>Java</th>
+<th>Instructions</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>class X {  int a, b;  volatile int v, u;  void f() {    int i, j;       i = a;    j = b;    i = v;       j = u;       a = i;    b = j;       v = i;       u = j;       i = u;          j = b;    a = i;  }}</code></td>
+<td><code>load aload bload v   LoadLoadload u   LoadStorestore astore b   StoreStorestore v   StoreStorestore u   StoreLoadload u   LoadLoad   LoadStoreload bstore a</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="data-dependency-and-barriers">Data Dependency and Barriers</h3>
+
+<p>The need for LoadLoad and LoadStore barriers on some processors interacts with their ordering guarantees for dependent instructions. On some (most) processors, a load or store that is dependent on the value of a previous load are ordered by the processor without need for an explicit barrier. This commonly arises in two kinds of cases, indirection:
+​      <code>Load x; Load x.field</code>
+and control
+​      <code>Load x; if (predicate(x)) Load or Store y;</code></p>
+
+<p>Processors that do <em>NOT</em> respect indirection ordering in particular require barriers for final field access for references initially obtained through shared references:
+​      <code>x = sharedRef; ... ; LoadLoad; i = x.finalField;</code></p>
+
+<p>Conversely, as discussed below, processors that <em>DO</em> respect data dependencies provide several opportunities to optimize away LoadLoad and LoadStore barrier instructions that would otherwise need to be issued. (However, dependency does *NOT*automatically remove the need for StoreLoad barriers on any processor.)</p>
+
+<h3 id="interactions-with-atomic-instructions">Interactions with Atomic Instructions</h3>
+
+<p>The kinds of barriers needed on different processors further interact with implementation of MonitorEnter and MonitorExit. Locking and/or unlocking usually entail the use of atomic conditional update operations CompareAndSwap (CAS) or LoadLinked/StoreConditional (LL/SC) that have the semantics of performing a volatile load followed by a volatile store. While CAS or LL/SC minimally suffice, some processors also support other atomic instructions (for example, an unconditional exchange) that can sometimes be used instead of or in conjunction with atomic conditional updates.</p>
+
+<p>On all processors, atomic operations protect against read-after-write problems for the locations being read/updated. (Otherwise standard loop-until-success constructions wouldn&rsquo;t work in the desired way.) But processors differ in whether atomic instructions provide more general barrier properties than the implicit StoreLoad for their target locations. On some processors these instructions also intrinsically perform barriers that would otherwise be needed for MonitorEnter/Exit; on others some or all of these barriers must be specifically issued.</p>
+
+<p>Volatiles and Monitors have to be separated to disentangle these effects, giving:</p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Required Barriers</strong></th>
+<th><em>2nd operation</em></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><em>1st operation</em></td>
+<td>Normal Load</td>
+<td>Normal Store</td>
+<td>Volatile Load</td>
+<td>Volatile Store</td>
+<td>MonitorEnter</td>
+<td>MonitorExit</td>
+</tr>
+
+<tr>
+<td>Normal Load</td>
+<td></td>
+<td></td>
+<td></td>
+<td>LoadStore</td>
+<td></td>
+<td>LoadStore</td>
+</tr>
+
+<tr>
+<td>Normal Store</td>
+<td></td>
+<td></td>
+<td></td>
+<td>StoreStore</td>
+<td></td>
+<td>StoreExit</td>
+</tr>
+
+<tr>
+<td>Volatile Load</td>
+<td>LoadLoad</td>
+<td>LoadStore</td>
+<td>LoadLoad</td>
+<td>LoadStore</td>
+<td>LoadEnter</td>
+<td>LoadExit</td>
+</tr>
+
+<tr>
+<td>Volatile Store</td>
+<td></td>
+<td></td>
+<td>StoreLoad</td>
+<td>StoreStore</td>
+<td>StoreEnter</td>
+<td>StoreExit</td>
+</tr>
+
+<tr>
+<td>MonitorEnter</td>
+<td>EnterLoad</td>
+<td>EnterStore</td>
+<td>EnterLoad</td>
+<td>EnterStore</td>
+<td>EnterEnter</td>
+<td>EnterExit</td>
+</tr>
+
+<tr>
+<td>MonitorExit</td>
+<td></td>
+<td></td>
+<td>ExitLoad</td>
+<td>ExitStore</td>
+<td>ExitEnter</td>
+<td>ExitExit</td>
+</tr>
+</tbody>
+</table>
+
+<p>Plus the special final-field rule requiring a StoreStore barrier in:
+​      <code>x.finalField = v; StoreStore; sharedRef = x;</code></p>
+
+<p>In this table, &ldquo;Enter&rdquo; is the same as &ldquo;Load&rdquo; and &ldquo;Exit&rdquo; is the same as &ldquo;Store&rdquo;, unless overridden by the use and nature of atomic instructions. In particular:</p>
+
+<ul>
+<li><p>EnterLoad is needed on entry to any synchronized block/method that performs a load. It is the same as LoadLoad unless an atomic instruction is used in MonitorEnter and itself provides a barrier with at least the properties of LoadLoad, in which case it is a no-op.</p></li>
+
+<li><p>StoreExit is needed on exit of any synchronized block/method that performs a store. It is the same as StoreStore unless an atomic instruction is used in MonitorExit and itself provides a barrier with at least the properties of StoreStore, in which case it is a no-op.</p></li>
+
+<li><p>ExitEnter</p></li>
+
+<li></li>
+
+<li><p>is the same as</p></li>
+
+<li></li>
+
+<li><p>StoreLoad</p></li>
+
+<li></li>
+
+<li><p>unless atomic instructions are used in MonitorExit and/or MonitorEnter and at least one of these provide a barrier with at least the properties of</p></li>
+
+<li></li>
+
+<li><p>StoreLoad</p></li>
+
+<li><p>, in which case it is a no-op.</p></li>
+</ul>
+
+<p>The other types are specializations that are unlikely to play a role in compilation (see below) and/or reduce to no-ops on current processors. For example, EnterEnter is needed to separate nested MonitorEnters when there are no intervening loads or stores. Here&rsquo;s an example showing placements of most types:</p>
+
+<table>
+<thead>
+<tr>
+<th>Java</th>
+<th>Instructions</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>class X {  int a;  volatile int v;  void f() {    int i;    synchronized(this) {      i = a;      a = i;    }    synchronized(this) {      synchronized(this) {      }    }    i = v;    synchronized(this) {    }    v = i;    synchronized(this) {    }  }}</code></td>
+<td><code>enter   EnterLoad   EnterStoreload astore a   LoadExit   StoreExitexit   ExitEnterenter   EnterEnterenter   EnterExitexit   ExitExitexit   ExitEnter   ExitLoadload v   LoadEnterenter   EnterExitexit   ExitEnter   ExitStorestore v   StoreEnterenter   EnterExitexit</code></td>
+</tr>
+</tbody>
+</table>
+
+<p>Java-level access to atomic conditional update operations will be available in JDK1.5 via <a href="http://gee.cs.oswego.edu/dl/concurrency-interest/">JSR-166 (concurrency utilities)</a> so compilers will need to issue associated code, using a variant of the above table that collapses MonitorEnter and MonitorExit &ndash; semantically, and sometimes in practice, these Java-level atomic updates act as if they are surrounded by locks.</p>
+
+<h2 id="multiprocessors">Multiprocessors</h2>
+
+<p>Here&rsquo;s a listing of processors that are commonly used in MPs, along with links to documents providing information about them. (Some require some clicking around from the linked site and/or free registration to access manuals). This isn&rsquo;t an exhaustive list, but it includes processors used in all current and near-future multiprocessor Java implementations I know of. The list and the properties of processors decribed below are not definitive. In some cases I&rsquo;m just reporting what I read, and could have misread. Several reference manuals are not very clear about some properties relevant to the JMM. Please help make it definitive.</p>
+
+<p>Good sources of hardware-specific information about barriers and related properties of machines not listed here are <a href="http://www.hpl.hp.com/research/linux/atomic_ops/">Hans Boehm&rsquo;s atomic_ops library</a>, the <a href="http://kernel.org/">Linux Kernel Source</a>, and <a href="http://lse.sourceforge.net/">Linux Scalability Effort</a>. Barriers needed in the linux kernel correspond in straightforward ways to those discussed here, and have been ported to most processors. For descriptions of the underlying models supported on different processors, see <a href="http://rsim.cs.uiuc.edu/~sadve/">Sarita Adve et al, Recent Advances in Memory Consistency Models for Hardware Shared-Memory Systems</a> and <a href="http://rsim.cs.uiuc.edu/~sadve/">Sarita Adve and Kourosh Gharachorloo, Shared Memory Consistency Models: A Tutorial</a>.</p>
+
+<ul>
+<li>sparc-TSO</li>
+</ul>
+
+<p>Ultrasparc 1, 2, 3 (sparcv9) in TSO (Total Store Order) mode. Ultra3s only support TSO mode. (RMO mode in Ultra1/2 is never used so can be ignored.) See <a href="http://www.sun.com/processors/manuals/index.html">UltraSPARC III Cu User&rsquo;s Manual</a> and <a href="http://www.sparc.com/resource.htm">The SPARC Architecture Manual, Version 9 </a>.</p>
+
+<ul>
+<li>x86 (and x64)</li>
+</ul>
+
+<p>Intel 486+, as well as AMD and apparently others. There was a flurry of re-specs in 2005-2009, but the current specs are nearly identical to TSO, differing mainly only in supporting different cache modes, and dealing with corner cases such as unaligned accesses and special forms of instructions. See <a href="http://www.intel.com/products/processor/manuals/">The IA-32 Intel Architecture Software Developers Manuals: System Programming Guide</a> and <a href="http://www.amd.com/us-en/Processors/DevelopWithAMD/0,,30_2252_875_7044,00.html">AMD Architecture Programmer&rsquo;s Manual Programming</a>.</p>
+
+<ul>
+<li>ia64</li>
+</ul>
+
+<p>Itanium. See <a href="http://developer.intel.com/design/itanium/manuals/iiasdmanual.htm">Intel Itanium Architecture Software Developer&rsquo;s Manual, Volume 2: System Architecture</a></p>
+
+<ul>
+<li>ppc (POWER)</li>
+</ul>
+
+<p>All versions have the same basic memory model, but the names and definition of some memory barrier instructions changed over time. The listed versions have been current since Power4; see architecture manuals for details. See <a href="http://www.motorola.com/PowerPC/">MPC603e RISC Microprocessor Users Manual</a>, <a href="http://www.motorola.com/PowerPC/">MPC7410/MPC7400 RISC Microprocessor Users Manual </a>, <a href="http://www-106.ibm.com/developerworks/eserver/articles/archguide.html">Book II of PowerPC Architecture Book</a>, <a href="http://www-3.ibm.com/chips/techlib/techlib.nsf/techdocs/F6153E213FDD912E87256D49006C6541">PowerPC Microprocessor Family: Software reference manual</a>, <a href="http://www-3.ibm.com/chips/techlib/techlib.nsf/techdocs/852569B20050FF778525699600682CC7">Book E- Enhanced PowerPC Architecture</a>, <a href="http://e-www.motorola.com/webapp/sps/site/overview.jsp?nodeId=03M943030450467M0ys3k3KQ">EREF: A Reference for Motorola Book E and the e500 Core</a>. For discussion of barriers see <a href="http://www-1.ibm.com/servers/esdd/articles/power4_mem.html">IBM article on power4 barriers</a>, and <a href="http://www-106.ibm.com/developerworks/eserver/articles/powerpc.html">IBM article on powerpc barriers</a>.</p>
+
+<ul>
+<li>arm</li>
+</ul>
+
+<p>Version 7+. See <a href="http://infocenter.arm.com/help/index.jsp">ARM processor specifications</a></p>
+
+<ul>
+<li>alpha</li>
+</ul>
+
+<p>21264x and I think all others. See <a href="http://www.alphalinux.org/docs/alphaahb.html">Alpha Architecture Handbook</a></p>
+
+<ul>
+<li>pa-risc</li>
+</ul>
+
+<p>HP pa-risc implementations. See the <a href="http://h21007.www2.hp.com/dspp/tech/tech_TechDocumentDetailPage_IDX/1,1701,2533,00.html">pa-risc 2.0 Architecture</a> manual.</p>
+
+<p>Here&rsquo;s how these processors support barriers and atomics:</p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Processor</strong></th>
+<th><strong>LoadStore</strong></th>
+<th><strong>LoadLoad</strong></th>
+<th><strong>StoreStore</strong></th>
+<th><strong>StoreLoad</strong></th>
+<th><strong>Datadependencyorders loads?</strong></th>
+<th><strong>AtomicConditional</strong></th>
+<th><strong>OtherAtomics</strong></th>
+<th><strong>Atomicsprovidebarrier?</strong></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>sparc-TSO</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>membar(StoreLoad)</td>
+<td>yes</td>
+<td>CAS:casa</td>
+<td>swap,ldstub</td>
+<td>full</td>
+</tr>
+
+<tr>
+<td>x86</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>mfence or cpuid orlocked insn</td>
+<td>yes</td>
+<td>CAS:cmpxchg</td>
+<td>xchg,locked insn</td>
+<td>full</td>
+</tr>
+
+<tr>
+<td>ia64</td>
+<td>*combinewith*st.rel or ld.acq</td>
+<td>ld.acq</td>
+<td>st.rel</td>
+<td>mf</td>
+<td>yes</td>
+<td>CAS:cmpxchg</td>
+<td>xchg,fetchadd</td>
+<td>target +acq/rel</td>
+</tr>
+
+<tr>
+<td>arm</td>
+<td>dmb(see below)</td>
+<td>dmb(see below)</td>
+<td>dmb-st</td>
+<td>dmb</td>
+<td>indirectiononly</td>
+<td>LL/SC:ldrex/strex</td>
+<td></td>
+<td>targetonly</td>
+</tr>
+
+<tr>
+<td>ppc</td>
+<td>lwsync(see below)</td>
+<td>hwsync(see below)</td>
+<td>lwsync</td>
+<td>hwsync</td>
+<td>indirectiononly</td>
+<td>LL/SC:ldarx/stwcx</td>
+<td></td>
+<td>targetonly</td>
+</tr>
+
+<tr>
+<td>alpha</td>
+<td>mb</td>
+<td>mb</td>
+<td>wmb</td>
+<td>mb</td>
+<td>no</td>
+<td>LL/SC:ldx_l/stx_c</td>
+<td></td>
+<td>targetonly</td>
+</tr>
+
+<tr>
+<td>pa-risc</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>no-op</td>
+<td>yes</td>
+<td>*buildfrom*ldcw</td>
+<td>ldcw</td>
+<td><em>(NA)</em></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="notes">Notes</h3>
+
+<ul>
+<li><p>Some of the listed barrier instructions have stronger properties than actually needed in the indicated cells, but seem to be the cheapest way to get desired effects.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>The listed barrier instructions are those designed for use with normal program memory, but not necessarily other special forms/modes of caching and memory used for IO and system tasks. For example, on x86-SPO, StoreStore barriers (&ldquo;sfence&rdquo;) are needed with WriteCombining (WC) caching mode, which is designed for use in system-level bulk transfers etc. OSes use Writeback mode for programs and data, which doesn&rsquo;t require StoreStore barriers.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>On x86, any lock-prefixed instruction can be used as a StoreLoad barrier. (The form used in linux kernels is the no-op <code>lock; addl $0,0(%%esp)</code>.) Versions supporting the &ldquo;SSE2&rdquo; extensions (Pentium4 and later) support the mfence instruction which seems preferable unless a lock-prefixed instruction like CAS is needed anyway. The cpuid instruction also works but is slower.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>On ia64, LoadStore, LoadLoad and StoreStore barriers are folded into special forms of load and store instructions &ndash; there aren&rsquo;t separate instructions. ld.acq acts as (load; LoadLoad+LoadStore) and st.rel acts as (LoadStore+StoreStore; store). Neither of these provide a StoreLoad barrier &ndash; you need a separate mf barrier instruction for that.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>On both ARM and ppc, there may be opportunities to replace load fences in the presence of data dependencies with non-fence-based instruction sequences. Sequences and cases in which they apply are described in work by the <a href="http://www.cl.cam.ac.uk/~pes20/ppc-supplemental/">Cambridge Relaxed Memory Concurrency Group</a>.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>The sparc membar instruction supports all four barrier modes, as well as combinations of modes. But only the StoreLoad mode is ever needed in TSO. On some UltraSparcs, <em>any</em> membar instruction produces the effects of a StoreLoad, regardless of mode.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>The x86 processors supporting &ldquo;streaming SIMD&rdquo; SSE2 extensions require LoadLoad &ldquo;lfence&rdquo; <em>only</em> only in connection with these streaming instructions.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Although the pa-risc specification does not mandate it, all HP pa-risc implementations are sequentially consistent, so have no memory barrier instructions.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>The only atomic primitive on pa-risc is ldcw, a form of test-and-set, from which you would need to build up atomic conditional updates using techniques such as those in the <a href="http://h21007.www2.hp.com/hpux-devtools/CXX/hpux-devtools.0106/0014.html">HP white paper on spinlocks</a>.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>CAS and LL/SC take multiple forms on different processors, differing only with respect to field width, minimially including 4 and 8 byte versions.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>On sparc and x86, CAS has implicit preceding and trailing full StoreLoad barriers. The sparcv9 architecture manual says CAS need not have post-StoreLoad barrier property, but the chip manuals indicate that it does on ultrasparcs.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>On ppc and alpha, LL/SC have implicit barriers only with respect to the locations being loaded/stored, but don&rsquo;t have more general barrier properties.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>The ia64 cmpxchg instruction also has implicit barriers with respect to the locations being loaded/stored, but additionally takes an optional .acq (post-LoadLoad+LoadStore) or .rel (pre-StoreStore+LoadStore) modifier. The form cmpxchg.acq can be used for MonitorEnter, and cmpxchg.rel for MonitorExit. In those cases where exits and enters are not guaranteed to be matched, an ExitEnter (StoreLoad) barrier may also be needed.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Sparc, x86 and ia64 support unconditional-exchange (swap, xchg). Sparc ldstub is a one-byte test-and-set. ia64 fetchadd returns previous value and adds to it. On x86, several instructions (for example add-to-memory) can be lock-prefixed, causing them to act atomically.</p></li>
+</ul>
+
+<h2 id="recipes">Recipes</h2>
+
+<h3 id="uniprocessors">Uniprocessors</h3>
+
+<p>If you are generating code that is guaranteed to only run on a uniprocessor, then you can probably skip the rest of this section. Because uniprocessors preserve apparent sequential consistency, you never need to issue barriers unless object memory is somehow shared with asynchrononously accessible IO memory. This might occur with specially mapped java.nio buffers, but probably only in ways that affect internal JVM support code, not Java code. Also, it is conceivable that some special barriers would be needed if context switching doesn&rsquo;t entail sufficient synchronization.</p>
+
+<h3 id="inserting-barriers">Inserting Barriers</h3>
+
+<p>Barrier instructions apply</p>
+
+<p>between</p>
+
+<p>different kinds of accesses as they occur during execution of a program. Finding an &ldquo;optimal&rdquo; placement that minimizes the total number of executed barriers is all but impossible. Compilers often cannot tell if a given load or store will be preceded or followed by another that requires a barrier; for example, when a volatile store is followed by a return. The easiest conservative strategy is to assume that the kind of access requiring the &ldquo;heaviest&rdquo; kind of barrier will occur when generating code for any given load, store, lock, or unlock:</p>
+
+<ol>
+<li>Issue a StoreStore barrier before each volatile store.
+(On ia64 you must instead fold this and most barriers into corresponding load or store instructions.)</li>
+<li>Issue a StoreStore barrier after all stores but before return from any constructor for any class with a final field.</li>
+<li>Issue a StoreLoad barrier after each volatile store.
+Note that you could instead issue one before each volatile load, but this would be slower for typical programs using volatiles in which reads greatly outnumber writes. Alternatively, if available, you can implement volatile store as an atomic instruction (for example XCHG on x86) and omit the barrier. This may be more efficient if atomic instructions are cheaper than StoreLoad barriers.</li>
+<li>Issue LoadLoad and LoadStore barriers after each volatile load.
+On processors that preserve data dependent ordering, you need not issue a barrier if the next access instruction is dependent on the value of the load. In particular, you do not need a barrier after a load of a volatile reference if the subsequent instruction is a null-check or load of a field of that reference.</li>
+<li>Issue an ExitEnter barrier either before each MonitorEnter or after each MonitorExit.
+(As discussed above, ExitEnter is a no-op if either MonitorExit or MonitorEnter uses an atomic instruction that supplies the equivalent of a StoreLoad barrier. Similarly for others involving Enter and Exit in the remaining steps.)</li>
+<li>Issue EnterLoad and EnterStore barriers after each MonitorEnter.</li>
+<li>Issue StoreExit and LoadExit barriers before each MonitorExit.</li>
+<li>If on a processor that does not intrinsically provide ordering on indirect loads, issue a LoadLoad barrier before each load of a final field. (Some alternative strategies are discussed in <a href="http://www.cs.umd.edu/~pugh/java/memoryModel/archive/0180.html">this JMM list posting</a>, and <a href="http://lse.sourceforge.net/locking/wmbdd.html">this description of linux data dependent barriers</a>.)</li>
+</ol>
+
+<p>Many of these barriers usually reduce to no-ops. In fact, most of them reduce to no-ops, but in different ways under different processors and locking schemes. For the simplest examples, basic conformance to JSR-133 on x86 or sparc-TSO using CAS for locking amounts only to placing a StoreLoad barrier after volatile stores.</p>
+
+<h3 id="removing-barriers">Removing Barriers</h3>
+
+<p>The conservative strategy above is likely to perform acceptably for many programs. The main performance issues surrounding volatiles occur for the StoreLoad barriers associated with stores. These ought to be relatively rare &ndash; the main reason for using volatiles in concurrent programs is to avoid the need to use locks around reads, which is only an issue when reads greatly overwhelm writes. But this strategy can be improved in at least the following ways:</p>
+
+<ul>
+<li>Removing redundant barriers. The above tables indicate that barriers can be eliminated as follows:</li>
+</ul>
+
+<p>​</p>
+
+<p>| Original   | =&gt;                  | Transformed |      |           |                     |            |
+  | &mdash;&mdash;&mdash;- | &mdash;&mdash;&mdash;&mdash;&mdash;&mdash;- | &mdash;&mdash;&mdash;&ndash; | &mdash;- | &mdash;&mdash;&mdash; | &mdash;&mdash;&mdash;&mdash;&mdash;&mdash;- | &mdash;&mdash;&mdash;- |
+  | 1st        | ops                 | 2nd         | =&gt;   | 1st       | ops                 | 2nd        |
+  | LoadLoad   | [no loads]          | LoadLoad    | =&gt;   |           | [no loads]          | LoadLoad   |
+  | LoadLoad   | [no loads]          | StoreLoad   | =&gt;   |           | [no loads]          | StoreLoad  |
+  | StoreStore | [no stores]         | StoreStore  | =&gt;   |           | [no stores]         | StoreStore |
+  | StoreStore | [no stores]         | StoreLoad   | =&gt;   |           | [no stores]         | StoreLoad  |
+  | StoreLoad  | [no loads]          | LoadLoad    | =&gt;   | StoreLoad | [no loads]          |            |
+  | StoreLoad  | [no stores]         | StoreStore  | =&gt;   | StoreLoad | [no stores]         |            |
+  | StoreLoad  | [no volatile loads] | StoreLoad   | =&gt;   |           | [no volatile loads] | StoreLoad  |</p>
+
+<p>Similar eliminations can be used for interactions with locks, but depend on how locks are implemented. Doing all this in the presence of loops, calls, and branches is left as an exercise for the reader. :-)</p>
+
+<ul>
+<li><p>Rearranging code (within the allowed constraints) to further enable removing LoadLoad and LoadStore barriers that are not needed because of data dependencies on processors that preserve such orderings.</p></li>
+
+<li><p>Moving the point in the instruction stream that the barriers are issued, to improve scheduling, so long as they still occur somewhere in the interval they are required.</p></li>
+
+<li><p>Removing barriers that aren&rsquo;t needed because there is no possibility that multiple threads could rely on them; for example volatiles that are provably visible only from a single thread. Also, removing some barriers when it can be proven that threads can only store or only load certain fields. All this usually requires a fair amount of analysis.</p></li>
+</ul>
+
+<h3 id="miscellany">Miscellany</h3>
+
+<p>JSR-133 also addresses a few other issues that may entail barriers in more specialized cases:</p>
+
+<ul>
+<li><p>Thread.start() requires barriers ensuring that the started thread sees all stores visible to the caller at the call point. Conversely, Thread.join() requires barriers ensuring that the caller sees all stores by the terminating thread. These are normally generated by the synchronization entailed in implementations of these constructs.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Static final initialization requires StoreStore barriers that are normally entailed in mechanics needed to obey Java class loading and initialization rules.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Ensuring default zero/null initial field values normally entails barriers, synchronization, and/or low-level cache control within garbage collectors.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>JVM-private routines that &ldquo;magically&rdquo; set System.in, System.out, and System.err outside of constructors or static initializers need special attention since they are special legacy exceptions to JMM rules for final fields.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Similarly, internal JVM deserialization code that sets final fields normally requires a StoreStore barrier.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Finalization support may require barriers (within garbage collectors) to ensure that Object.finalize code sees all stores to all fields prior to the objects becoming unreferenced. This is usually ensured via the synchronization used to add and remove references in reference queues.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Calls to and returns from JNI routines may require barriers, although this seems to be a quality of implementation issue.</p></li>
+
+<li><p>​</p></li>
+
+<li><p>Most processors have other synchronizing instructions designed primarily for use with IO and OS actions. These don&rsquo;t impact JMM issues directly, but may be involved in IO, class loading, and dynamic code generation.</p></li>
+</ul>
+
+<h2 id="acknowledgments">Acknowledgments</h2>
+
+<p>Thanks to Bill Pugh, Dave Dice, Jeremy Manson, Kourosh Gharachorloo, Tim Harris, Cliff Click, Allan Kielstra, Yue Yang, Hans Boehm, Kevin Normoyle, Juergen Kreileder, Alexander Terekhov, Tom Deneau, Clark Verbrugge, Peter Kessler, Peter Sewell, Jan Vitek, and Richard Grisenthwaite for corrections and suggestions.</p>
+
+<p>A translation of this page is available in <a href="http://www.javareading.com/bof/cookbook-J20060917.html">japanese</a>.</p>
+
+<hr />
+
+<p><a href="http://gee.cs.oswego.edu/dl">Doug Lea</a></p>
+
+<p>Last modified: Tue Mar 22 07:11:36 EDT 2011</p>
+
+				</section>
+			</article>
+		</main>
+	</div> 
+
+	
+
+<div class="col-sm-3 col-sm-offset-1 doc-sidebar">
+	<div id="sidebar">
+	<div class="sidebar-module">
+		<div class="sidebar-toc">
+			<h4 class="sidebar-heading">本文导航</h4>
+			<ul>
+				<li><strong><a href="#title">The JSR-133 Cookbook for Compile Writers</a></strong></li>
+			</ul>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#the-jsr-133-cookbook-for-compiler-writers">The JSR-133 Cookbook for Compiler Writers</a>
+<ul>
+<li><a href="#reorderings">Reorderings</a>
+<ul>
+<li><a href="#volatiles-and-monitors">Volatiles and Monitors</a></li>
+<li><a href="#final-fields">Final Fields</a></li>
+</ul></li>
+<li><a href="#memory-barriers">Memory Barriers</a>
+<ul>
+<li><a href="#categories">Categories</a></li>
+<li><a href="#data-dependency-and-barriers">Data Dependency and Barriers</a></li>
+<li><a href="#interactions-with-atomic-instructions">Interactions with Atomic Instructions</a></li>
+</ul></li>
+<li><a href="#multiprocessors">Multiprocessors</a>
+<ul>
+<li><a href="#notes">Notes</a></li>
+</ul></li>
+<li><a href="#recipes">Recipes</a>
+<ul>
+<li><a href="#uniprocessors">Uniprocessors</a></li>
+<li><a href="#inserting-barriers">Inserting Barriers</a></li>
+<li><a href="#removing-barriers">Removing Barriers</a></li>
+<li><a href="#miscellany">Miscellany</a></li>
+</ul></li>
+<li><a href="#acknowledgments">Acknowledgments</a></li>
+</ul></li>
+</ul>
+</nav>
+		</div>
+	</div>
+	</div>
+</div>
+
+
+</div> 
+
+
+<hr />
+
+<div class="row">
+	<div class="col-sm-8">
+		  <p class="doc-footer-em"><a href="#" onclick="resetSidebarPos()">返回顶部</a></p>
+	</div>
+</div>
+
+</div> 
+
+<footer class="doc-footer">
+	<p>Copyright (c) 2017, nituchao | All rights reserved.</p>
+	<p>Powered by <strong><a href="https://github.com/key-amb/hugo-theme-bootie-docs">Bootie Docs</a></strong> - theme for <a href="http://gohugo.io/">Hugo</a> by <a href="https://github.com/key-amb/">key-amb</a>.</p>
+</footer>
+
+
+
+<script src="http://nituchao.com/js/jquery.min.js"></script>
+<script src="http://nituchao.com/js/bootstrap.min.js"></script>
+
+<script src="http://nituchao.com/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="http://nituchao.com/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://nituchao.com/js/bootie-docs.js"></script>
+
+</body>
+</html>
+
+

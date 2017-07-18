@@ -227,6 +227,11 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/post/papers/jsr-133-cookbook-for-compiler-writers/</loc>
+    <lastmod>2016-10-11T20:39:27+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/about/</loc>
     <lastmod>2016-02-11T12:34:23+08:00</lastmod>
   </url>
@@ -470,6 +475,12 @@
   </url>
   
   <url>
+    <loc>http://nituchao.com/tags/papers/</loc>
+    <lastmod>2016-10-11T20:39:27+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://nituchao.com/tags/paxos/</loc>
     <lastmod>2017-02-15T10:13:27+08:00</lastmod>
     <priority>0</priority>
@@ -549,6 +560,12 @@
   <url>
     <loc>http://nituchao.com/tags/yourkit/</loc>
     <lastmod>2017-03-06T09:34:07+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://nituchao.com/categories/zbc_papers/</loc>
+    <lastmod>2016-10-11T20:39:27+08:00</lastmod>
     <priority>0</priority>
   </url>
   
