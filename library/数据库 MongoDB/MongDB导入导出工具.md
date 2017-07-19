@@ -45,7 +45,7 @@ mongoexport是Linux下的命令行工具，查看该命令的帮助文档可以�
 (setname/host1,host2 for replica sets)
 ```
 
-指定MongoDB服务器端口号。
+指定MongoDB服务器端口号（注意：-p是密码）。
 
 ```shell
 --port=<port>
@@ -53,68 +53,86 @@ mongoexport是Linux下的命令行工具，查看该命令的帮助文档可以�
 
 通常，在导出时指定服务器主机和端口号有以下几种用法
 
-```
+```shell
 # mongoexport -h host1:port
 # mongoexport --host host1 --port 30000
-# mongoexport --host host1:port
+# mongoexport --host replicaSetName/host1,host2 --port 3000
 ```
 
 
 
+2, 指定用户名和密码
+
+当MongoDB设置了账号认证时，需要在导出的时候提供用户名和密码。
+
 ```shell
-[root@c3-miui-sec-elk01 tmp]# mongoexport --help
-Usage:
-  mongoexport <options>
+-u, --username=<username>                       username for authentication
+-p, --password=<password>                       password for authentication
+```
 
-Export data from MongoDB in CSV or JSON format.
 
-See http://docs.mongodb.org/manual/reference/program/mongoexport/ for more information.
 
-general options:
-      --help                                      print usage
-      --version                                   print the tool version and exit
+3, 指定数据库和集合名称
 
-verbosity options:
-  -v, --verbose=<level>                           more detailed log output (include multiple times for more verbosity, e.g. -vvvvv, or specify a numeric value, e.g. --verbose=N)
-      --quiet                                     hide all log output
+在使用mongoexport导出时，需要指定MongoDB的数据库名称和集合名称，可以通过下面两个选项设置。
 
-connection options:
-  -h, --host=<hostname>                           mongodb host to connect to (setname/host1,host2 for replica sets)
-      --port=<port>                               server port (can also use --host hostname:port)
+```shell
+-d, --db=<database-name>                        database to use
+-c, --collection=<collection-name>              collection to use
+```
 
-ssl options:
-      --ssl                                       connect to a mongod or mongos that has ssl enabled
-      --sslCAFile=<filename>                      the .pem file containing the root certificate chain from the certificate authority
-      --sslPEMKeyFile=<filename>                  the .pem file containing the certificate and key
-      --sslPEMKeyPassword=<password>              the password to decrypt the sslPEMKeyFile, if necessary
-      --sslCRLFile=<filename>                     the .pem file containing the certificate revocation list
-      --sslAllowInvalidCertificates               bypass the validation for server certificates
-      --sslAllowInvalidHostnames                  bypass the validation for server name
-      --sslFIPSMode                               use FIPS mode of the installed openssl library
 
-authentication options:
-  -u, --username=<username>                       username for authentication
-  -p, --password=<password>                       password for authentication
-      --authenticationDatabase=<database-name>    database that holds the user's credentials
-      --authenticationMechanism=<mechanism>       authentication mechanism to use
 
-namespace options:
-  -d, --db=<database-name>                        database to use
-  -c, --collection=<collection-name>              collection to use
+4, 指定输出文件
 
-output options:
-  -f, --fields=<field>[,<field>]*                 comma separated list of field names (required for exporting CSV) e.g. -f "name,age"
-      --fieldFile=<filename>                      file with field names - 1 per line
-      --type=<type>                               the output format, either json or csv (defaults to 'json') (default: json)
-  -o, --out=<filename>                            output file; if not specified, stdout is used
+在使用mongoexport导出时，可以选择输出文件的类型(json、csv或控制台)。当选择输出为json类型文件时，可以设置输出每行一个json对象或一个json对象的数组，还可以对输出json进行格式化(pretty)。当选择输出为csv时，可以选择要输出的表头域，也可以省略表头域。默认输出的是json，每行一个json对象。当没有指定`-o`选项时，会将导出内容打印在控制台上。
+
+```shell
+-f, --fields=<field>[,<field>]*					  csv header fields, eg: -f "name,age"
+    --fieldFile=<filename>                        file with field names - 1 per line
+    --type=<type>								  'json' or 'csv', default 'json'
+-o, --out=<filename>                              output file; if not specified, stdout is used
       --jsonArray                                 output to a JSON array rather than one object per line
       --pretty                                    output JSON formatted to be human-readable
       --noHeaderLine                              export CSV data without a list of field names at the first line
+```
 
-querying options:
-  -q, --query=<json>                              query filter, as a JSON string, e.g., '{x:{$gt:1}}'
-      --queryFile=<filename>                      path to a file containing a query filter (JSON)
-  -k, --slaveOk                                   allow secondary reads if available (default true) (default: false)
+通常，在导出时可以有以下组合来指定导出文件的格式和内容。
+
+导出为文件，格式为json，每行一个json对象。
+
+```shell
+-o /tmp/data.txt
+```
+
+导出为文件，格式为json，构成一个json数组。
+
+```shell
+-o /tmp/data.txt --jsonArray
+```
+
+导出为文件，格式为json，构成一个json数组，并进行格式化。
+
+```shell
+-o /tmp/data.txt --jsonArray --pretty
+```
+
+导出为文件，格式为csv，指定表头域。
+
+```shell
+-f "name,age"
+```
+
+
+
+5, 查询条件
+
+在使用mongoexport导出数据时，可以指定查询语句或者指定一个包含查询语句的文件，为导出添加条件。
+
+```shell
+-q, --query=<json>                              query filter, as a JSON string, e.g., '{x:{$gt:1}}'
+    --queryFile=<filename>                      path to a file containing a query filter (JSON)
+-k, --slaveOk                                   allow secondary reads if available (default true) (default: false)
       --readPreference=<string>|<json>            specify either a preference name or a preference json object
       --forceTableScan                            force a table scan (do not use $snapshot)
       --skip=<count>                              number of documents to skip
@@ -122,4 +140,3 @@ querying options:
       --sort=<json>                               sort order, as a JSON string, e.g. '{x:1}'
       --assertExists                              if specified, export fails if the collection does not exist (default: false)
 ```
-
