@@ -34,7 +34,32 @@ MongoDB中的mongoimport工具可以把一个特定文件中的内容导入到�
 
 ### MongoDB导出工具
 
-mongoexport是Linux下的命令行工具，查看该命令的帮助文档如下：
+mongoexport是Linux下的命令行工具，查看该命令的帮助文档可以看到有很多选项，我们重点分析一些常用的选项。
+
+1, 指定主机和端口
+
+指定MongoDB服务器IP地址。
+
+```shell
+-h, --host=<homename>
+(setname/host1,host2 for replica sets)
+```
+
+指定MongoDB服务器端口号。
+
+```shell
+--port=<port>
+```
+
+通常，在导出时指定服务器主机和端口号有以下几种用法
+
+```
+# mongoexport -h host1:port
+# mongoexport --host host1 --port 30000
+# mongoexport --host host1:port
+```
+
+
 
 ```shell
 [root@c3-miui-sec-elk01 tmp]# mongoexport --help
