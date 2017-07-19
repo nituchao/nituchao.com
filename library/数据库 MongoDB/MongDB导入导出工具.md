@@ -162,7 +162,7 @@ mongoimport是Linux下的命令行工具，查看该命令的帮助文档可以�
 --port=<port>
 ```
 
-通常，在导出时指定服务器主机和端口号有以下几种用法
+通常，在导入时指定服务器主机和端口号有以下几种用法
 
 ```shell
 # mongoimport -h host1:port
@@ -185,7 +185,7 @@ mongoimport是Linux下的命令行工具，查看该命令的帮助文档可以�
 
 #### 3, 指定数据库和集合名称
 
-在使用mongoimport导出时，需要指定MongoDB的数据库名称和集合名称，可以通过下面两个选项设置。
+在使用mongoimport导入时，需要指定MongoDB的数据库名称和集合名称，可以通过下面两个选项设置。
 
 ```shell
 -d, --db=<database-name>                        database to use
@@ -195,4 +195,38 @@ mongoimport是Linux下的命令行工具，查看该命令的帮助文档可以�
 
 
 #### 4, 指定输入文件
+
+使用mongoimport导入时需要指定输入文件，如果导入文件是csv格式，或者是jsonArray格式，则需要通过选项指定输入格式。
+
+```shell
+-f, --fields=<field>[,<field>]*                 comma separated list of fields, e.g. -f name,age
+    --fieldFile=<filename>                      file with field names - 1 per line
+    --file=<filename>                           file to import from; if not specified, stdin is used
+    --headerline                                use first line in input source as the field list (CSV and TSV only)
+    --jsonArray                                 treat input source as a JSON array
+    --parseGrace=<grace>                        controls behavior when type coercion fails - one of: autoCast, skipField, skipRow, stop (defaults to 'stop') (default: stop)
+    --type=<type>                               input format to import: json, csv, or tsv (defaults to 'json') (default: json)
+    --columnsHaveTypes                          indicated that the field list (from --fields, --fieldsFile, or --headerline) specifies types; They must be in the form of '<colName>.<type>(<arg>)'. The type
+                                                can be one of: auto, binary, bool, date, date_go, date_ms, date_oracle, double, int32, int64, string. For each of the date types, the argument is a datetime
+                                                layout string. For the binary type, the argument can be one of: base32, base64, hex. All other types take an empty argument. Only valid for CSV and TSV
+                                                imports. e.g. zipcode.string(), thumbnail.binary(base64)
+```
+
+
+
+#### 5, 输入选项
+
+使用mongoimport导入时可以设置一些输入选项，比如在插入前是否要删除已经存在的集合，当发生错误时是否要继续等。
+
+```shell
+--drop                                      drop collection before inserting documents
+--ignoreBlanks                              ignore fields with empty values in CSV and TSV
+--maintainInsertionOrder                    insert documents in the order of their appearance in the input source
+-j, --numInsertionWorkers=<number>          number of insert operations to run concurrently (defaults to 1) (default: 1)
+--stopOnError                               stop importing at first insert/upsert error
+--mode=[insert|upsert|merge]                insert: insert only. upsert: insert or replace existing documents. merge: insert or modify existing documents. defaults to insert
+--upsertFields=<field>[,<field>]*           comma-separated fields for the query part when --mode is set to upsert or merge
+--writeConcern=<write-concern-specifier>    write concern options e.g. --writeConcern majority, --writeConcern '{w: 3, wtimeout: 500, fsync: true, j: true}' (defaults to 'majority') (default: majority)
+--bypassDocumentValidation                  bypass document validation
+```
 
