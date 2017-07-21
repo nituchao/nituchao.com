@@ -224,4 +224,56 @@ class VolatileExample {
 }
 ```
 
-假设一个线程调用writer()函数，另一个线程调用reader()函数。在writer中的写入v向内存释放写入x到内存，读取v从内存获取该值。因此，如果读者看到v的值，也保证看到在它之前发生的42。这在旧的内存模型下是不真实的。如果v不变，编译器可以对writer中的写入重新排序，reader的读读可能会看到0。
+假设一个线程调用writer()函数，另一个线程调用reader()函数。由于变量v是volatile的，在writer()中，可以保证对x的写入操作`happens-before`对v的写入操作。因此，如果reader()函数中读取到v的值为true，则可以保证此时可以读取到x的值42。这在旧的内存模型下是不能保证的。如果v是非volatile字段，编译器可以在writer()中对x和y的写入操作进行重新排序，在reader()中读取到的x可能为0。
+
+实际上，volatile的语义已经得到了显著的增强，几乎达到了同步的程度。为了可见性，每个读或写一个volatile字段就像“半”同步。
+
+**重要注意事项: ** 注意，两个线程都必须访问相同的volatile变量，以便正确设置`happens-before`关系。
+
+### 新的内存模型是否修复了“双检查锁定”问题？
+
+首先声明，"双检查锁定"的写法是错误的，建议使用静态内部类或者枚举的方式来获取单例对象。
+
+臭名昭著的双重检查锁定习语(也称为多线程单例模式)是一种用于支持延迟初始化的技巧，同时避免了同步的开销。在早期的JVM中，同步是缓慢的，开发人员急于移除它——也许过于急切。双重检查锁定习语是这样的:
+
+```java
+// double-checked-locking - don't do this!
+
+private static Something instance = null;
+
+public Something getInstance() {
+  if (instance == null) {
+    synchronized (this) {
+      if (instance == null)
+        instance = new Something();
+    }
+  }
+  return instance;
+}
+```
+
+这看起来很聪明 —— 在公共代码路径上避免了同步。它只有一个问题 —— **It does not work**。 为什么呢？ 最明显的原因是初始化实例和对实例字段的写入可以由编译器或缓存重新排序，这将具有返回看起来是部分构造的Something的效果。 结果将是我们读取一个未初始化的对象。 还有很多其他原因，为什么这是错误的，为什么算法校正是错误的。 没有办法使用旧的Java内存模型进行修复。 关于"双检查锁定"问题的深入探讨可以参见: [Double-checked locking: Clever, but broken](http://www.javaworld.com/jw-02-2001/jw-0209-double.html)和[The "Double Checked Locking is broken" declaration](http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html)。
+
+许多人认为使用volatile关键字可以消除在尝试使用双重锁定模式时出现的问题。在1.5之前的JVM中，volatile不能确保它的工作(您的历程可能有所不同)。在新的内存模型中，使用volatile的实例字段将会“修复”双重检查锁定的问题，因为在构造线程的初始化和读取它的线程返回值之前，会有一个`happens-before`的关系。
+
+通常，对于单例对象的实例化，我们推荐使用静态内部类的方式进行：
+
+```java
+private static class LazySomethingHolder {
+  public static Something something = new Something();
+}
+
+public static Something getInstance() {
+  return LazySomethingHolder.something;
+}
+```
+
+这段代码被保证是正确的，因为静态字段的初始化保证;如果在静态初始化器中设置了一个字段，那么它就会被保证对访问该类的任何线程都是可见的。
+
+### 如果我在写虚拟机呢？
+
+你可以参考[Doug Lea](http://gee.cs.oswego.edu/dl)的[The JSR-133 Cookbook for Compiler Writers]([http://gee.cs.oswego.edu/dl/jmm/cookbook.html ](http://gee.cs.oswego.edu/dl/jmm/cookbook.html))一文。
+
+### 我为什么要在意？
+
+你为什么要关心？ 并发错误很难调试。 他们经常不出现在测试中，直到你的程序在重负载下运行才可能出现，他们非常难以重现和陷阱。 开发者最好在写代码前下功夫研究并发编程的相关技术，以确保您的程序正确同步; 虽然这不容易，但比尝试调试严重同步的应用程序要容易得多。
