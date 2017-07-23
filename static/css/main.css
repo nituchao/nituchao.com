@@ -52,7 +52,7 @@ code, pre {
     margin-top: 20px;
 }
 #render table {
-    width: auto;
+    width: 100%;
 }
 #render img {
     max-width: 100%;
