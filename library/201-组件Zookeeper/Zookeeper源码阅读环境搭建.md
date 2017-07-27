@@ -8,10 +8,11 @@
 
 ### 1，从Github上检出Zookeeper项目代码
 
-在Github上搜索zookeeper，找到Apache下的Zookeeper项目，然后下载zip包，也可以使用下面的命令检出源代码。
+在Github上搜索zookeeper，找到Apache下的Zookeeper项目，然后下载zip包，也可以使用下面的命令检出源代码，然后切换到zookeeper-3.5分支上。
 
 ```shell
 $ git clone https://github.com/nituchao/zookeeper.git
+$ git checkout -b zookeeper-3.5 remotes/origin/branch-3.5
 ```
 
 检出源代码后，使用`ll -a`命令，可以看到源码结构如下：
@@ -79,7 +80,21 @@ c) 选择导入的项目
 
 ![选择导入的项目](http://olno3yiqc.bkt.clouddn.com/idea_zookeeper_project_select.png)
 
+### 设置运行环境
+
+Zookeeper的运行环境要求JDK 1.7+，因此要在项目设置里指定JDK版本。另外，将语言等级提示设置为7，这样可以避免IDEA对很多JDK 1.7以上的新语法的错误提示。
+
+![设置JDK](http://olno3yiqc.bkt.clouddn.com/jdk-setting.png)
+
+
+
 ### 运行Zookeeper
 
-Zookeeper的运行环境要求JDK 1.7+，因此要在项目设置里指定JDK版本。
+单机版Zookeeper的启动类是`org.apache.zookeeper.server.ZooKeeperServerMain`，找打它的`main`函数，然后右键"Debug"就可以启动Zookeeper的服务器端程序，由于没有使用任何参数，Zookeeper使用默认配置参数。启动后，在控制台会有如下输出，这实际是Zookeeper启动的一个命令行控制台，可以接受输入命令。
+
+```shell
+Welcome to ZooKeeper!
+JLine support is enabled
+[zk: localhost:2181(CONNECTING) 0]
+```
 
