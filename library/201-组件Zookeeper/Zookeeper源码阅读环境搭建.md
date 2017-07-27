@@ -98,3 +98,8 @@ JLine support is enabled
 [zk: localhost:2181(CONNECTING) 0]
 ```
 
+
+
+### 结束语
+
+最近为了研究Zookeeper的源代码花了不少精力。Zookeeper源码使用Ant + Ivy来管理，而没有使用Maven来管理。另外，Zookeeper默认的是Eclipse开发环境，要导入到IDEA中需要转换和配置，最后经过几番尝试，终于配置成功，项目不会报错，可以直接Debug，也算是完美。
