@@ -905,7 +905,8 @@ class MarkdownExtra extends \Michelf\Markdown {
 		$alt_text = $this->encodeAttribute($alt_text);
 		if (isset($this->urls[$link_id])) {
 			$url = $this->encodeURLAttribute($this->urls[$link_id]);
-			$result = "<img src=\"$url\" alt=\"$alt_text\"";
+			$result = "<div style='text-align:center;padding:15px 0px 15px 0px;'>";
+			$result .= "<img src=\"$url\" alt=\"$alt_text\"";
 			if (isset($this->titles[$link_id])) {
 				$title = $this->titles[$link_id];
 				$title = $this->encodeAttribute($title);
@@ -915,6 +916,7 @@ class MarkdownExtra extends \Michelf\Markdown {
 				$result .= $this->ref_attr[$link_id];
 			$result .= $this->empty_element_suffix;
 			$result = $this->hashPart($result);
+			$result .= "</div>";
 		}
 		else {
 			# If there's no such link ID, leave intact:
@@ -932,13 +934,15 @@ class MarkdownExtra extends \Michelf\Markdown {
 
 		$alt_text = $this->encodeAttribute($alt_text);
 		$url = $this->encodeURLAttribute($url);
-		$result = "<img src=\"$url\" alt=\"$alt_text\"";
+		$result = "<div style='text-align:center;padding:15px 0px 15px 0px;'>";
+		$result .= "<img src=\"$url\" alt=\"$alt_text\"";
 		if (isset($title)) {
 			$title = $this->encodeAttribute($title);
 			$result .=  " title=\"$title\""; # $title already quoted
 		}
 		$result .= $attr;
 		$result .= $this->empty_element_suffix;
+		$result .= "</div>";
 
 		return $this->hashPart($result);
 	}
