@@ -723,7 +723,7 @@ class Markdown implements MarkdownInterface {
 		$alt_text = $this->encodeAttribute($alt_text);
 		if (isset($this->urls[$link_id])) {
 			$url = $this->encodeURLAttribute($this->urls[$link_id]);
-			$result = "<div style="text-align:center;padding:15px 0px 15px 0px;">";
+			$result = "<div style='text-align:center;padding:15px 0px 15px 0px;'>";
 			$result .= "<img src=\"$url\" alt=\"$alt_text\"";
 			if (isset($this->titles[$link_id])) {
 				$title = $this->titles[$link_id];
@@ -749,7 +749,7 @@ class Markdown implements MarkdownInterface {
 
 		$alt_text = $this->encodeAttribute($alt_text);
 		$url = $this->encodeURLAttribute($url);
-                $result = "<div style="text-align:center;padding:15px 0px 15px 0px;">";
+                $result = "<div style='text-align:center;padding:15px 0px 15px 0px;'>";
 		$result .= "<img src=\"$url\" alt=\"$alt_text\"";
 		if (isset($title)) {
 			$title = $this->encodeAttribute($title);
