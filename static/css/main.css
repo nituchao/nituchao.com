@@ -46,6 +46,14 @@ a, a:focus {
 code, pre {
     font-family: monospace;
 }
+code {
+    background: #f0f0f0;
+    text-shadow: 0 1px #fff;
+    font-size: 0.85em;
+    padding: 0 0.3em;
+    border: 1px solid #dcdcdc;
+    border-radius: 3px;
+}
 #render h1:first-child,
 #render h2:first-child {
     margin-top: 0;
