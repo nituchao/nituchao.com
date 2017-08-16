@@ -51,7 +51,6 @@ code {
     text-shadow: 0 1px #fff;
     font-size: 0.85em;
     padding: 0 0.3em;
-    border: 1px solid #dcdcdc;
     border-radius: 3px;
 }
 #render h1:first-child,
